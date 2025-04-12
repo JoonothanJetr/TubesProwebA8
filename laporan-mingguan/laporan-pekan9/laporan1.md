@@ -5,7 +5,7 @@
 **Tanggal**: 12/4/2025
 
 ## Progress Summary
-[Ringkasan progres minggu ini dalam 2-3 kalimat]
+Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikasi kebutuhan utama sistem, di mana mitra merupakan pelaku usaha catering yang membutuhkan sistem informasi berbasis website bernama SI CATE untuk mempermudah proses pemesanan dan pengelolaan operasional. Berdasarkan hasil diskusi, ditetapkan fitur-fitur MVP yang terdiri dari daftar, masuk, katalog, keranjang, pemesanan, pembayaran, dan status pesanan, lalu dilanjutkan dengan pembuatan wireframe awal. Tim kemudian menyiapkan struktur proyek dan repository, serta menentukan teknologi pendukung tambahan seperti xxx untuk manajemen gambar produk.
 
 ## Accomplished Tasks
 - [Task 1 yang berhasil diselesaikan]
