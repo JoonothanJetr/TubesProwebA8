@@ -9,7 +9,7 @@
 
 
 ## Progress Summary
-Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikasi kebutuhan utama sistem, di mana mitra merupakan pelaku usaha catering yang membutuhkan sistem informasi berbasis website bernama SI CATE untuk mempermudah proses pemesanan dan pengelolaan operasional. Berdasarkan hasil diskusi, ditetapkan fitur-fitur MVP yang terdiri dari daftar, masuk, katalog, keranjang, pemesanan, pembayaran, dan status pesanan, lalu dilanjutkan dengan pembuatan wireframe awal. Tim kemudian menyiapkan struktur proyek dan repository, serta menentukan teknologi pendukung tambahan seperti xxx untuk manajemen gambar produk.
+Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikasi kebutuhan utama sistem, di mana mitra merupakan pelaku usaha catering yang membutuhkan sistem informasi berbasis website bernama SI CATE untuk mempermudah proses pemesanan dan pengelolaan operasional. Berdasarkan hasil diskusi kelompok kami, ditetapkan fitur-fitur MVP yang terdiri dari daftar, masuk, katalog, keranjang, pemesanan, pembayaran, dan status pesanan, lalu dilanjutkan dengan pembuatan wireframe awal. Tim kemudian menyiapkan struktur proyek dan repository, serta menentukan teknologi pendukung tambahan seperti xxx untuk manajemen gambar produk.
 
 ## Accomplished Tasks
 - Deskripsi kebutuhan mitra, menentukan fitur-fitur MVP, dan timeline
