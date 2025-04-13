@@ -50,5 +50,3 @@ Berikut adalah design awal proyek aplikasi SI CATE. Mockup yang kami buat menamp
 ## Timeline Minggu9
 ![alt text](Timeline.png)
 
-## Screenshots / Demo
-[Sertakan screenshot atau link demo aplikasi minggu ini]
