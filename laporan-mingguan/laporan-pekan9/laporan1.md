@@ -10,6 +10,10 @@
 
 ## Progress Summary
 Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikasi kebutuhan utama sistem, di mana mitra merupakan pelaku usaha catering yang membutuhkan sistem informasi berbasis website bernama SI CATE untuk mempermudah proses pemesanan dan pengelolaan operasional. Berdasarkan hasil diskusi kelompok kami, ditetapkan fitur-fitur MVP yang terdiri dari daftar, masuk, katalog, keranjang, pemesanan, pembayaran, dan status pesanan, lalu dilanjutkan dengan pembuatan wireframe awal. Tim kemudian menyiapkan struktur proyek dan repository, serta menentukan teknologi pendukung tambahan seperti xxx untuk manajemen gambar produk.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2b0d1e08b18e08d4f1ee3281dc3e933b176cb278
 
 ## Accomplished Tasks
 - Deskripsi kebutuhan mitra, menentukan fitur-fitur MVP, dan timeline
@@ -23,6 +27,10 @@ Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikas
 - **Solution**: Untuk mengatasinya, tim melakukan diskusi lanjutan dengan mitra serta menyusun daftar kebutuhan berdasarkan urgensi, sehingga fitur yang dirancang bisa lebih relevan dan tepat guna.
 
 ## Next Week Plan
+<<<<<<< HEAD
+=======
+- Membuat skema database (ERD) yang akan diimplementasikan
+>>>>>>> 2b0d1e08b18e08d4f1ee3281dc3e933b176cb278
 - Membuat skema (ERD) database yang akan diimplementasikan
 - Mengimplementasikan struktur database di PostgreSQL
 - Membuat REST API skeleton (endpoint dasar)
@@ -47,3 +55,7 @@ Berikut adalah design awal proyek aplikasi SI CATE. Mockup yang kami buat menamp
 
 ## Timeline Minggu9
 ![alt text](Timeline.png)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2b0d1e08b18e08d4f1ee3281dc3e933b176cb278
