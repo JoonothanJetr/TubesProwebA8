@@ -9,11 +9,7 @@
 
 
 ## Progress Summary
-<<<<<<< HEAD
-Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikasi kebutuhan utama sistem, di mana mitra merupakan pelaku usaha catering yang membutuhkan sistem informasi berbasis website bernama SI CATE untuk mempermudah proses pemesanan dan pengelolaan operasional. Berdasarkan hasil diskusi kelompok kami, ditetapkan fitur-fitur MVP yang terdiri dari daftar, masuk, katalog, keranjang, pemesanan, pembayaran, dan status pesanan, lalu dilanjutkan dengan pembuatan wireframe awal. Tim kemudian menyiapkan struktur proyek dan repository, serta menentukan teknologi pendukung tambahan seperti Vite dan Postman.
-=======
 Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikasi kebutuhan utama sistem, di mana mitra merupakan pelaku usaha catering yang membutuhkan sistem informasi berbasis website bernama SI CATE untuk mempermudah proses pemesanan dan pengelolaan operasional. Berdasarkan hasil diskusi kelompok kami, ditetapkan fitur-fitur MVP yang terdiri dari daftar, masuk, katalog, keranjang, pemesanan, pembayaran, dan status pesanan, lalu dilanjutkan dengan pembuatan wireframe awal. Tim kemudian menyiapkan struktur proyek dan repository, serta menentukan teknologi pendukung tambahan seperti xxx untuk manajemen gambar produk.
->>>>>>> f2bb1e550469e12dc3fb6fe99e90e5fdfc84d001
 
 ## Accomplished Tasks
 - Deskripsi kebutuhan mitra, menentukan fitur-fitur MVP, dan timeline
@@ -27,11 +23,7 @@ Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikas
 - **Solution**: Untuk mengatasinya, tim melakukan diskusi lanjutan dengan mitra serta menyusun daftar kebutuhan berdasarkan urgensi, sehingga fitur yang dirancang bisa lebih relevan dan tepat guna.
 
 ## Next Week Plan
-<<<<<<< HEAD
-- Membuat skema database (ERD) yang akan diimplementasikan
-=======
 - Membuat skema (ERD) database yang akan diimplementasikan
->>>>>>> f2bb1e550469e12dc3fb6fe99e90e5fdfc84d001
 - Mengimplementasikan struktur database di PostgreSQL
 - Membuat REST API skeleton (endpoint dasar)
 - Menyiapkan struktur frontend basic
@@ -44,7 +36,6 @@ Proses pengembangan diawali dengan pertemuan bersama mitra untuk mengidentifikas
 Express, PostgreSQL)
 - **Nicholas Christian Samuel Manurung**: Menentukan fitur MVP (Minimum Viable Product), Membuat wireframe/mockup awal
 
-<<<<<<< HEAD
 ## Screenshots Mockup 
 Berikut adalah design awal proyek aplikasi SI CATE. Mockup yang kami buat menampilkan halaman utama Toba Home Catering yang berisi penjelasan singkat tentang layanan katering, gambar makanan khas Toba, serta katalog produk populer. Selain itu, tersedia panduan cara pemesanan, testimoni pelanggan, fitur customer service berupa formulir, serta halaman masuk dan daftar untuk pelanggan dan admin. Pada minggu ini, kami baru menyelesaikan desain awal, sementara pengembangan fitur lainnya akan dilanjutkan di minggu berikutnya
 
@@ -56,7 +47,3 @@ Berikut adalah design awal proyek aplikasi SI CATE. Mockup yang kami buat menamp
 
 ## Timeline Minggu9
 ![alt text](Timeline.png)
-=======
-## Screenshots / Demo
-[Sertakan screenshot atau link demo aplikasi minggu ini]
->>>>>>> f2bb1e550469e12dc3fb6fe99e90e5fdfc84d001
