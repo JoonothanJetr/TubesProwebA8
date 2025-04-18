@@ -29,7 +29,7 @@ pool.connect((err, client, done) => {
 
 // Basic routes
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to Catering E-commerce API' });
+    res.json({ message: 'Welcome to SICATE API' });
 });
 
 // Products routes

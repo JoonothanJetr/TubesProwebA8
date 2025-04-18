@@ -44,7 +44,7 @@ app.use('/api/reviews', reviewRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to Catering E-commerce API' });
+    res.json({ message: 'Welcome to SICATE API' });
 });
 
 // Error handling middleware
