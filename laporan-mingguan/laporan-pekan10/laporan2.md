@@ -29,7 +29,7 @@ Progres pada minggu ini dilanjutkan dengan merancang skema database berdasarkan 
 - **Chelsy Olivia**: Membuat laporan (Md), membuat ERD
 - **Andini Permata Sari**: Membantu membuat laporan (Md), membantu membuat ERD
 - **Jonathan Cristopher Jetro**: Membuat struktur database, membuat frontend dan backend skeleton
-- **Nicholas Christian Samuel Manurung**: [Deskripsi kontribusi]
+- **Nicholas Christian Samuel Manurung**: Tidak Aktif
 
 ## Screenshots
 ## 1. Skema Database (ERD Dia)
@@ -46,5 +46,75 @@ Setelah pembelian, pengguna dapat memberikan penilaian atau ulasan terhadap prod
 Untuk lebih jelas bisa dibuka di repositori berikut TubesProwebA8\ecommerce-backend\docs\API.md
 
 ## 3. Struktur Frontend Basic
+# Struktur Folder dan File Ecommerce-Frontend
+```
+ecommerce-frontend/
+│
+├── package.json
+├── package-lock.json
+├── .env
+├── tailwind.config.js
+├── vite.config.js
+├── eslint.config.js
+├── index.html
+├── .gitignore
+├── README.md
+│
+├── public/
+│   ├── manifest.json
+│   ├── index.html
+│   └── vite.svg
+│
+├── src/
+│   ├── index.js
+│   ├── index.css
+│   ├── App.js
+│   ├── reportWebVitals.js
+│   │
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Layout.js
+│   │   │   └── Footer.js
+│   │   │
+│   │   ├── auth/
+│   │   │   ├── Login.js
+│   │   │   └── Register.js
+│   │   │
+│   │   ├── products/
+│   │   │   ├── ProductList.js
+│   │   │   └── ProductDetail.js
+│   │   │
+│   │   ├── cart/
+│   │   │   └── CartList.js
+│   │   │
+│   │   └── orders/
+│   │       ├── OrderList.js
+│   │       └── OrderDetail.js
+│   │
+│   ├── services/
+│   │   ├── authService.js
+│   │   ├── productService.js
+│   │   ├── cartService.js
+│   │   ├── orderService.js
+│   │   └── reviewService.js
+│   │
+│   ├── utils/
+│   │   └── (fungsi-fungsi utilitas)
+│   │
+│   ├── store/
+│   │   └── (state management)
+│   │
+│   ├── pages/
+│   │   └── (komponen halaman)
+│   │
+│   └── assets/
+│       └── (gambar, font, aset statis)
+│
+└── node_modules/
+    └── (dependensi yang diinstal)
+
+```
+Berikut adalah struktur folder frondend basic di local path, Struktur ini menunjukkan hierarki folder dan file dalam proyek, dengan cabang yang menurun ke bawah untuk setiap direktori.
+
 ![alt text](<gambar awalan.png>)
 Pada gambar diatas merupakan awalan untuk aplikasi web yang bernama SI CATE yang berfungsi untuk melihat produk makanan catering. Bisa dilihat pada gambar, progres awalan sudah terdapat menu navigasi yang terdiri dari Produk, Keranjang, dan Pesanan serta di sisi kanan terdapat opsi Profile dan Logout yang menandakan bahwa pengguna telah masuk ke dalam akun mereka.Secara keseluruhan, halaman ini menampilkan tampilan katalog produk yang berisi nama makanan dan harga.
