@@ -1,7 +1,8 @@
 # Laporan Progres Mingguan - SICATE
 **Kelompok**: 8
 
-**Nama Anggota Kelompok**: 1. Andini Permata Sari (10231015)
+**Nama Anggota Kelompok**: 
+1. Andini Permata Sari (10231015)
 
 2. Chelsy Olivia (10231025)
 
