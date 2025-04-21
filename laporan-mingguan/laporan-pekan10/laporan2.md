@@ -2,8 +2,11 @@
 **Kelompok**: 8
 
 **Nama Anggota Kelompok**: 1. Andini Permata Sari (10231015)
+
 2. Chelsy Olivia (10231025)
+
 3. Jonathan Cristopher Jetro (10231047)
+
 4. Nicholas Christian Samuel Manurung (10231069)
 
 **Mitra**: Toba Home Catering
