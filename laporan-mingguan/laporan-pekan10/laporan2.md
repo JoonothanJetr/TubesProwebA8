@@ -1,11 +1,21 @@
 # Laporan Progres Mingguan - SICATE
 **Kelompok**: 8
 
+**Nama Anggota Kelompok**: 1. Andini Permata Sari (10231015)
+2. Chelsy Olivia (10231025)
+3. Jonathan Cristopher Jetro (10231047)
+4. Nicholas Christian Samuel Manurung (10231069)
+
 **Mitra**: Toba Home Catering
 
 **Pekan ke-**: 10
 
 **Tanggal**: 18/04/2025
+
+**Nama Anggota Kelompok**: 1. Andini Permata Sari (10231015)
+2. Chelsy Olivia (10231025)
+3. Jonathan Cristopher Jetro (10231047)
+4. Nicholas Christian Samuel Manurung (10231069)
 
 ## Progress Summary
 Progres pada minggu ini dilanjutkan dengan merancang skema database berdasarkan kebutuhan fitur MVP, lalu mengimplementasikannya ke dalam PostgreSQL untuk memastikan data tersimpan dengan baik dan terstruktur. Setelah itu, tim membuat kerangka dasar REST API untuk menangani endpoint utama serta menyiapkan struktur awal antarmuka pengguna pada sisi frontend. Seluruh progres tersebut kemudian didemokan kepada mitra untuk mendapatkan masukan dan validasi pengembangan sistem.
