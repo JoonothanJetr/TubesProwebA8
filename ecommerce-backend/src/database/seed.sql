@@ -8,35 +8,57 @@ INSERT INTO users (username, email, password, role) VALUES
 ('jane_smith', 'jane@example.com', '$2a$10$KI0LYZFn6JHgI8LQxHLcqOKkU7HCzYF3R8UOL3Wk.4q9kF7O9Wjm6', 'customer');
 
 -- Insert sample products
-INSERT INTO products (name, description, price, image_url, category, stock) VALUES 
-('Nasi Kotak Ayam Goreng', 'Nasi putih dengan ayam goreng, sayur, dan sambal', 25000, 'https://example.com/nasi-kotak-1.jpg', 'Nasi Kotak', 100),
-('Nasi Kotak Rendang', 'Nasi putih dengan rendang sapi, sayur, dan sambal', 35000, 'https://example.com/nasi-kotak-2.jpg', 'Nasi Kotak', 75),
-('Tumpeng Mini', 'Tumpeng mini untuk 5 orang dengan lauk lengkap', 150000, 'https://example.com/tumpeng-1.jpg', 'Tumpeng', 20),
-('Snack Box A', 'Berisi 3 macam snack dan air mineral', 15000, 'https://example.com/snack-1.jpg', 'Snack Box', 200),
-('Snack Box B', 'Berisi 5 macam snack dan air mineral', 25000, 'https://example.com/snack-2.jpg', 'Snack Box', 150);
+INSERT INTO products (name, description, price, image_url, category) VALUES 
+-- Makanan Utama
+('Nasi Goreng Spesial', 'Nasi goreng dengan telur, ayam, dan sayuran segar', 35000, '/images/nasi-goreng.jpg', 'makanan-utama'),
+('Ayam Bakar Madu', 'Ayam bakar dengan bumbu madu special', 45000, '/images/ayam-bakar.jpg', 'makanan-utama'),
+('Rendang Sapi', 'Rendang daging sapi dengan bumbu traditional', 50000, '/images/rendang.jpg', 'makanan-utama'),
+('Sate Ayam', 'Sate ayam dengan bumbu kacang', 40000, '/images/sate-ayam.jpg', 'makanan-utama'),
+
+-- Makanan Pembuka
+('Lumpia Sayur', 'Lumpia isi sayuran segar', 15000, '/images/lumpia.jpg', 'makanan-pembuka'),
+('Sop Buntut', 'Sop buntut sapi dengan kuah bening', 25000, '/images/sop-buntut.jpg', 'makanan-pembuka'),
+('Gado-gado', 'Sayuran segar dengan bumbu kacang', 20000, '/images/gado-gado.jpg', 'makanan-pembuka'),
+
+-- Makanan Penutup
+('Es Teler', 'Es teler dengan alpukat, kelapa muda, dan cincau', 18000, '/images/es-teler.jpg', 'makanan-penutup'),
+('Pudding Coklat', 'Pudding coklat dengan saus vanila', 15000, '/images/pudding.jpg', 'makanan-penutup'),
+('Pisang Goreng', 'Pisang goreng dengan topping keju dan coklat', 20000, '/images/pisang-goreng.jpg', 'makanan-penutup'),
+
+-- Minuman
+('Es Teh Manis', 'Teh manis dingin', 8000, '/images/es-teh.jpg', 'minuman'),
+('Jus Alpukat', 'Jus alpukat segar dengan susu', 15000, '/images/jus-alpukat.jpg', 'minuman'),
+('Lemon Tea', 'Teh dengan perasan lemon segar', 12000, '/images/lemon-tea.jpg', 'minuman');
 
 -- Insert sample orders
+-- Pastikan total_amount sesuai dengan jumlah harga items
+-- Note: user_id 1 = admin, 2 = john_doe, 3 = jane_smith
 INSERT INTO orders (user_id, total_amount, status, payment_status) VALUES 
-(2, 75000, 'completed', 'paid'),
-(3, 165000, 'processing', 'paid'),
-(2, 45000, 'pending', 'unpaid');
+(3, 78000, 'completed', 'paid'),      -- Order 1: (2 x 35000) + 8000 = 78000
+(2, 105000, 'processing', 'paid'),    -- Order 2: (2 x 45000) + 15000 = 105000
+(3, 50000, 'pending', 'unpaid');      -- Order 3: 1 x 50000 = 50000
 
 -- Insert sample order items
+-- Pastikan order_id sesuai dengan data di tabel orders
 INSERT INTO order_items (order_id, product_id, quantity, price) VALUES 
-(1, 1, 2, 25000),
-(1, 4, 1, 25000),
-(2, 3, 1, 150000),
-(2, 4, 1, 15000),
-(3, 1, 1, 25000),
-(3, 4, 2, 15000);
+-- Order 1: Nasi Goreng (2x) + Es Teh Manis (1x)
+(1, 1, 2, 35000),    -- 2 Nasi Goreng Spesial
+(1, 11, 1, 8000),    -- 1 Es Teh Manis
+
+-- Order 2: Ayam Bakar (2x) + Lumpia (1x)
+(2, 2, 2, 45000),    -- 2 Ayam Bakar Madu
+(2, 5, 1, 15000),    -- 1 Lumpia Sayur
+
+-- Order 3: Rendang (1x)
+(3, 3, 1, 50000);    -- 1 Rendang Sapi
 
 -- Insert sample reviews
 INSERT INTO reviews (user_id, product_id, rating, comment) VALUES 
-(2, 1, 5, 'Nasi kotak yang enak dan porsinya pas!'),
-(2, 4, 4, 'Snack box-nya berisi makanan yang berkualitas'),
-(3, 3, 5, 'Tumpeng mini-nya cantik dan rasanya enak sekali');
+(3, 1, 5, 'Nasi gorengnya enak dan porsinya pas!'),
+(2, 11, 4, 'Es teh manisnya segar'),
+(3, 2, 5, 'Ayam bakarnya empuk dan bumbunya meresap');
 
 -- Insert sample cart items
 INSERT INTO cart (user_id, product_id, quantity) VALUES 
-(3, 2, 2),
-(3, 4, 1); 
+(2, 2, 2),    -- 2 Ayam Bakar Madu di keranjang john_doe
+(3, 4, 1);    -- 1 Sate Ayam di keranjang jane_smith 

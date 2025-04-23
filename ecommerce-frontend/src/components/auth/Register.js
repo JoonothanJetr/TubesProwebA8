@@ -11,29 +11,82 @@ const Register = () => {
         confirmPassword: ''
     });
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
+        // Reset error and success when user types
+        setError('');
+        setSuccess('');
+    };
+
+    const validateForm = () => {
+        if (!formData.username.trim()) {
+            setError('Username harus diisi');
+            return false;
+        }
+        if (!formData.email.trim()) {
+            setError('Email harus diisi');
+            return false;
+        }
+        if (!formData.email.includes('@')) {
+            setError('Email tidak valid');
+            return false;
+        }
+        if (formData.password.length < 6) {
+            setError('Password harus minimal 6 karakter');
+            return false;
+        }
+        if (formData.password !== formData.confirmPassword) {
+            setError('Password tidak cocok');
+            return false;
+        }
+        return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (formData.password !== formData.confirmPassword) {
-            setError('Password tidak cocok');
+        setError('');
+        setSuccess('');
+        
+        if (!validateForm()) {
             return;
         }
+
+        setLoading(true);
         try {
             await authService.register({
                 username: formData.username,
                 email: formData.email,
                 password: formData.password
             });
-            navigate('/login');
+            setSuccess('Akun berhasil dibuat! Anda akan dialihkan ke halaman login...');
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
         } catch (err) {
-            setError(err.response?.data?.error || 'Terjadi kesalahan saat registrasi');
+            if (err.response?.status === 400) {
+                const errorMessage = err.response.data?.error;
+                if (errorMessage.includes('already exists')) {
+                    if (errorMessage.includes('email')) {
+                        setError('Email sudah terdaftar. Silakan gunakan email lain.');
+                    } else if (errorMessage.includes('username')) {
+                        setError('Username sudah digunakan. Silakan pilih username lain.');
+                    } else {
+                        setError(errorMessage);
+                    }
+                } else {
+                    setError(errorMessage || 'Terjadi kesalahan saat registrasi');
+                }
+            } else {
+                setError('Terjadi kesalahan pada server. Silakan coba lagi nanti.');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -49,6 +102,11 @@ const Register = () => {
                     {error && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                             <span className="block sm:inline">{error}</span>
+                        </div>
+                    )}
+                    {success && (
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                            <span className="block sm:inline">{success}</span>
                         </div>
                     )}
                     <div className="rounded-md shadow-sm -space-y-px">
@@ -109,9 +167,10 @@ const Register = () => {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            disabled={loading}
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
                         >
-                            Daftar
+                            {loading ? 'Mendaftar...' : 'Daftar'}
                         </button>
                     </div>
                 </form>
@@ -120,4 +179,4 @@ const Register = () => {
     );
 };
 
-export default Register; 
+export default Register;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Login from './components/auth/Login';
@@ -13,15 +13,35 @@ import { Link } from 'react-router-dom';
 import { Navbar, Container, Nav } from 'react-bootstrap';
 
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, adminOnly = false }) => {
     const isAuthenticated = authService.isAuthenticated();
-    return isAuthenticated ? children : <Navigate to="/login" />;
+    const isAdmin = authService.getUser()?.role === 'admin';
+    
+    if (!isAuthenticated) {
+        return <Navigate to="/login" />;
+    }
+    
+    if (adminOnly && !isAdmin) {
+        return <Navigate to="/" />;
+    }
+    
+    return children;
 };
 
 const App = () => {
-    const isAuthenticated = authService.isAuthenticated();
+    const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
+    const [user, setUser] = useState(authService.getUser());
+    
+    useEffect(() => {
+        // Periksa status autentikasi saat komponen dimuat
+        setIsAuthenticated(authService.isAuthenticated());
+        setUser(authService.getUser());
+    }, []);
+    
     const handleLogout = () => {
         authService.logout();
+        setIsAuthenticated(false);
+        setUser(null);
     };
 
     return (
@@ -56,7 +76,7 @@ const App = () => {
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={<ProductList />} />
-                    <Route path="/login" element={<Login />} />
+                    <Route path="/login" element={<Login onLoginSuccess={() => setIsAuthenticated(true)} />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/products" element={<ProductList />} />
                     <Route path="/products/:id" element={<ProductDetail />} />
