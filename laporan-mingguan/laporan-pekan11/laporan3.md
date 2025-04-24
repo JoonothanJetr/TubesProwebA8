@@ -17,22 +17,23 @@
 **Tanggal**: 22/04/2025
 
 ## Progress Summary
-Progres pada minggu ini dilanjutkan dengan merancang skema database berdasarkan kebutuhan fitur MVP, lalu mengimplementasikannya ke dalam PostgreSQL untuk memastikan data tersimpan dengan baik dan terstruktur. Setelah itu, tim membuat kerangka dasar REST API untuk menangani endpoint utama serta menyiapkan struktur awal antarmuka pengguna pada sisi frontend. Seluruh progres tersebut kemudian didemokan kepada mitra untuk mendapatkan masukan dan validasi pengembangan sistem.
+Pada minggu ini, tim telah mengimplementasikan sistem autentikasi pada website yang mencakup fitur login dan register. Selain itu, kami juga mulai mengembangkan fitur inti pertama sesuai kebutuhan mitra, yaitu katalog produk yang menampilkan informasi seperti nama dan harga produk. Fitur tambahan seperti keranjang dan pesanan juga mulai ditambahkan untuk mendukung proses transaksi. Seluruh fitur yang telah dikembangkan diintegrasikan antara frontend dan backend agar dapat berjalan dengan baik. Progres ini kemudian didemokan kepada mitra untuk mendapatkan masukan dan validasi lebih lanjut terkait pengembangan sistem.
 
 ## Accomplished Tasks
-- Merancang skema database (ERD diagram) dan mengimplementasikan ke dalam PostgreSQL
-- Membuat Endpoint dasar (POST & GET)
-- Menyiapkan struktur frontend basic
-
-## Challenges & Solutions
-- **Challenge 1**: Tim kesulitan dalam membuat halaman frontend karena perlu menyesuaikan desain dengan fungsionalitas yang direncanakan.
-  - **Solution**: Solusinya adalah mencari eror pada website untuk mengetahui letak eror nya lalu menelusuri sumber masalahnya agar dapat segera diperbaiki.
-
-## Next Week Plan
-- Mengimplementasikan sistem autentikasi (Login dan Registetr)
+- Implementasi sistem autentikasi (login/register)
 - Implementasi fitur inti #1 (sesuai kebutuhan mitra)
 - Integrasi frontend-backend untuk fitur yang sudah ada
 - Demo progress ke mitra
+
+## Challenges & Solutions
+- **Challenge 1**: Tim kesulitan dalam
+  - **Solution**: Solusinya adalah 
+
+## Next Week Plan
+- 
+- 
+- 
+- 
 
 ## Contributions
 - **Chelsy Olivia**: Membuat laporan (Md), membuat ERD
