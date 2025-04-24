@@ -38,7 +38,7 @@ Progres pada minggu ini dilanjutkan dengan merancang skema database berdasarkan 
 - **Chelsy Olivia**: Membuat laporan (Md), membuat ERD
 - **Andini Permata Sari**: Membantu membuat laporan (Md), membantu membuat ERD
 - **Jonathan Cristopher Jetro**: Membuat struktur database, membuat frontend dan backend skeleton
-- **Nicholas Christian Samuel Manurung**: Tidak Aktif
+- **Nicholas Christian Samuel Manurung**: Membantu jetro
 
 ## Screenshots
 ## 1. Skema Database (ERD Dia)
