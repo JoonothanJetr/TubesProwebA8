@@ -29,10 +29,6 @@ Progres pada minggu ini dilanjutkan dengan merancang skema database berdasarkan 
   - **Solution**: Solusinya adalah mencari eror pada website untuk mengetahui letak eror nya lalu menelusuri sumber masalahnya agar dapat segera diperbaiki.
 
 ## Next Week Plan
-- Mengimplementasikan sistem autentikasi (Login dan Registetr)
-- Implementasi fitur inti #1 (sesuai kebutuhan mitra)
-- Integrasi frontend-backend untuk fitur yang sudah ada
-- Demo progress ke mitra
 
 ## Contributions
 - **Chelsy Olivia**: Membuat laporan (Md), membuat ERD
