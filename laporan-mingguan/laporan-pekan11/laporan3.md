@@ -27,8 +27,12 @@ Pada minggu ini, tim telah mengimplementasikan sistem autentikasi pada website y
 - Demo progress ke mitra
 
 ## Challenges & Solutions
+<<<<<<< HEAD
 - **Challenge 1**: Tim kesulitan dalam pembuatan fitur utama, terutama pada bagian implementasi kode. Beberapa kendala muncul saat menghubungkan frontend dan backend, serta saat memastikan data dapat ditampilkan dan diproses dengan benar. Tim masih perlu waktu untuk memahami alur dan menyesuaikan logika program agar sesuai dengan kebutuhan mitra.
 
+=======
+- **Challenge 1**: Tim kesulitan dalam pembuatan fitur utama, terutama dalam hal implementasi kode.
+>>>>>>> 5627267bbb69c534a788d5170a0617731c342717
   - **Solution**: Solusinya adalah (BESOK)
 
 ## Next Week Plan
@@ -44,6 +48,7 @@ Pada minggu ini, tim telah mengimplementasikan sistem autentikasi pada website y
 - **Nicholas Christian Samuel Manurung**: Membantu membuat laporan (Md)
 
 ## Screenshots
+<<<<<<< HEAD
 ### 1. Implementasi sistem autentikasi (Login & Register)
 #### Halaman Masuk
 ![alt text](masuk.png)
@@ -61,3 +66,5 @@ Halaman Daftar
 #### Halaman pesanan
 ![alt text](<riwayat pesanan.png>)
 
+=======
+>>>>>>> 5627267bbb69c534a788d5170a0617731c342717
