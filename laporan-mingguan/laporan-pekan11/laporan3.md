@@ -67,5 +67,5 @@ Gambar diatas menampilkan halaman keranjang belanja dari SICATE. Halaman ini dig
 
 
 ### 3. Integrasi frontend-backend untuk fitur yang sudah ada
-![alt text](database.jpg)
+![alt text](<table database products.png>)
 Gambar di atas merupakan hasil dari pengujian integrasi antara antarmuka pengguna (frontend), sistem backend, dan database dalam pengelolaan data produk makanan. Data yang ditampilkan menunjukkan bahwa proses input produk, seperti nama, deskripsi, harga, URL gambar, kategori, dan jumlah stok, telah berhasil tersimpan dengan baik ke dalam database. Selain itu, kolom created_at dan updated_at yang otomatis terisi menunjukkan bahwa fitur pencatatan waktu dari sisi backend juga berfungsi dengan baik. Hal ini membuktikan bahwa seluruh komponen sistem telah terintegrasi secara efektif, mulai dari proses input oleh pengguna, pemrosesan data oleh sistem, hingga penyimpanan ke database. Dengan demikian, gambar ini dapat dijadikan sebagai bukti bahwa tes integrasi telah berhasil dilakukan dan sistem berjalan sesuai fungsinya.
