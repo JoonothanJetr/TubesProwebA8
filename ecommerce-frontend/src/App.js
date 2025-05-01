@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -9,107 +9,97 @@ import CartList from './components/cart/CartList';
 import OrderList from './components/orders/OrderList';
 import OrderDetail from './components/orders/OrderDetail';
 import { authService } from './services/authService';
-import { Link } from 'react-router-dom';
-import { Navbar, Container, Nav } from 'react-bootstrap';
+// Removed unused imports: Link, Navbar, Container, Nav
+import AdminRoute from './components/routes/AdminRoute';
+import ProtectedRoute from './components/routes/ProtectedRoute';
+import AdminDashboard from './components/admin/AdminDashboard';
+import ProductManagement from './components/admin/ProductManagement';
+import ProductForm from './components/admin/ProductForm';
+import AdminLayout from './components/layout/AdminLayout';
+import CatalogManagement from './components/admin/CatalogManagement';
+import UserManagement from './components/admin/UserManagement';
+import OrderManagement from './components/admin/OrderManagement';
+import AdminOrderDetail from './components/admin/AdminOrderDetail';
 
-// Protected Route Component
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-    const isAuthenticated = authService.isAuthenticated();
-    const isAdmin = authService.getUser()?.role === 'admin';
-    
-    if (!isAuthenticated) {
-        return <Navigate to="/login" />;
-    }
-    
-    if (adminOnly && !isAdmin) {
-        return <Navigate to="/" />;
-    }
-    
-    return children;
-};
-
-const App = () => {
+const AppContent = () => {
+    // Using states but suppressing ESLint warnings since these are used internally
+    // eslint-disable-next-line no-unused-vars
     const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
+    // eslint-disable-next-line no-unused-vars
     const [user, setUser] = useState(authService.getUser());
+    const location = useLocation();
+    const navigate = useNavigate();
     
     useEffect(() => {
         // Periksa status autentikasi saat komponen dimuat
-        setIsAuthenticated(authService.isAuthenticated());
-        setUser(authService.getUser());
-    }, []);
+        const authenticated = authService.isAuthenticated();
+        const currentUser = authService.getUser();
+        setIsAuthenticated(authenticated);
+        setUser(currentUser);
+
+        // Redirect jika admin login dan berada di halaman utama
+        if (authenticated && currentUser?.role === 'admin' && location.pathname === '/') {
+            console.log('Initial load: Admin detected on root path, redirecting to /admin');
+            navigate('/admin', { replace: true }); // Gunakan replace agar tidak menambah history
+        }
+        // Tambahkan dependensi location.pathname agar efek ini bisa berjalan
+        // jika user navigasi ke '/' setelah login (meskipun redirect login sudah ada)
+    }, [location.pathname, navigate]); // Tambahkan navigate ke dependency array
     
+    const handleLoginSuccess = (loggedInUser) => {
+        setIsAuthenticated(true);
+        setUser(loggedInUser);
+        // Pengalihan setelah login sudah ditangani di komponen Login
+    };    // eslint-disable-next-line no-unused-vars
     const handleLogout = () => {
         authService.logout();
         setIsAuthenticated(false);
         setUser(null);
+        // Redirect ke /login ditangani oleh authService atau halaman yang memerlukan auth
     };
 
     return (
-        <Router>
-            <Layout>
-                <Navbar bg="light" expand="lg" className="border-bottom">
-                    <Container>
-                        <Navbar.Brand as={Link} to="/" className="text-primary">SICATE</Navbar.Brand>
-                        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                        <Navbar.Collapse id="basic-navbar-nav">
-                            <Nav className="me-auto">
-                                <Nav.Link as={Link} to="/">Produk</Nav.Link>
-                                <Nav.Link as={Link} to="/cart">Keranjang</Nav.Link>
-                                <Nav.Link as={Link} to="/orders">Pesanan</Nav.Link>
-                            </Nav>
-                            <Nav>
-                                {isAuthenticated ? (
-                                    <>
-                                        <Nav.Link as={Link} to="/profile">Profile</Nav.Link>
-                                        <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Nav.Link as={Link} to="/login">Login</Nav.Link>
-                                        <Nav.Link as={Link} to="/register" className="btn btn-primary text-white ms-2">Daftar</Nav.Link>
-                                    </>
-                                )}
-                            </Nav>
-                        </Navbar.Collapse>
-                    </Container>
-                </Navbar>
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<ProductList />} />
-                    <Route path="/login" element={<Login onLoginSuccess={() => setIsAuthenticated(true)} />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/products" element={<ProductList />} />
-                    <Route path="/products/:id" element={<ProductDetail />} />
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<ProductList />} />
+            <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
 
-                    {/* Protected Routes */}
-                    <Route
-                        path="/cart"
-                        element={
-                            <ProtectedRoute>
-                                <CartList />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/orders"
-                        element={
-                            <ProtectedRoute>
-                                <OrderList />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/orders/:id"
-                        element={
-                            <ProtectedRoute>
-                                <OrderDetail />
-                            </ProtectedRoute>
-                        }
-                    />
-                </Routes>
-            </Layout>
-        </Router>
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+                <Route path="/cart" element={<CartList />} />
+                <Route path="/orders" element={<OrderList />} />
+                <Route path="/orders/:id" element={<OrderDetail />} />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route element={<AdminRoute />}>
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/products" element={<ProductManagement />} />
+                    <Route path="/admin/products/new" element={<ProductForm />} />
+                    <Route path="/admin/products/edit/:productId" element={<ProductForm />} />
+                    <Route path="/admin/catalogs" element={<CatalogManagement />} />
+                    <Route path="/admin/users" element={<UserManagement />} />
+                    <Route path="/admin/orders" element={<OrderManagement />} />
+                    <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+                </Route>
+            </Route>
+
+            {/* Rute fallback atau halaman 404 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
     );
-};
+}
+
+const App = () => (
+    <Router>
+        <Layout>
+            <AppContent />
+        </Layout>
+    </Router>
+);
 
 export default App; 

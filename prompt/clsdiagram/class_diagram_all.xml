@@ -1,0 +1,175 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <mxCell id="UserClass" value="&lt;b&gt;User&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- userId: int&lt;br&gt;- username: string&lt;br&gt;- passwordHash: string&lt;br&gt;- email: string&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;+ login(): boolean&lt;br&gt;+ logout(): boolean&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="350" y="50" width="160" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="AdminClass" value="&lt;b&gt;Admin&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- adminId: int&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;+ manageUsers(): void&lt;br&gt;+ manageCatalogs(): void&lt;br&gt;+ manageProducts(): void&lt;br&gt;+ manageOrders(): void&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+       <mxGeometry x="150" y="150" width="180" height="160" as="geometry"/>
+    </mxCell>
+     <mxCell id="PelangganClass" value="&lt;b&gt;Pelanggan&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- pelangganId: int&lt;br&gt;- fullName: string&lt;br&gt;- address: string&lt;br&gt;- phone: string&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;+ register(): boolean&lt;br&gt;+ viewCatalog(): void&lt;br&gt;+ viewProduct(): void&lt;br&gt;+ manageCart(): void&lt;br&gt;+ checkout(): void&lt;br&gt;+ makePayment(): void&lt;br&gt;+ viewOrders(): void&lt;br&gt;+ viewHistory(): void&lt;br&gt;+ submitFeedback(): void&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+       <mxGeometry x="550" y="150" width="200" height="250" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="KatalogClass" value="&lt;b&gt;Katalog&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- katalogId: int&lt;br&gt;- namaKatalog: string&lt;br&gt;- deskripsi: string&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+       <mxGeometry x="150" y="400" width="150" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="ProductClass" value="&lt;b&gt;Product&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- productId: int&lt;br&gt;- namaProduk: string&lt;br&gt;- deskripsi: string&lt;br&gt;- harga: decimal&lt;br&gt;- stok: int&lt;br&gt;- imageURL: string&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+       <mxGeometry x="350" y="400" width="180" height="180" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="KeranjangClass" value="&lt;b&gt;Keranjang&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- keranjangId: int&lt;br&gt;- userId: int&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;+ getTotalItems(): int&lt;br&gt;+ getTotalPrice(): decimal&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+       <mxGeometry x="580" y="450" width="150" height="130" as="geometry"/>
+    </mxCell>
+     <mxCell id="KeranjangItemClass" value="&lt;b&gt;KeranjangItem&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- keranjangItemId: int&lt;br&gt;- keranjangId: int&lt;br&gt;- productId: int&lt;br&gt;- quantity: int&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;+ getSubtotal(): decimal&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+       <mxGeometry x="780" y="450" width="180" height="130" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="PesananClass" value="&lt;b&gt;Pesanan&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- pesananId: int&lt;br&gt;- pelangganId: int&lt;br&gt;- tanggalPesanan: datetime&lt;br&gt;- statusPesanan: string&lt;br&gt;- totalHarga: decimal&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;+ calculateTotal(): void&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="350" y="650" width="180" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="PesananItemClass" value="&lt;b&gt;PesananItem&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- pesananItemId: int&lt;br&gt;- pesananId: int&lt;br&gt;- productId: int&lt;br&gt;- quantity: int&lt;br&gt;- subtotal: decimal&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+       <mxGeometry x="580" y="650" width="180" height="150" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="PembayaranClass" value="&lt;b&gt;Pembayaran&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- pembayaranId: int&lt;br&gt;- pesananId: int&lt;br&gt;- tanggalPembayaran: datetime&lt;br&gt;- metodePembayaran: string&lt;br&gt;- jumlahPembayaran: decimal&lt;br&gt;- statusPembayaran: string&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="800" y="650" width="200" height="160" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="FeedbackClass" value="&lt;b&gt;Feedback&lt;/b&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;- feedbackId: int&lt;br&gt;- pelangganId: int&lt;br&gt;- tanggal: datetime&lt;br&gt;- subject: string&lt;br&gt;- message: text&lt;/p&gt;&lt;hr&gt;&lt;p style=&quot;margin:0px;&quot;&gt;&amp;nbsp;&lt;/p&gt;" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;length=1;fillColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="550" y="850" width="180" height="140" as="geometry"/>
+    </mxCell>
+
+
+    <mxCell id="AdminUserInheritance" style="shape=generalization;whiteSpace=wrap;html=1;sourceArrow=classic;sourceFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="AdminClass" target="UserClass">
+      <mxGeometry relative="1" as="geometry">
+         <mxPoint x="240" y="150" as="sourcePoint"/>
+         <mxPoint x="430" y="200" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+     <mxCell id="PelangganUserInheritance" style="shape=generalization;whiteSpace=wrap;html=1;sourceArrow=classic;sourceFill=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="PelangganClass" target="UserClass">
+      <mxGeometry relative="1" as="geometry">
+          <mxPoint x="650" y="150" as="sourcePoint"/>
+          <mxPoint x="430" y="200" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="KatalogProductAgg" value="1" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=0;sourceConstraint=0.5 1 0;" edge="1" parent="1" source="KatalogClass" target="ProductClass">
+        <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="460" as="sourcePoint"/>
+            <mxPoint x="350" y="460" as="targetPoint"/>
+             <Array as="points">
+                <mxPoint x="300" y="460"/>
+                <mxPoint x="350" y="460"/>
+            </Array>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="KatalogProductAggMulti" value="*" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=bottom;" vertex="1" connectable="0" parent="KatalogProductAgg">
+        <mxGeometry x="-1" relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="PelangganKeranjangComp" value="1" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=1;sourceConstraint=1 0.5 0;" edge="1" parent="1" source="PelangganClass" target="KeranjangClass">
+        <mxGeometry relative="1" as="geometry">
+             <mxPoint x="750" y="515" as="sourcePoint"/>
+            <mxPoint x="580" y="515" as="targetPoint"/>
+             <Array as="points">
+                <mxPoint x="750" y="515"/>
+                <mxPoint x="580" y="515"/>
+            </Array>
+        </mxGeometry>
+    </mxCell>
+    <mxCell id="PelangganKeranjangCompMulti" value="1" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=bottom;" vertex="1" connectable="0" parent="PelangganKeranjangComp">
+        <mxGeometry x="-1" relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="KeranjangItemComp" value="1" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=1;" edge="1" parent="1" source="KeranjangClass" target="KeranjangItemClass">
+        <mxGeometry relative="1" as="geometry">
+             <mxPoint x="730" y="515" as="sourcePoint"/>
+            <mxPoint x="780" y="515" as="targetPoint"/>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="KeranjangItemCompMulti" value="*" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=bottom;" vertex="1" connectable="0" parent="KeranjangItemComp">
+        <mxGeometry x="-1" relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="KeranjangItemProductAssoc" value="" style="endArrow=open;html=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="KeranjangItemClass" target="ProductClass">
+        <mxGeometry relative="1" as="geometry">
+            <mxPoint x="870" y="450" as="sourcePoint"/>
+            <mxPoint x="440" y="580" as="targetPoint"/>
+             <Array as="points">
+                <mxPoint x="870" y="610"/>
+                <mxPoint x="440" y="610"/>
+            </Array>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="KeranjangItemProductAssocLabel" value="refers to" style="edgeLabel;resizable=1;html=1;align=center;verticalAlign=middle;" vertex="1" connectable="0" parent="KeranjangItemProductAssoc">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+
+    <mxCell id="PelangganPesananAssoc" value="1" style="endArrow=open;html=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="PelangganClass" target="PesananClass">
+        <mxGeometry relative="1" as="geometry">
+            <mxPoint x="650" y="400" as="sourcePoint"/>
+            <mxPoint x="440" y="650" as="targetPoint"/>
+             <Array as="points">
+                <mxPoint x="650" y="620"/>
+                <mxPoint x="440" y="620"/>
+            </Array>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="PelangganPesananAssocMulti" value="*" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=bottom;" vertex="1" connectable="0" parent="PelangganPesananAssoc">
+        <mxGeometry x="-1" relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="PesananItemComp" value="1" style="endArrow=none;html=1;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=1;" edge="1" parent="1" source="PesananClass" target="PesananItemClass">
+        <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="725" as="sourcePoint"/>
+            <mxPoint x="580" y="725" as="targetPoint"/>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="PesananItemCompMulti" value="*" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=bottom;" vertex="1" connectable="0" parent="PesananItemComp">
+        <mxGeometry x="-1" relative="1" as="geometry"/>
+    </mxCell>
+
+     <mxCell id="PesananItemProductAssoc" value="" style="endArrow=open;html=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="PesananItemClass" target="ProductClass">
+        <mxGeometry relative="1" as="geometry">
+            <mxPoint x="670" y="650" as="sourcePoint"/>
+            <mxPoint x="440" y="580" as="targetPoint"/>
+             <Array as="points">
+                <mxPoint x="670" y="610"/>
+                <mxPoint x="440" y="610"/>
+            </Array>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="PesananItemProductAssocLabel" value="refers to" style="edgeLabel;resizable=1;html=1;align=center;verticalAlign=middle;" vertex="1" connectable="0" parent="PesananItemProductAssoc">
+        <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="PesananPembayaranAssoc" value="1" style="endArrow=open;html=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="PesananClass" target="PembayaranClass">
+        <mxGeometry relative="1" as="geometry">
+            <mxPoint x="530" y="725" as="sourcePoint"/>
+            <mxPoint x="800" y="725" as="targetPoint"/>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="PesananPembayaranAssocMulti" value="1" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=bottom;" vertex="1" connectable="0" parent="PesananPembayaranAssoc">
+        <mxGeometry x="-1" relative="1" as="geometry"/>
+    </mxCell>
+
+     <mxCell id="PelangganFeedbackAssoc" value="1" style="endArrow=open;html=1;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="PelangganClass" target="FeedbackClass">
+        <mxGeometry relative="1" as="geometry">
+            <mxPoint x="650" y="400" as="sourcePoint"/>
+            <mxPoint x="440" y="850" as="targetPoint"/>
+             <Array as="points">
+                <mxPoint x="650" y="820"/>
+                <mxPoint x="440" y="820"/>
+            </Array>
+        </mxGeometry>
+    </mxCell>
+     <mxCell id="PelangganFeedbackAssocMulti" value="*" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=bottom;" vertex="1" connectable="0" parent="PelangganFeedbackAssoc">
+        <mxGeometry x="-1" relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

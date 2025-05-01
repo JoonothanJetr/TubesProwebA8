@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// Ambil API_URL dari environment variable, sama seperti productService
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 // Konfigurasi base URL untuk axios
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: API_URL, // <-- Gunakan API_URL dari env
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -23,7 +26,7 @@ class AuthService {
     async register(userData) {
         try {
             console.log('Attempting to register:', userData);
-            const response = await axiosInstance.post('/api/auth/register', userData);
+            const response = await axiosInstance.post('/auth/register', userData);
             console.log('Register response:', response.data);
             return response.data;
         } catch (error) {
@@ -39,7 +42,7 @@ class AuthService {
     async login(email, password) {
         try {
             console.log('Attempting to login with:', { email, password });
-            const response = await axiosInstance.post('/api/auth/login', {
+            const response = await axiosInstance.post('/auth/login', {
                 email,
                 password
             });

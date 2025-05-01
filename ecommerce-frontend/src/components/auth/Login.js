@@ -31,12 +31,19 @@ const Login = ({ onLoginSuccess }) => {
             const response = await authService.login(formData.email, formData.password);
             console.log('Login response received:', response);
             
-            if (response && response.token) {
+            if (response && response.token && response.user) {
                 console.log('Login successful, updating state...');
                 if (onLoginSuccess) {
-                    onLoginSuccess();
+                    onLoginSuccess(response.user);
                 }
-                navigate('/');
+
+                if (response.user.role === 'admin') {
+                    console.log('Admin user detected, navigating to /admin');
+                    navigate('/admin');
+                } else {
+                    console.log('Customer user detected, navigating to /');
+                    navigate('/');
+                }
             } else {
                 setError('Login gagal: Respons tidak valid dari server');
             }

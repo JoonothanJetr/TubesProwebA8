@@ -1,20 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+// Hapus Link jika klik sekarang membuka modal
+// import { Link } from 'react-router-dom';
 import { productService } from '../../services/productService';
+import ProductDetailModal from './ProductDetailModal'; // <-- Import modal
+import { Spinner, Row, Col, Card } from 'react-bootstrap'; // Import Spinner, Row, Col, Card dari react-bootstrap
+import { authService } from '../../services/authService';
+import { cartService } from '../../services/cartService';
 
 const ProductList = () => {
+    console.log('ProductList rendering...'); // <-- Tambahkan kembali log render
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('semua');
-    const [categories, setCategories] = useState([
+    const [selectedCategory, setSelectedCategory] = useState('semua'); 
+    // State untuk modal
+    const [showModal, setShowModal] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [addingToCart, setAddingToCart] = useState(false); // State untuk loading add to cart
+
+    // Kategori (asumsi tidak berubah drastis, bisa juga diambil dari API jika dinamis)
+    const categories = [
         'semua',
         'makanan-utama',
         'makanan-pembuka',
         'makanan-penutup',
         'minuman'
-    ]);
-
+    ];
     const categoryLabels = {
         'semua': 'Semua Menu',
         'makanan-utama': 'Makanan Utama',
@@ -28,35 +39,82 @@ const ProductList = () => {
     }, []);
 
     const fetchProducts = async () => {
+        setLoading(true);
+        setError(''); // Reset error saat fetch
         try {
+            // Pastikan backend mengembalikan category_name atau data kategori lain jika perlu
             const data = await productService.getAllProducts();
             setProducts(data);
-            setLoading(false);
         } catch (err) {
+            console.error("Error fetching products:", err);
             setError('Gagal memuat produk');
+        } finally {
             setLoading(false);
         }
     };
 
+    // Filter produk berdasarkan kategori yang dipilih
     const filteredProducts = selectedCategory === 'semua'
         ? products
-        : products.filter(product => product.category === selectedCategory);
+        : products.filter(product => product.category_name === categoryLabels[selectedCategory]); // Sesuaikan dengan data backend (misal category_name)
+
+    // Handler untuk menampilkan modal
+    const handleShowModal = (product) => {
+        setSelectedProduct(product);
+        setShowModal(true);
+    };
+
+    // Handler untuk menutup modal
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSelectedProduct(null);
+    };
+
+    // Handler untuk Tambah ke Keranjang
+    const handleAddToCart = async (productId) => {
+        // Cek dulu apakah pengguna sudah login
+        if (!authService.isAuthenticated()) {
+            alert('Silakan login terlebih dahulu untuk menambahkan item ke keranjang.');
+            // Arahkan ke login?
+            // navigate('/login');
+            handleCloseModal();
+            return;
+        }
+        
+        console.log("Adding product to cart:", productId);
+        setAddingToCart(true); // Set loading
+        try {
+            // Asumsi quantity = 1 saat pertama kali tambah dari modal
+            await cartService.addToCart(productId, 1); 
+            alert('Produk berhasil ditambahkan ke keranjang!');
+            handleCloseModal(); // Tutup modal setelah sukses
+        } catch (err) {
+            console.error("Error adding to cart:", err);
+            alert(err.message || 'Gagal menambahkan produk ke keranjang. Silakan coba lagi.');
+            // Jangan tutup modal jika gagal?
+        } finally {
+            setAddingToCart(false); // Reset loading
+        }
+    };
 
     if (loading) return (
-        <div className="flex justify-center items-center min-h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        // Gunakan Spinner dari react-bootstrap agar konsisten
+        <div className="d-flex justify-content-center align-items-center min-vh-100">
+            <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </Spinner>
         </div>
     );
     
     if (error) return (
-        <div className="text-center text-red-600 p-4">
+        <div className="text-center text-danger p-4">
             {error}
         </div>
     );
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Category Filter */}
+        <div className="container py-8">
+            {/* Category Filter (gunakan Bootstrap jika ingin konsisten) */}
             <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Katalog Menu</h2>
                 <div className="flex flex-wrap gap-2">
@@ -64,11 +122,7 @@ const ProductList = () => {
                         <button
                             key={category}
                             onClick={() => setSelectedCategory(category)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium ${
-                                selectedCategory === category
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            } transition-colors duration-200`}
+                            className={`btn btn-sm ${selectedCategory === category ? 'btn-primary' : 'btn-outline-secondary'}`}
                         >
                             {categoryLabels[category]}
                         </button>
@@ -79,31 +133,53 @@ const ProductList = () => {
             {/* Products Grid */}
             {filteredProducts.length === 0 ? (
                 <div className="text-center text-gray-500 py-8">
-                    Tidak ada produk dalam kategori ini
+                    Tidak ada produk dalam kategori ini.
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
+                // Gunakan Row dan Col dari react-bootstrap jika ingin konsisten
+                <Row xs={1} sm={2} md={3} lg={4} className="g-4">
                     {filteredProducts.map((product) => (
-                        <Link key={product.id} to={`/products/${product.id}`} className="group">
-                            <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden">
-                                <img
-                                    src={product.image_url}
-                                    alt={product.name}
-                                    className="w-full h-full object-center object-cover group-hover:opacity-75"
+                        <Col key={product.id}>
+                            {/* Hapus Link, tambahkan onClick */}
+                            <Card 
+                                className="h-100 shadow-sm product-card" 
+                                onClick={() => handleShowModal(product)} 
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <Card.Img 
+                                    variant="top" 
+                                    src={`http://localhost:5000/${product.image_url}`} 
+                                    alt={product.name} 
+                                    style={{ height: '200px', objectFit: 'cover' }}
+                                    onError={(e) => { 
+                                        e.target.onerror = null;
+                                        e.target.style.display = 'none';
+                                        console.error(`Gagal memuat gambar: ${e.target.src}`);
+                                    }}
                                 />
-                            </div>
-                            <div className="mt-4 flex justify-between">
-                                <div>
-                                    <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
-                                    <p className="mt-1 text-sm text-gray-500">{categoryLabels[product.category]}</p>
-                                </div>
-                                <p className="text-lg font-medium text-gray-900">
-                                    Rp {product.price.toLocaleString()}
-                                </p>
-                            </div>
-                        </Link>
+                                <Card.Body className="d-flex flex-column">
+                                    <Card.Title className="h6 mb-1">{product.name}</Card.Title>
+                                    {/* Tampilkan nama kategori jika ada */}
+                                    <Card.Text className="text-muted small mb-2">{product.category_name || 'Tanpa Kategori'}</Card.Text>
+                                    <Card.Text className="h5 mt-auto mb-0 text-end fw-bold">
+                                        Rp {product.price ? product.price.toLocaleString('id-ID') : '0'}
+                                    </Card.Text>
+                                </Card.Body>
+                            </Card>
+                        </Col>
                     ))}
-                </div>
+                </Row>
+            )}
+
+            {/* Render Modal Detail Produk */}
+            {selectedProduct && (
+                <ProductDetailModal 
+                    show={showModal} 
+                    handleClose={handleCloseModal} 
+                    product={selectedProduct} 
+                    onAddToCart={handleAddToCart}
+                    isAdding={addingToCart} // Kirim state loading ke modal
+                />
             )}
         </div>
     );

@@ -24,13 +24,11 @@ const OrderList = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'processing':
+            case 'diproses':
                 return 'bg-blue-100 text-blue-800';
-            case 'completed':
+            case 'selesai':
                 return 'bg-green-100 text-green-800';
-            case 'cancelled':
+            case 'dibatalkan':
                 return 'bg-red-100 text-red-800';
             default:
                 return 'bg-gray-100 text-gray-800';
@@ -38,12 +36,12 @@ const OrderList = () => {
     };
 
     const getPaymentStatusColor = (status) => {
-        switch (status) {
-            case 'unpaid':
-                return 'bg-red-100 text-red-800';
-            case 'paid':
+        switch (status?.toLowerCase()) {
+            case 'menunggu pembayaran':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'pembayaran sudah dilakukan':
                 return 'bg-green-100 text-green-800';
-            case 'failed':
+            case 'pembayaran dibatalkan':
                 return 'bg-red-100 text-red-800';
             default:
                 return 'bg-gray-100 text-gray-800';
@@ -93,19 +91,19 @@ const OrderList = () => {
                                                         #{order.id}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {new Date(order.created_at).toLocaleDateString()}
+                                                        {new Date(order.order_date || order.created_at).toLocaleDateString()}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        Rp {order.total_amount}
+                                                        Rp {Number(order.total_amount).toLocaleString('id-ID')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                                                            {order.status}
+                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.order_status)}`}>
+                                                            {order.order_status?.charAt(0).toUpperCase() + order.order_status?.slice(1)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusColor(order.payment_status)}`}>
-                                                            {order.payment_status}
+                                                            {order.payment_status?.charAt(0).toUpperCase() + order.payment_status?.slice(1)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

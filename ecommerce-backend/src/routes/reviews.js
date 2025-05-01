@@ -33,7 +33,7 @@ router.get('/product/:product_id', async (req, res) => {
 });
 
 // Get user's reviews
-router.get('/user', auth, async (req, res) => {
+router.get('/user', auth.authenticateToken, async (req, res) => { // Use authenticateToken middleware
     try {
         const result = await pool.query(
             `SELECT r.*, p.name as product_name, p.image_url 
@@ -52,7 +52,7 @@ router.get('/user', auth, async (req, res) => {
 });
 
 // Create review
-router.post('/', auth, async (req, res) => {
+router.post('/', auth.authenticateToken, async (req, res) => {
     try {
         const { product_id, rating, comment } = req.body;
         
@@ -95,7 +95,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Update review
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth.authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { rating, comment } = req.body;
@@ -129,7 +129,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // Delete review
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth.authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         

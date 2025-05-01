@@ -12,7 +12,7 @@ const pool = new Pool({
 });
 
 // Get user's cart
-router.get('/', auth, async (req, res) => {
+router.get('/', auth.authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT c.*, p.name, p.price, p.image_url 
@@ -29,42 +29,44 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Add item to cart
-router.post('/', auth, async (req, res) => {
+router.post('/', auth.authenticateToken, async (req, res) => {
     try {
         const { product_id, quantity } = req.body;
         
-        // Check if product exists
-        const productExists = await pool.query(
-            'SELECT * FROM products WHERE id = $1 AND is_available = true',
-            [product_id]
-        );
-        
-        if (productExists.rows.length === 0) {
-            return res.status(404).json({ error: 'Product not found or not available' });
+        // Periksa apakah produk ada dan stok mencukupi
+        // const productRes = await pool.query('SELECT stock FROM products WHERE id = $1 AND is_available = true', [productId]);
+        // Hapus pengecekan is_available
+        const productRes = await pool.query('SELECT stock FROM products WHERE id = $1', [product_id]);
+
+        if (productRes.rows.length === 0) {
+            return res.status(404).json({ error: 'Produk tidak ditemukan' });
         }
-        
-        // Check if item already in cart
-        const existingItem = await pool.query(
-            'SELECT * FROM cart WHERE user_id = $1 AND product_id = $2',
-            [req.user.id, product_id]
-        );
-        
-        if (existingItem.rows.length > 0) {
-            // Update quantity if item exists
-            const result = await pool.query(
-                'UPDATE cart SET quantity = quantity + $1 WHERE user_id = $2 AND product_id = $3 RETURNING *',
-                [quantity, req.user.id, product_id]
-            );
-            return res.json(result.rows[0]);
+
+        const productStock = productRes.rows[0].stock;
+        if (productStock < quantity) {
+            return res.status(400).json({ error: 'Stok produk tidak mencukupi' });
         }
-        
-        // Add new item to cart
-        const result = await pool.query(
-            'INSERT INTO cart (user_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *',
-            [req.user.id, product_id, quantity]
-        );
-        
-        res.status(201).json(result.rows[0]);
+
+        // Periksa apakah item sudah ada di keranjang user
+        const cartItemRes = await pool.query('SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2', [req.user.id, product_id]);
+
+        if (cartItemRes.rows.length > 0) {
+            // Jika sudah ada, update quantity
+            const existingQuantity = cartItemRes.rows[0].quantity;
+            const newQuantity = existingQuantity + quantity;
+
+            // Periksa lagi apakah total quantity melebihi stok
+            if (productStock < newQuantity) {
+                return res.status(400).json({ error: 'Penambahan melebihi stok produk yang tersedia' });
+            }
+            
+            await pool.query('UPDATE cart SET quantity = $1 WHERE user_id = $2 AND product_id = $3', [newQuantity, req.user.id, product_id]);
+            res.json({ message: 'Jumlah produk di keranjang diperbarui', quantity: newQuantity });
+        } else {
+            // Jika belum ada, tambahkan item baru
+            await pool.query('INSERT INTO cart (user_id, product_id, quantity) VALUES ($1, $2, $3)', [req.user.id, product_id, quantity]);
+            res.status(201).json({ message: 'Produk berhasil ditambahkan ke keranjang', quantity });
+        }
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
@@ -72,7 +74,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Update cart item quantity
-router.put('/:product_id', auth, async (req, res) => {
+router.put('/:product_id', auth.authenticateToken, async (req, res) => {
     try {
         const { product_id } = req.params;
         const { quantity } = req.body;
@@ -98,7 +100,7 @@ router.put('/:product_id', auth, async (req, res) => {
 });
 
 // Remove item from cart
-router.delete('/:product_id', auth, async (req, res) => {
+router.delete('/:product_id', auth.authenticateToken, async (req, res) => {
     try {
         const { product_id } = req.params;
         
@@ -119,7 +121,7 @@ router.delete('/:product_id', auth, async (req, res) => {
 });
 
 // Clear cart
-router.delete('/', auth, async (req, res) => {
+router.delete('/', auth.authenticateToken, async (req, res) => {
     try {
         await pool.query('DELETE FROM cart WHERE user_id = $1', [req.user.id]);
         res.json({ message: 'Cart cleared successfully' });

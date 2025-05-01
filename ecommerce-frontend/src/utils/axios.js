@@ -1,10 +1,10 @@
 import axios from 'axios';
 
+// Ambil API_URL dari environment variable
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const api = axios.create({
-    baseURL: 'http://localhost:3000/api',
-    headers: {
-        'Content-Type': 'application/json'
-    }
+    baseURL: API_URL
 });
 
 // Request interceptor
@@ -12,7 +12,10 @@ api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
-            config.headers['x-auth-token'] = token;
+            // Hapus header lama jika ada
+            // delete config.headers['x-auth-token']; 
+            // Set header Authorization yang benar
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
         return config;
     },
