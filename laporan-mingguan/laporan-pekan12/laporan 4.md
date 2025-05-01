@@ -1,16 +1,22 @@
 # Laporan Progres Mingguan - SICATE
+
 **Kelompok**: 8
+
 **Mitra**: Toba Home Catering
-**Pekan ke-**: [9-15]
-**Tanggal**: [DD/MM/YYYY]
+
+**Pekan ke-**: 12
+
+**Tanggal**: 02/05/2025
+
 
 ## Progress Summary
-[Ringkasan progres minggu ini dalam 2-3 kalimat]
+Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya dengan menyelesaikan fitur inti untuk pelanggan seperti pembayaran, status pesanan, dan riwayat transaksi, serta menambahkan fitur pendukung seperti customer service dan logout. Seluruh fitur telah berhasil diintegrasikan dan diuji melalui pengujian integrasi untuk memastikan konektivitas antar komponen berjalan dengan baik. Progres minggu ini juga telah didemokan kepada mitra untuk mendapatkan masukan dan validasi lebih lanjut.
 
 ## Accomplished Tasks
-- [Task 1 yang berhasil diselesaikan]
-- [Task 2 yang berhasil diselesaikan]
-- [Task 3 yang berhasil diselesaikan]
+- Implementasi fitur inti #2 dan #3
+- Penyempurnaan UI/UX
+- Pengujian integrasi
+- Demo progress ke mitra
 
 ## Challenges & Solutions
 - **Challenge 1**: [Deskripsi tantangan]
@@ -19,9 +25,9 @@
   - **Solution**: [Deskripsi solusi]
 
 ## Next Week Plan
-- [Task 1 untuk minggu depan]
-- [Task 2 untuk minggu depan]
-- [Task 3 untuk minggu depan]
+- Implementasi fitur inti #4
+- Pembuatan admin panel sederhana (dashboard)
+- Visualisasi data sederhana (jika relevan)
 
 ## Contributions
 - **[Nama Anggota 1]**: [Deskripsi kontribusi]
