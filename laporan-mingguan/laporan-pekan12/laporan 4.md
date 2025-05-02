@@ -17,7 +17,7 @@
 **Tanggal**: 02/05/2025
 
 ## Progress Summary
-Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya dengan menyelesaikan fitur inti untuk pelanggan seperti pembayaran, status pesanan, dan riwayat transaksi, serta menambahkan fitur pendukung seperti customer service dan logout. Seluruh fitur telah berhasil diintegrasikan dan diuji melalui pengujian integrasi untuk memastikan konektivitas antar komponen berjalan dengan baik. Progres minggu ini juga telah didemokan kepada mitra untuk mendapatkan masukan dan validasi lebih lanjut.
+Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya dengan menyempurnakan UI/UX di setiap fitur yang telah dikembangkan untuk meningkatkan kenyamanan dan kemudahan pengguna. Adapun fitur yang berhasil diselesaikan meliputi menu katalog, keranjang belanja, serta implementasi fitur inti #2 dan #3, yaitu proses pembayaran dan riwayat pesanan. Selain itu, tim juga menambahkan deskripsi singkat mengenai mitra pada halaman profil sebagai pelengkap informasi. Seluruh fitur telah berhasil diintegrasikan dan diuji melalui pengujian integrasi untuk memastikan setiap komponen bekerja secara sinkron. Progres minggu ini juga telah didemokan kepada mitra untuk mendapatkan masukan dan validasi lebih lanjut.
 
 
 ## Accomplished Tasks
