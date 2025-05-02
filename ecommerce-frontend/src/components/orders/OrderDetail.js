@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderService } from '../../services/orderService';
+import { getPaymentProofUrl } from '../../utils/imageHelper';
 import toast from 'react-hot-toast';
+import ProductImageOptimized from '../common/ProductImageOptimized'; // Use the optimized image component
+import { normalizeImagePaths } from '../../utils/imageFixer'; // Import image path fixer
 
 const OrderDetail = () => {
     const { id: orderId } = useParams();
@@ -18,6 +21,13 @@ const OrderDetail = () => {
         setLoading(true);
         try {
             const data = await orderService.getOrderById(orderId);
+            
+            // Fix image paths in order items
+            if (data && data.items && Array.isArray(data.items)) {
+                data.items = normalizeImagePaths(data.items);
+            }
+            
+            console.log('Order data with fixed image paths:', data);
             setOrder(data);
         } catch (err) {
             setError('Gagal memuat detail pesanan: ' + (err?.response?.data?.error || err.message));
@@ -157,7 +167,7 @@ const OrderDetail = () => {
                                     Bukti Pembayaran
                                 </dt>
                                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <a href={order.payment_proof_url.startsWith('http') ? order.payment_proof_url : `http://localhost:5000${order.payment_proof_url}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
+                                    <a href={getPaymentProofUrl(order.payment_proof_url)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
                                         Lihat Bukti Pembayaran
                                     </a>
                                 </dd>
@@ -170,10 +180,11 @@ const OrderDetail = () => {
                     <ul className="mt-4 divide-y divide-gray-200">
                         {order.items.map((item) => (
                             <li key={item.id} className="py-4 flex items-center">
-                                <img 
-                                    src={`http://localhost:5000${item.image_url}`} 
-                                    alt={item.name} 
+                                <ProductImageOptimized 
+                                    imageUrl={item.image_url}
+                                    productName={item.name}
                                     className="w-16 h-16 rounded-md object-cover mr-4"
+                                    style={{ width: '64px', height: '64px', objectFit: 'cover' }}
                                 />
                                 <div className="flex-1 flex justify-between">
                                     <div>
@@ -228,4 +239,4 @@ const OrderDetail = () => {
     );
 };
 
-export default OrderDetail; 
+export default OrderDetail;

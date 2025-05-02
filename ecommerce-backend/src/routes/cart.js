@@ -15,13 +15,34 @@ const pool = new Pool({
 router.get('/', auth.authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT c.*, p.name, p.price, p.image_url 
+            `SELECT c.*, p.name, p.price, p.image_url, cat.name AS category_name
              FROM cart c 
              JOIN products p ON c.product_id = p.id 
+             LEFT JOIN categories cat ON p.category_id = cat.id
              WHERE c.user_id = $1`,
             [req.user.id]
         );
-        res.json(result.rows);
+        
+        // Format image URLs consistently like in products.js
+        const formattedItems = result.rows.map(item => {
+            if (item.image_url) {
+                // If image_url starts with '/images/', this is from seed data
+                if (item.image_url.startsWith('/images/')) {
+                    // Keep as is, the frontend will handle it
+                } 
+                // If image_url already includes the uploads/products path, don't modify it
+                else if (item.image_url.includes('uploads/products/')) {
+                    // Already correctly formatted
+                }
+                // If image_url is just a filename (from upload), add the proper path
+                else if (!item.image_url.startsWith('/') && !item.image_url.includes('http')) {
+                    item.image_url = `uploads/products/${item.image_url}`;
+                }
+            }
+            return item;
+        });
+        
+        res.json(formattedItems);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error' });

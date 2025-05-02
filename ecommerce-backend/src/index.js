@@ -12,8 +12,12 @@ app.use(express.json());
 
 // Static file serving untuk folder uploads
 // Ini akan membuat file di dalam /uploads bisa diakses via URL
-// Contoh: http://localhost:5000/products/nama-file.jpg
-app.use(express.static(path.join(__dirname, '../uploads')));
+// Contoh: http://localhost:5000/uploads/products/nama-file.jpg
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Tambahkan static file serving untuk folder images (untuk seed data)
+// Contoh: http://localhost:5000/images/products/nama-file.jpg
+app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
 // Database configuration
 const pool = new Pool({
@@ -66,4 +70,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-}); 
+});

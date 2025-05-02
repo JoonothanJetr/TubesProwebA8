@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
 
 const Register = () => {
@@ -58,16 +58,56 @@ const Register = () => {
         }
 
         setLoading(true);
-        try {
-            await authService.register({
+        try {            await authService.register({
                 username: formData.username,
                 email: formData.email,
                 password: formData.password
             });
-            setSuccess('Akun berhasil dibuat! Anda akan dialihkan ke halaman login...');
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
+              // Login otomatis setelah registrasi berhasil
+            try {
+                // Login dan dapatkan respons
+                await authService.login(formData.email, formData.password);
+                
+                // Periksa apakah ada produk yang tertunda untuk ditambahkan ke keranjang
+                const pendingCartAdd = localStorage.getItem('pendingCartAdd');
+                
+                if (pendingCartAdd) {
+                    const { productId, quantity, returnUrl } = JSON.parse(pendingCartAdd);
+                    
+                    try {
+                        // Tambahkan produk ke keranjang
+                        await authService.refreshToken();
+                        const cartService = require('../../services/cartService').cartService;
+                        await cartService.addToCart(productId, quantity);
+                        
+                        // Hapus data pendingCartAdd
+                        localStorage.removeItem('pendingCartAdd');
+                        
+                        setSuccess('Akun berhasil dibuat! Produk ditambahkan ke keranjang. Mengalihkan...');
+                        
+                        // Navigasi kembali ke halaman produk
+                        if (returnUrl) {
+                            setTimeout(() => {
+                                navigate(returnUrl);
+                            }, 2000);
+                            return;
+                        }
+                    } catch (cartErr) {
+                        console.error('Error adding pending product to cart:', cartErr);
+                    }
+                }
+                
+                setSuccess('Akun berhasil dibuat! Anda akan dialihkan ke halaman beranda...');
+                setTimeout(() => {
+                    navigate('/');
+                }, 2000);
+            } catch (loginErr) {
+                console.error('Auto-login error after registration:', loginErr);
+                setSuccess('Akun berhasil dibuat! Anda akan dialihkan ke halaman login...');
+                setTimeout(() => {
+                    navigate('/login');
+                }, 2000);
+            }
         } catch (err) {
             if (err.response?.status === 400) {
                 const errorMessage = err.response.data?.error;
@@ -88,17 +128,33 @@ const Register = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    };    return (
+        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" 
+             style={{ 
+                backgroundImage: 'linear-gradient(to bottom right, #fde047, #facc15, #eab308)', 
+                backgroundSize: 'cover'
+             }}>
+            <div className="absolute top-4 left-4">
+                <button 
+                    onClick={() => navigate('/')} 
+                    className="flex items-center px-4 py-2 bg-white rounded-md shadow-md hover:bg-gray-100 transition-colors"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                    </svg>
+                    Kembali ke Beranda
+                </button>
+            </div>
+              <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-xl">
+                <div className="text-center">
+                    <div className="flex justify-center mb-4">
+                        <span className="inline-block text-yellow-600 text-3xl font-bold">TobaHome <span className="text-gray-500">|</span> <span className="text-yellow-500">SICATE</span></span>
+                    </div>
+                    <h2 className="text-3xl font-extrabold text-gray-900 mb-6">
                         Daftar Akun Baru
                     </h2>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                <form className="space-y-6" onSubmit={handleSubmit}>
                     {error && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                             <span className="block sm:inline">{error}</span>
@@ -162,16 +218,22 @@ const Register = () => {
                                 onChange={handleChange}
                             />
                         </div>
-                    </div>
-
-                    <div>
+                    </div>                    <div>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors shadow-md disabled:bg-yellow-400"
                         >
                             {loading ? 'Mendaftar...' : 'Daftar'}
                         </button>
+                    </div>
+                      <div className="text-center mt-6">
+                        <p className="text-sm text-gray-600">
+                            Sudah memiliki akun?{' '}
+                            <Link to="/login" className="font-medium text-yellow-600 hover:text-yellow-500 transition-colors">
+                                Masuk disini
+                            </Link>
+                        </p>
                     </div>
                 </form>
             </div>

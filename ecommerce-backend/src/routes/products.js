@@ -62,7 +62,28 @@ router.get('/', async (req, res) => {
             ORDER BY p.created_at DESC
         `;
         const result = await pool.query(queryText);
-        res.json(result.rows);
+        
+        // Process image URLs to ensure they're properly formatted
+        const formattedProducts = result.rows.map(product => {
+            // Make sure image_url is properly formatted
+            if (product.image_url) {
+                // If image_url starts with '/images/', this is from seed data
+                if (product.image_url.startsWith('/images/')) {
+                    // Keep as is, the frontend will handle it
+                }
+                // If image_url already includes the uploads/products path, don't modify it
+                else if (product.image_url.includes('uploads/products/')) {
+                    // Already correctly formatted
+                }
+                // If image_url is just a filename (from upload), add the proper path
+                else if (!product.image_url.startsWith('/') && !product.image_url.includes('http')) {
+                    product.image_url = `uploads/products/${product.image_url}`;
+                }
+            }
+            return product;
+        });
+        
+        res.json(formattedProducts);
     } catch (err) {
         console.error('Error fetching products with categories:', err);
         res.status(500).json({ error: 'Server error' });
@@ -73,20 +94,48 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        
+        // Validate id parameter
+        if (!id || id === 'undefined') {
+            return res.status(400).json({ error: 'Invalid product ID' });
+        }
+        
+        // Convert id to integer and validate
+        const productId = parseInt(id);
+        if (isNaN(productId)) {
+            return res.status(400).json({ error: 'Product ID must be a number' });
+        }
+        
         // LEFT JOIN untuk mendapatkan nama kategori
         const queryText = `
             SELECT p.*, c.name AS category_name 
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
             WHERE p.id = $1
-        `;
-        const result = await pool.query(queryText, [id]);
+        `;        const result = await pool.query(queryText, [productId]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });
         }
         
-        res.json(result.rows[0]); // Mengembalikan produk dengan category_name
+        // Format the product image URL
+        const product = result.rows[0];
+        if (product.image_url) {
+            // If image_url starts with '/images/', this is from seed data
+            if (product.image_url.startsWith('/images/')) {
+                // Keep as is, the frontend will handle it
+            } 
+            // If image_url already includes the uploads/products path, don't modify it
+            else if (product.image_url.includes('uploads/products/')) {
+                // Already correctly formatted
+            }
+            // If image_url is just a filename (from upload), add the proper path
+            else if (!product.image_url.startsWith('/') && !product.image_url.includes('http')) {
+                product.image_url = `uploads/products/${product.image_url}`;
+            }
+        }
+        
+        res.json(product); // Mengembalikan produk dengan category_name
     } catch (err) {
         console.error('Error fetching single product:', err);
         res.status(500).json({ error: 'Server error' });
@@ -160,12 +209,26 @@ router.put('/:id', auth.isAdmin, (req, res) => { // Use isAdmin middleware
 
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Access denied' });
+        }        const { id } = req.params;
+        
+        // Validate id parameter
+        if (!id || id === 'undefined') {
+            // Clean up temp file if there is one
+            if (req.file) fs.unlinkSync(req.file.path);
+            return res.status(400).json({ error: 'Invalid product ID' });
         }
-
-        const { id } = req.params;
+        
+        // Convert id to integer and validate
+        const productId = parseInt(id);
+        if (isNaN(productId)) {
+            // Clean up temp file if there is one
+            if (req.file) fs.unlinkSync(req.file.path);
+            return res.status(400).json({ error: 'Product ID must be a number' });
+        }
+        
         // Ambil category_id dari body, bukan category
         const { name, description, price, category_id, stock } = req.body; 
-        const imageFile = req.file; 
+        const imageFile = req.file;
 
         // Validasi input dasar (gunakan category_id)
         if (!name || !price || !category_id || !stock) {
@@ -187,14 +250,13 @@ router.put('/:id', auth.isAdmin, (req, res) => { // Use isAdmin middleware
             }
 
             // 2. Bangun query UPDATE menggunakan category_id
-            let queryText;
-            let queryParams;
+            let queryText;            let queryParams;
             if (imageFile) {
                 queryText = 'UPDATE products SET name = $1, description = $2, price = $3, category_id = $4, stock = $5, image_url = $6 WHERE id = $7 RETURNING *';
-                queryParams = [name, description, price, category_id, stock, imagePathForDb, id];
+                queryParams = [name, description, price, category_id, stock, imagePathForDb, productId];
             } else {
                 queryText = 'UPDATE products SET name = $1, description = $2, price = $3, category_id = $4, stock = $5 WHERE id = $6 RETURNING *';
-                queryParams = [name, description, price, category_id, stock, id];
+                queryParams = [name, description, price, category_id, stock, productId];
             }
 
             const result = await pool.query(queryText, queryParams);
@@ -237,10 +299,20 @@ router.delete('/:id', auth.isAdmin, async (req, res) => { // Use isAdmin middlew
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Access denied' });
+        }        const { id } = req.params;
+        
+        // Validate id parameter
+        if (!id || id === 'undefined') {
+            return res.status(400).json({ error: 'Invalid product ID' });
         }
-
-        const { id } = req.params;
-        const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
+        
+        // Convert id to integer and validate
+        const productId = parseInt(id);
+        if (isNaN(productId)) {
+            return res.status(400).json({ error: 'Product ID must be a number' });
+        }
+        
+        const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [productId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });
@@ -253,4 +325,34 @@ router.delete('/:id', auth.isAdmin, async (req, res) => { // Use isAdmin middlew
     }
 });
 
-module.exports = router; 
+// API endpoint to check if an image exists
+router.get('/check-image/:filename', async (req, res) => {
+    try {
+        const { filename } = req.params;
+        
+        // Sanitize the filename to prevent path traversal
+        const sanitizedFilename = path.basename(filename);
+        
+        // Check different possible locations for the image
+        const possiblePaths = [
+            path.join(uploadDir, sanitizedFilename), // Direct in products folder
+            path.join(__dirname, `../../uploads/${sanitizedFilename}`), // In uploads root
+            path.join(__dirname, `../../uploads/products/${sanitizedFilename}`), // In products subfolder
+        ];
+        
+        // Check if any of the paths exist
+        for (const imagePath of possiblePaths) {
+            if (fs.existsSync(imagePath)) {
+                return res.json({ exists: true, path: `/uploads/products/${sanitizedFilename}` });
+            }
+        }
+        
+        // If no match found
+        res.json({ exists: false });
+    } catch (err) {
+        console.error('Error checking image existence:', err);
+        res.status(500).json({ error: 'Server error checking image' });
+    }
+});
+
+module.exports = router;

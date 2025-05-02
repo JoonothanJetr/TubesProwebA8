@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavig
 import Layout from './components/layout/Layout';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
+import Home from './pages/Home';
+import About from './pages/About';
+import ImageDebugger from './pages/ImageDebugger';
 import ProductList from './components/products/ProductList';
 import ProductDetail from './components/products/ProductDetail';
 import CartList from './components/cart/CartList';
@@ -12,6 +15,8 @@ import { authService } from './services/authService';
 // Removed unused imports: Link, Navbar, Container, Nav
 import AdminRoute from './components/routes/AdminRoute';
 import ProtectedRoute from './components/routes/ProtectedRoute';
+
+// Import komponen admin secara langsung untuk menghindari masalah dengan lazy loading
 import AdminDashboard from './components/admin/AdminDashboard';
 import ProductManagement from './components/admin/ProductManagement';
 import ProductForm from './components/admin/ProductForm';
@@ -59,22 +64,21 @@ const AppContent = () => {
     };
 
     return (
-        <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<ProductList />} />
+        <Routes>            {/* Public Routes */}
+            <Route path="/" element={<Layout><Home /></Layout>} />
+            <Route path="/about" element={<Layout><About /></Layout>} />
             <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/products" element={<ProductList />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/products" element={<Layout><ProductList /></Layout>} />
+            <Route path="/products/:id" element={<Layout><ProductDetail /></Layout>} />
+            <Route path="/debug-images" element={<Layout><ImageDebugger /></Layout>} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-                <Route path="/cart" element={<CartList />} />
-                <Route path="/orders" element={<OrderList />} />
-                <Route path="/orders/:id" element={<OrderDetail />} />
-            </Route>
-
-            {/* Admin Routes */}
+                <Route path="/cart" element={<Layout><CartList /></Layout>} />
+                <Route path="/orders" element={<Layout><OrderList /></Layout>} />
+                <Route path="/orders/:id" element={<Layout><OrderDetail /></Layout>} />
+            </Route>            {/* Admin Routes */}
             <Route element={<AdminRoute />}>
                 <Route element={<AdminLayout />}>
                     <Route path="/admin" element={<AdminDashboard />} />
@@ -96,10 +100,8 @@ const AppContent = () => {
 
 const App = () => (
     <Router>
-        <Layout>
-            <AppContent />
-        </Layout>
+        <AppContent />
     </Router>
 );
 
-export default App; 
+export default App;

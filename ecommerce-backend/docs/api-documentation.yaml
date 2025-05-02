@@ -2,9 +2,8 @@ openapi: 3.0.0
 info:
   title: Catering E-commerce API
   description: API untuk aplikasi e-commerce catering
-  version: 1.0.0
-  contact:
-    email: support@cateringku.com
+  version: 1.0.0  contact:
+    email: support@tobahome.com
 
 servers:
   - url: http://localhost:3000/api

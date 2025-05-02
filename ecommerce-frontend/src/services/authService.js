@@ -22,6 +22,16 @@ class AuthService {
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
         }
     }
+    
+    // Fungsi untuk me-refresh token dari localStorage ke axiosInstance
+    refreshToken() {
+        this.token = localStorage.getItem('token');
+        if (this.token) {
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+            return true;
+        }
+        return false;
+    }
 
     async register(userData) {
         try {

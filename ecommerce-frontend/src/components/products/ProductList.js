@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
-// Hapus Link jika klik sekarang membuka modal
-// import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { productService } from '../../services/productService';
-import ProductDetailModal from './ProductDetailModal'; // <-- Import modal
-import { Spinner, Row, Col, Card } from 'react-bootstrap'; // Import Spinner, Row, Col, Card dari react-bootstrap
+// import ProductModal from './ProductModal';
+import ProductModalOptimized from './ProductModalOptimized'; // Using optimized modal
+import { Spinner, Row, Col, Card, Button } from 'react-bootstrap';
 import { authService } from '../../services/authService';
 import { cartService } from '../../services/cartService';
+import Swal from 'sweetalert2';
+import { getProductImageUrl } from '../../utils/imageHelper';
+import ProductImageOptimized from '../common/ProductImageOptimized';
+import { prefetchProductOnHover, prefetchVisibleProducts } from '../../utils/prefetchHelper';
 
 const ProductList = () => {
     console.log('ProductList rendering...'); // <-- Tambahkan kembali log render
@@ -32,9 +36,7 @@ const ProductList = () => {
         'makanan-pembuka': 'Makanan Pembuka',
         'makanan-penutup': 'Makanan Penutup',
         'minuman': 'Minuman'
-    };
-
-    useEffect(() => {
+    };    useEffect(() => {
         fetchProducts();
     }, []);
 
@@ -44,7 +46,15 @@ const ProductList = () => {
         try {
             // Pastikan backend mengembalikan category_name atau data kategori lain jika perlu
             const data = await productService.getAllProducts();
+            console.log("Fetched products:", data);
             setProducts(data);
+            
+            // Start prefetching the first few products immediately after loading for faster modal display
+            setTimeout(() => {
+                if (data && data.length > 0) {
+                    prefetchVisibleProducts(data, 3);
+                }
+            }, 500);
         } catch (err) {
             console.error("Error fetching products:", err);
             setError('Gagal memuat produk');
@@ -58,25 +68,39 @@ const ProductList = () => {
         ? products
         : products.filter(product => product.category_name === categoryLabels[selectedCategory]); // Sesuaikan dengan data backend (misal category_name)
 
+    // Memoize for better performance and avoid unnecessary re-renders
+    const handleProductHover = useCallback((productId) => {
+        // When user hovers over a product, prefetch its details
+        prefetchProductOnHover(productId);
+    }, []);
+
     // Handler untuk menampilkan modal
-    const handleShowModal = (product) => {
-        setSelectedProduct(product);
+    const handleShowModal = useCallback((productId) => {
+        setSelectedProduct(productId);
         setShowModal(true);
-    };
+    }, []);
 
     // Handler untuk menutup modal
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setShowModal(false);
-        setSelectedProduct(null);
-    };
+        // Don't set selectedProduct to null immediately to avoid flash of emptiness
+        // when closing and reopening modal quickly
+        setTimeout(() => {
+            setSelectedProduct(null);
+        }, 300);
+    }, []);
 
     // Handler untuk Tambah ke Keranjang
     const handleAddToCart = async (productId) => {
         // Cek dulu apakah pengguna sudah login
         if (!authService.isAuthenticated()) {
-            alert('Silakan login terlebih dahulu untuk menambahkan item ke keranjang.');
-            // Arahkan ke login?
-            // navigate('/login');
+            Swal.fire({
+                icon: 'info',
+                title: 'Login Diperlukan',
+                text: 'Silakan login terlebih dahulu untuk menambahkan item ke keranjang',
+                confirmButtonColor: '#ffc107',
+                confirmButtonText: 'OK'
+            });
             handleCloseModal();
             return;
         }
@@ -86,11 +110,34 @@ const ProductList = () => {
         try {
             // Asumsi quantity = 1 saat pertama kali tambah dari modal
             await cartService.addToCart(productId, 1); 
-            alert('Produk berhasil ditambahkan ke keranjang!');
+            
+            // Use SweetAlert toast for success message
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+            
+            Toast.fire({
+                icon: 'success',
+                title: 'Produk berhasil ditambahkan ke keranjang!'
+            });
+            
             handleCloseModal(); // Tutup modal setelah sukses
         } catch (err) {
             console.error("Error adding to cart:", err);
-            alert(err.message || 'Gagal menambahkan produk ke keranjang. Silakan coba lagi.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal menambahkan produk',
+                text: err.message || 'Terjadi kesalahan saat menambahkan produk ke keranjang. Silakan coba lagi.',
+                confirmButtonColor: '#ffc107'
+            });
             // Jangan tutup modal jika gagal?
         } finally {
             setAddingToCart(false); // Reset loading
@@ -139,48 +186,58 @@ const ProductList = () => {
                 // Gunakan Row dan Col dari react-bootstrap jika ingin konsisten
                 <Row xs={1} sm={2} md={3} lg={4} className="g-4">
                     {filteredProducts.map((product) => (
-                        <Col key={product.id}>
-                            {/* Hapus Link, tambahkan onClick */}
-                            <Card 
-                                className="h-100 shadow-sm product-card" 
-                                onClick={() => handleShowModal(product)} 
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <Card.Img 
-                                    variant="top" 
-                                    src={`http://localhost:5000/${product.image_url}`} 
-                                    alt={product.name} 
-                                    style={{ height: '200px', objectFit: 'cover' }}
-                                    onError={(e) => { 
-                                        e.target.onerror = null;
-                                        e.target.style.display = 'none';
-                                        console.error(`Gagal memuat gambar: ${e.target.src}`);
-                                    }}
-                                />
+                        <Col key={product.id}>                            <Card 
+                                className="h-100 shadow-sm product-card"
+                                onClick={() => handleShowModal(product.id)}
+                                onMouseEnter={() => handleProductHover(product.id)}
+                            >                                <div style={{ position: 'relative', overflow: 'hidden', height: '200px' }}>
+                                    <ProductImageOptimized 
+                                        imageUrl={product.image_url}
+                                        productName={product.name}
+                                        style={{ 
+                                            height: '200px', 
+                                            width: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                        loading="lazy"
+                                    />
+                                    {product.category_name && (
+                                        <span className="category-badge">
+                                            {product.category_name}
+                                        </span>
+                                    )}
+                                </div>
                                 <Card.Body className="d-flex flex-column">
                                     <Card.Title className="h6 mb-1">{product.name}</Card.Title>
-                                    {/* Tampilkan nama kategori jika ada */}
-                                    <Card.Text className="text-muted small mb-2">{product.category_name || 'Tanpa Kategori'}</Card.Text>
-                                    <Card.Text className="h5 mt-auto mb-0 text-end fw-bold">
+                                    <Card.Text className="small mb-2 text-truncate">
+                                        {product.description?.substring(0, 60) || 'Tidak ada deskripsi'}...
+                                    </Card.Text>
+                                    <Card.Text className="h5 mt-auto mb-0 fw-bold">
                                         Rp {product.price ? product.price.toLocaleString('id-ID') : '0'}
                                     </Card.Text>
                                 </Card.Body>
+                                <Card.Footer className="bg-white border-top-0 pt-0">
+                                    <Button 
+                                        variant="outline-warning" 
+                                        size="sm" 
+                                        className="w-100"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleShowModal(product.id);
+                                        }}
+                                    >
+                                        <i className="bi bi-eye-fill me-1"></i> Detail
+                                    </Button>
+                                </Card.Footer>
                             </Card>
                         </Col>
                     ))}
-                </Row>
-            )}
-
-            {/* Render Modal Detail Produk */}
-            {selectedProduct && (
-                <ProductDetailModal 
-                    show={showModal} 
-                    handleClose={handleCloseModal} 
-                    product={selectedProduct} 
-                    onAddToCart={handleAddToCart}
-                    isAdding={addingToCart} // Kirim state loading ke modal
-                />
-            )}
+                </Row>            )}            {/* Render Modal Detail Produk - using optimized version */}
+            <ProductModalOptimized 
+                productId={selectedProduct}
+                show={showModal} 
+                onHide={handleCloseModal}
+            />
         </div>
     );
 };

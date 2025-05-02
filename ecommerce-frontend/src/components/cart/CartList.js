@@ -2,16 +2,24 @@ import React, { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cartService } from '../../services/cartService';
 import { orderService } from '../../services/orderService';
-import { Dialog, Transition } from '@headlessui/react';
-import toast, { Toaster } from 'react-hot-toast';
+import { Container, Row, Col, Card, Button, Form, Modal, Spinner } from 'react-bootstrap';
+import Swal from 'sweetalert2';
+import ProductModalOptimized from '../products/ProductModalOptimized';
+import ProductImageOptimized from '../common/ProductImageOptimized'; // Import optimized image component
+import { normalizeImagePaths } from '../../utils/imageFixer'; // Import image path fixer
 
 const CartList = () => {
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+    const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+    const [processing, setProcessing] = useState(false);
+    
+    // State for product modal
+    const [showProductModal, setShowProductModal] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState(null);
 
     useEffect(() => {
         fetchCart();
@@ -19,11 +27,18 @@ const CartList = () => {
 
     const fetchCart = async () => {
         try {
+            setLoading(true);
             const data = await cartService.getCart();
-            setCartItems(data);
-            setLoading(false);
+            // Fix image paths to ensure they load correctly
+            const fixedData = normalizeImagePaths(data);
+            console.log('Original cart data:', data);
+            console.log('Fixed cart data:', fixedData);
+            setCartItems(fixedData);
+            setError('');
         } catch (err) {
-            setError('Gagal memuat keranjang');
+            console.error("Error fetching cart:", err);
+            setError('Gagal memuat keranjang. Silakan coba lagi.');
+        } finally {
             setLoading(false);
         }
     };
@@ -32,41 +47,99 @@ const CartList = () => {
         try {
             await cartService.updateCartItem(productId, newQuantity);
             fetchCart();
+            
+            // Show success toast
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Jumlah item berhasil diperbarui',
+                showConfirmButton: false,
+                timer: 2000
+            });
         } catch (err) {
-            toast.error('Gagal mengupdate jumlah item');
+            console.error("Error updating item quantity:", err);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: 'Gagal mengupdate jumlah item',
+                showConfirmButton: false,
+                timer: 3000
+            });
         }
     };
 
     const handleRemoveItem = async (productId) => {
         try {
-            await cartService.removeFromCart(productId);
-            fetchCart();
-            toast.success('Item berhasil dihapus dari keranjang');
+            // Ask for confirmation first
+            const result = await Swal.fire({
+                title: 'Hapus item?',
+                text: "Item akan dihapus dari keranjang belanja Anda",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            });
+
+            if (result.isConfirmed) {
+                await cartService.removeFromCart(productId);
+                fetchCart();
+                
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Item berhasil dihapus dari keranjang',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
         } catch (err) {
-            toast.error('Gagal menghapus item');
+            console.error("Error removing item:", err);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: 'Gagal menghapus item',
+                showConfirmButton: false,
+                timer: 3000
+            });
         }
     };
 
-    const openCheckoutModal = () => {
+    const handleOpenCheckoutModal = () => {
         if (cartItems.length === 0) {
-             toast.error("Keranjang Anda kosong!");
-             return;
+            Swal.fire({
+                icon: 'warning',
+                title: 'Keranjang Kosong',
+                text: 'Tambahkan produk ke keranjang sebelum melakukan checkout',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
         }
-        setIsCheckoutModalOpen(true);
+        setShowCheckoutModal(true);
     };
 
-    const closeCheckoutModal = () => {
-        setIsCheckoutModalOpen(false);
+    const handleCloseCheckoutModal = () => {
+        setShowCheckoutModal(false);
         setSelectedPaymentMethod('');
     };
 
-    const handlePaymentMethodChange = (event) => {
-        setSelectedPaymentMethod(event.target.value);
+    const handlePaymentMethodChange = (e) => {
+        setSelectedPaymentMethod(e.target.value);
     };
 
     const handleConfirmPayment = async () => {
         if (!selectedPaymentMethod) {
-            toast.error('Silakan pilih metode pembayaran terlebih dahulu.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Metode Pembayaran Dibutuhkan',
+                text: 'Silakan pilih metode pembayaran terlebih dahulu',
+                confirmButtonColor: '#ffc107'
+            });
             return;
         }
 
@@ -77,39 +150,61 @@ const CartList = () => {
                 quantity: item.quantity,
                 price: item.price
             })),
-            totalAmount: total
+            totalAmount: calcTotal()
         };
 
-        const loadingToast = toast.loading('Memproses pesanan...');
+        setProcessing(true);
 
         try {
             const result = await orderService.createOrder(orderData);
             
-            toast.dismiss(loadingToast);
-            toast.success(result.message || 'Pesanan berhasil dibuat!', {
-                 icon: '✅',
-                 duration: 4000,
+            setProcessing(false);
+            handleCloseCheckoutModal();
+            
+            // Show success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Pesanan Berhasil Dibuat!',
+                text: result.message || 'Pesanan Anda telah berhasil dibuat dan sedang diproses.',
+                confirmButtonColor: '#28a745'
+            }).then(() => {
+                // Empty cart and navigate to orders page
+                setCartItems([]);
+                navigate('/orders');
             });
 
-            closeCheckoutModal();
-            setCartItems([]);
-            setTimeout(() => {
-                 navigate('/pesanan');
-            }, 1000);
-
         } catch (error) {
-            toast.dismiss(loadingToast);
+            setProcessing(false);
             console.error("Error creating order:", error);
-            const errorMessage = error?.response?.data?.error || 'Gagal membuat pesanan. Silakan coba lagi.';
-            toast.error(errorMessage);
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Membuat Pesanan',
+                text: error?.response?.data?.error || 'Gagal membuat pesanan. Silakan coba lagi.',
+                confirmButtonColor: '#dc3545'
+            });
         }
     };
+    
+    // Handler for product modal
+    const handleShowProductModal = (productId) => {
+        setSelectedProductId(productId);
+        setShowProductModal(true);
+    };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div className="text-center text-red-500 mt-10">{error}</div>;
+    const handleCloseProductModal = () => {
+        setShowProductModal(false);
+        setSelectedProductId(null);
+    };
 
-    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Calculate total price
+    const calcTotal = () => {
+        return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    };
 
+    const total = calcTotal();
+
+    // Payment method options
     const paymentMethods = [
         { value: '', label: '-- Pilih Metode Pembayaran --' },
         { value: 'cod', label: 'Bayar di Lokasi Pengambilan' },
@@ -118,197 +213,229 @@ const CartList = () => {
         { value: 'gopay', label: 'GoPay' },
     ];
 
+    if (loading) {
+        return (
+            <Container className="py-5 text-center">
+                <Spinner animation="border" role="status" variant="warning">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
+                <p className="mt-3">Memuat keranjang belanja...</p>
+            </Container>
+        );
+    }
+
     return (
-        <div className="bg-white">
-            <Toaster position="top-center" reverseOrder={false} />
-            <div className="max-w-2xl mx-auto pt-16 pb-24 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-                <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Keranjang Belanja</h1>
+        <Container className="py-5">
+            <h1 className="mb-4 display-5 fw-bold">Keranjang Belanja</h1>
+            
+            {error && (
+                <div className="alert alert-danger" role="alert">
+                    {error}
+                </div>
+            )}
 
-                {cartItems.length === 0 && !loading && (
-                    <div className="text-center mt-10 text-gray-500">
-                        Keranjang belanja Anda kosong.
-                    </div>
-                )}
+            {cartItems.length === 0 && !loading && !error && (
+                <div className="text-center py-5">
+                    <i className="bi bi-cart-x display-1 text-muted mb-3"></i>
+                    <h4>Keranjang belanja Anda kosong</h4>
+                    <p className="text-muted">Silakan tambahkan produk ke keranjang terlebih dahulu.</p>
+                    <Button variant="warning" onClick={() => navigate('/products')}>
+                        Lihat Produk
+                    </Button>
+                </div>
+            )}
 
-                {cartItems.length > 0 && (
-                  <div className="mt-12 lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start xl:gap-x-16">
-                      <section aria-labelledby="cart-heading" className="lg:col-span-7">
-                          <h2 id="cart-heading" className="sr-only">
-                              Items in your shopping cart
-                          </h2>
-  
-                          <div className="mt-8">
-                              <ul className="divide-y divide-gray-200">
-                                  {cartItems.map((item) => (
-                                      <li key={item.product_id} className="flex py-6 sm:py-10">
-                                          <div className="flex-shrink-0">
-                                              <img
-                                                  src={`http://localhost:5000/${item.image_url}`}
-                                                  alt={item.name}
-                                                  className="w-24 h-24 rounded-md object-center object-cover sm:w-48 sm:h-48"
-                                              />
-                                          </div>
-  
-                                          <div className="ml-4 flex-1 flex flex-col sm:ml-6">
-                                              <div className="flex">
-                                                  <div className="min-w-0 flex-1">
-                                                      <h3 className="text-sm font-medium text-gray-900">
-                                                          {item.name}
-                                                      </h3>
-                                                      <p className="mt-1 text-sm font-medium text-gray-500">Rp {item.price}</p>
-                                                  </div>
-                                                  <div className="ml-4 flex-shrink-0 flex">
-                                                      <button
-                                                          type="button"
-                                                          onClick={() => handleRemoveItem(item.product_id)}
-                                                          className="font-medium text-indigo-600 hover:text-indigo-500"
-                                                      >
-                                                          Hapus
-                                                      </button>
-                                                  </div>
-                                              </div>
-  
-                                              <div className="mt-2 flex-1 flex items-end justify-between">
-                                                  <div className="flex items-center">
-                                                      <label htmlFor={`quantity-${item.product_id}`} className="mr-2 text-sm text-gray-600">
-                                                          Jumlah
-                                                      </label>
-                                                      <select
-                                                          id={`quantity-${item.product_id}`}
-                                                          name={`quantity-${item.product_id}`}
-                                                          value={item.quantity}
-                                                          onChange={(e) => handleQuantityChange(item.product_id, Number(e.target.value))}
-                                                          className="rounded-md border-gray-300 py-1.5 text-base leading-5 focus:border-indigo-300 focus:outline-none focus:ring-indigo-500 focus:ring-1 sm:text-sm"
-                                                      >
-                                                          {[1, 2, 3, 4, 5].map((num) => (
-                                                              <option key={num} value={num}>
-                                                                  {num}
-                                                              </option>
-                                                          ))}
-                                                      </select>
-                                                  </div>
-                                                  <p className="text-sm font-medium text-gray-900">
-                                                      Total: Rp {item.price * item.quantity}
-                                                  </p>
-                                              </div>
-                                          </div>
-                                      </li>
-                                  ))}
-                              </ul>
-                          </div>
-                      </section>
-  
-                      {/* Order summary */}
-                      <section aria-labelledby="summary-heading" className="mt-16 bg-gray-50 rounded-lg px-4 py-6 sm:p-6 lg:p-8 lg:mt-0 lg:col-span-5">
-                          <h2 id="summary-heading" className="text-lg font-medium text-gray-900">
-                              Ringkasan Pesanan
-                          </h2>
-  
-                          <dl className="mt-6 space-y-4">
-                              <div className="flex items-center justify-between">
-                                  <dt className="text-sm text-gray-600">Subtotal</dt>
-                                  <dd className="text-sm font-medium text-gray-900">Rp {total}</dd>
-                              </div>
-                              <div className="border-t border-gray-200 pt-4 flex items-center justify-between">
-                                  <dt className="text-base font-medium text-gray-900">Total</dt>
-                                  <dd className="text-base font-medium text-gray-900">Rp {total}</dd>
-                              </div>
-                          </dl>
-  
-                          <div className="mt-6">
-                              <button
-                                  type="button"
-                                  onClick={openCheckoutModal}
-                                  disabled={cartItems.length === 0}
-                                  className="w-full bg-indigo-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                              >
-                                  Checkout
-                              </button>
-                          </div>
-                      </section>
-                  </div>
-                )}
-            </div>
-
-            {/* Checkout Modal */}
-            <Transition appear show={isCheckoutModalOpen} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={closeCheckoutModal}>
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
-                        <div className="fixed inset-0 bg-black bg-opacity-25" />
-                    </Transition.Child>
-
-                    <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex min-h-full items-center justify-center p-4 text-center">
-                            <Transition.Child
-                                as={Fragment}
-                                enter="ease-out duration-300"
-                                enterFrom="opacity-0 scale-95"
-                                enterTo="opacity-100 scale-100"
-                                leave="ease-in duration-200"
-                                leaveFrom="opacity-100 scale-100"
-                                leaveTo="opacity-0 scale-95"
-                            >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                                    <Dialog.Title
-                                        as="h3"
-                                        className="text-lg font-medium leading-6 text-gray-900"
-                                    >
-                                        Konfirmasi Pesanan
-                                    </Dialog.Title>
-                                    <div className="mt-4">
-                                        <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700">
-                                            Metode Pembayaran
-                                        </label>
-                                        <select
-                                            id="paymentMethod"
-                                            name="paymentMethod"
-                                            value={selectedPaymentMethod}
-                                            onChange={handlePaymentMethodChange}
-                                            className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                                        >
-                                            {paymentMethods.map((method) => (
-                                                <option key={method.value} value={method.value} disabled={method.value === ''}>
-                                                    {method.label}
-                                                </option>
+            {cartItems.length > 0 && (
+                <Row>
+                    <Col lg={8} className="mb-4 mb-lg-0">
+                        <Card>
+                            <Card.Header as="h5">
+                                <i className="bi bi-cart4 me-2"></i>
+                                Item dalam Keranjang
+                            </Card.Header>
+                            <Card.Body className="p-0">
+                                <div className="table-responsive">
+                                    <table className="table table-hover mb-0">
+                                        <thead className="table-light">
+                                            <tr>
+                                                <th>Produk</th>
+                                                <th>Harga</th>
+                                                <th>Jumlah</th>
+                                                <th>Total</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {cartItems.map((item) => (
+                                                <tr key={item.product_id}>
+                                                    <td>
+                                                        <div className="d-flex align-items-center">
+                                                            <ProductImageOptimized 
+                                                                imageUrl={item.image_url}
+                                                                productName={item.name}
+                                                                className="me-3"
+                                                                style={{width: '70px', height: '70px', objectFit: 'cover', borderRadius: '4px'}}
+                                                            />
+                                                            <div>
+                                                                <div className="fw-semibold mb-1" style={{cursor: 'pointer'}} onClick={() => handleShowProductModal(item.product_id)}>
+                                                                    {item.name}
+                                                                </div>
+                                                                {item.category_name && (
+                                                                    <span className="badge bg-light text-dark">{item.category_name}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>Rp {item.price?.toLocaleString('id-ID')}</td>
+                                                    <td>
+                                                        <Form.Select 
+                                                            size="sm" 
+                                                            value={item.quantity} 
+                                                            onChange={(e) => handleQuantityChange(item.product_id, parseInt(e.target.value))}
+                                                            style={{width: '80px'}}
+                                                        >
+                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                                                <option key={num} value={num}>{num}</option>
+                                                            ))}
+                                                        </Form.Select>
+                                                    </td>
+                                                    <td className="fw-bold">Rp {(item.price * item.quantity).toLocaleString('id-ID')}</td>
+                                                    <td>
+                                                        <Button 
+                                                            variant="outline-danger" 
+                                                            size="sm"
+                                                            onClick={() => handleRemoveItem(item.product_id)}
+                                                        >
+                                                            <i className="bi bi-trash"></i>
+                                                        </Button>
+                                                    </td>
+                                                </tr>
                                             ))}
-                                        </select>
-                                    </div>
-                                    <p className="mt-4 text-sm text-gray-500">
-                                        Setelah konfirmasi pembayaran, Anda dapat mengecek halaman "Pesanan" untuk melihat status pesanan Anda.
-                                    </p>
-                                    <div className="mt-6 flex justify-end space-x-3">
-                                        <button
-                                            type="button"
-                                            className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
-                                            onClick={closeCheckoutModal}
-                                        >
-                                            Batal
-                                        </button>
-                                        <button
-                                            type="button"
-                                            disabled={!selectedPaymentMethod}
-                                            className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                                            onClick={handleConfirmPayment}
-                                        >
-                                            Konfirmasi Pembayaran
-                                        </button>
-                                    </div>
-                                </Dialog.Panel>
-                            </Transition.Child>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={4}>
+                        <Card className="shadow-sm">
+                            <Card.Header as="h5">
+                                <i className="bi bi-receipt me-2"></i>
+                                Ringkasan Pesanan
+                            </Card.Header>
+                            <Card.Body>
+                                <div className="d-flex justify-content-between mb-3">
+                                    <span>Subtotal</span>
+                                    <span>Rp {total.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div className="d-flex justify-content-between mb-3">
+                                    <span>Pengiriman</span>
+                                    <span className="text-success">Gratis</span>
+                                </div>
+                                <hr />
+                                <div className="d-flex justify-content-between mb-4">
+                                    <span className="fw-bold">Total</span>
+                                    <span className="fw-bold fs-5">Rp {total.toLocaleString('id-ID')}</span>
+                                </div>
+                                <Button 
+                                    variant="warning" 
+                                    className="w-100 py-2"
+                                    onClick={handleOpenCheckoutModal}
+                                >
+                                    <i className="bi bi-credit-card me-2"></i>
+                                    Checkout
+                                </Button>
+                            </Card.Body>
+                        </Card>
+                        
+                        <Card className="mt-4">
+                            <Card.Body>
+                                <h6><i className="bi bi-shield-check me-2"></i> Pembayaran Aman</h6>
+                                <p className="text-muted small mb-0">
+                                    Semua transaksi dilindungi dan dienkripsi untuk keamanan Anda
+                                </p>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            )}
+            
+            {/* Checkout Modal */}
+            <Modal show={showCheckoutModal} onHide={handleCloseCheckoutModal} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Konfirmasi Pesanan</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Metode Pembayaran</Form.Label>
+                            <Form.Select 
+                                value={selectedPaymentMethod} 
+                                onChange={handlePaymentMethodChange}
+                            >
+                                {paymentMethods.map((method) => (
+                                    <option key={method.value} value={method.value} disabled={method.value === ''}>
+                                        {method.label}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+                        
+                        <div className="mb-3">
+                            <h6 className="mb-2">Detail Pesanan</h6>
+                            <div className="bg-light p-3 rounded">
+                                <div className="d-flex justify-content-between mb-2">
+                                    <span>Jumlah Item</span>
+                                    <span>{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                                </div>
+                                <div className="d-flex justify-content-between fw-bold">
+                                    <span>Total</span>
+                                    <span>Rp {total.toLocaleString('id-ID')}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </Dialog>
-            </Transition>
-        </div>
+                        
+                        <small className="text-muted d-block mb-3">
+                            Setelah konfirmasi pembayaran, Anda dapat mengecek halaman "Pesanan" untuk melihat status pesanan Anda.
+                        </small>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="light" onClick={handleCloseCheckoutModal}>
+                        Batal
+                    </Button>
+                    <Button 
+                        variant="warning" 
+                        onClick={handleConfirmPayment}
+                        disabled={!selectedPaymentMethod || processing}
+                    >
+                        {processing ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Memproses...
+                            </>
+                        ) : (
+                            'Konfirmasi Pembayaran'
+                        )}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            
+            {/* Product Detail Modal */}
+            <ProductModalOptimized 
+                productId={selectedProductId}
+                show={showProductModal}
+                onHide={handleCloseProductModal}
+            />
+        </Container>
     );
 };
 
-export default CartList; 
+export default CartList;

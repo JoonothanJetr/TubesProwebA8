@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Button, Image, Container, Row, Col, Badge, Spinner } from 'react-bootstrap';
+import { getProductImageUrl } from '../../utils/imageHelper';
 
 const ProductDetailModal = ({ show, handleClose, product, onAddToCart, isAdding }) => {
     
@@ -23,16 +24,15 @@ const ProductDetailModal = ({ show, handleClose, product, onAddToCart, isAdding 
             <Modal.Body>
                 <Container fluid>
                     <Row>
-                        <Col md={6} className="mb-3 mb-md-0">
-                            <Image 
-                                src={`http://localhost:5000/${product.image_url}`} 
+                        <Col md={6} className="mb-3 mb-md-0">                            <Image 
+                                src={getProductImageUrl(product.image_url)} 
                                 alt={product.name} 
                                 fluid 
                                 rounded
                                 style={{ maxHeight: '400px', width: '100%', objectFit: 'contain' }}
                                 onError={(e) => { 
                                     e.target.onerror = null;
-                                    e.target.style.display = 'none';
+                                    e.target.src = 'https://via.placeholder.com/400x300?text=No+Image+Available';
                                     console.error(`Modal - Gagal memuat gambar: ${e.target.src}`);
                                 }}
                             />

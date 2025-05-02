@@ -3,6 +3,9 @@ import { useParams } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { cartService } from '../../services/cartService';
 import { reviewService } from '../../services/reviewService';
+import { authService } from '../../services/authService'; // Import authService
+import ProductImage from '../common/ProductImage'; // Import ProductImage component
+import Swal from 'sweetalert2'; // Import SweetAlert
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -35,11 +38,60 @@ const ProductDetail = () => {
     }, [fetchProductDetails]);
 
     const handleAddToCart = async () => {
+        // Periksa apakah pengguna sudah login
+        if (!authService.isAuthenticated()) {
+            // Jika belum login, simpan informasi produk yang ingin ditambahkan ke localStorage
+            localStorage.setItem('pendingCartAdd', JSON.stringify({
+                productId: id,
+                quantity: quantity,
+                returnUrl: window.location.pathname
+            }));
+            
+            // Tampilkan pesan dengan SweetAlert dan redirect ke login
+            Swal.fire({
+                title: 'Login Diperlukan',
+                text: 'Anda perlu login untuk menambahkan produk ke keranjang',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Login Sekarang',
+                cancelButtonText: 'Nanti Saja'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/login';
+                }
+            });
+            return;
+        }
+        
+        // Jika sudah login, lanjutkan dengan menambahkan ke keranjang
         try {
             await cartService.addToCart(id, quantity);
-            alert('Produk berhasil ditambahkan ke keranjang');
+            
+            // Toast notification untuk sukses
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+            
+            Toast.fire({
+                icon: 'success',
+                title: 'Produk berhasil ditambahkan ke keranjang'
+            });
         } catch (err) {
-            alert('Gagal menambahkan produk ke keranjang');
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal menambahkan produk',
+                text: 'Terjadi kesalahan saat menambahkan produk ke keranjang'
+            });
         }
     };
 
@@ -52,11 +104,12 @@ const ProductDetail = () => {
             <div className="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
                 {/* Image */}
                 <div className="w-full">
-                    <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-center object-cover rounded-lg"
-                    />
+                <ProductImage
+                    imageUrl={product.image_url}
+                    productName={product.name}
+                    className="w-full h-full object-center object-cover rounded-lg"
+                    style={{ maxHeight: '600px', width: '100%' }}
+                />
                 </div>
 
                 {/* Product info */}
@@ -68,7 +121,7 @@ const ProductDetail = () => {
                     <div className="mt-3">
                         <h2 className="sr-only">Informasi Produk</h2>
                         <p className="text-3xl text-gray-900">
-                            Rp {product.price.toLocaleString()}
+                            Rp {(product.price || 0).toLocaleString()}
                         </p>
                     </div>
 
@@ -113,7 +166,7 @@ const ProductDetail = () => {
             {/* Reviews section */}
             <div className="mt-16">
                 <h2 className="text-2xl font-bold text-gray-900">Ulasan Produk</h2>
-                {stats && (
+                {stats && stats.average_rating !== null && (
                     <div className="mt-4">
                         <div className="flex items-center">
                             <div className="flex items-center">
@@ -121,7 +174,7 @@ const ProductDetail = () => {
                                     <svg
                                         key={rating}
                                         className={`${
-                                            rating < stats.average_rating ? 'text-yellow-400' : 'text-gray-200'
+                                            rating < (stats.average_rating || 0) ? 'text-yellow-400' : 'text-gray-200'
                                         } h-5 w-5 flex-shrink-0`}
                                         xmlns="http://www.w3.org/2000/svg"
                                         viewBox="0 0 20 20"
@@ -133,7 +186,7 @@ const ProductDetail = () => {
                                 ))}
                             </div>
                             <p className="ml-3 text-sm text-gray-700">
-                                {stats.average_rating.toFixed(1)} dari 5 ({stats.total_reviews} ulasan)
+                                {(stats.average_rating || 0).toFixed(1)} dari 5 ({stats.total_reviews || 0} ulasan)
                             </p>
                         </div>
                     </div>
@@ -172,4 +225,4 @@ const ProductDetail = () => {
     );
 };
 
-export default ProductDetail; 
+export default ProductDetail;

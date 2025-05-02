@@ -183,21 +183,39 @@ router.get('/:id', auth.authenticateToken, async (req, res) => {
         if (req.user.role !== 'admin' && orderResult.rows[0].user_id !== req.user.id) {
             return res.status(403).json({ error: 'Access denied' });
         }
-        
-        // Get order items
+          // Get order items
         const itemsResult = await pool.query(
-            `SELECT oi.*, p.name, p.image_url 
+            `SELECT oi.*, p.name, p.image_url, cat.name AS category_name
              FROM order_items oi 
              JOIN products p ON oi.product_id = p.id 
+             LEFT JOIN categories cat ON p.category_id = cat.id
              WHERE oi.order_id = $1`,
             [id]
         );
         
         const order = orderResult.rows[0];
-        order.items = itemsResult.rows.map(item => ({
-            ...item,
-            image_url: `/products/${path.basename(item.image_url || 'placeholder.png')}` // Sesuaikan dengan struktur URL statis Anda
-        }));
+        order.items = itemsResult.rows.map(item => {
+            // Format image URL consistently like in products.js
+            let imageUrl = item.image_url || '';
+            
+            // If image_url starts with '/images/', this is from seed data
+            if (imageUrl.startsWith('/images/')) {
+                // Keep as is, the frontend will handle it
+            } 
+            // If image_url already includes the uploads/products path, don't modify it
+            else if (imageUrl.includes('uploads/products/')) {
+                // Already correctly formatted
+            }
+            // If image_url is just a filename (from upload), add the proper path
+            else if (!imageUrl.startsWith('/') && !imageUrl.includes('http')) {
+                imageUrl = `uploads/products/${imageUrl}`;
+            }
+            
+            return {
+                ...item,
+                image_url: imageUrl
+            };
+        });
         
         res.json(order);
     } catch (err) {

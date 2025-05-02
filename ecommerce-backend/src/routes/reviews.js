@@ -16,13 +16,24 @@ router.get('/product/:product_id', async (req, res) => {
     try {
         const { product_id } = req.params;
         
+        // Validate product_id parameter
+        if (!product_id || product_id === 'undefined') {
+            return res.status(400).json({ error: 'Invalid product ID' });
+        }
+        
+        // Convert product_id to integer and validate
+        const productId = parseInt(product_id);
+        if (isNaN(productId)) {
+            return res.status(400).json({ error: 'Product ID must be a number' });
+        }
+        
         const result = await pool.query(
             `SELECT r.*, u.username 
              FROM reviews r 
              JOIN users u ON r.user_id = u.id 
              WHERE r.product_id = $1 
              ORDER BY r.created_at DESC`,
-            [product_id]
+            [productId]
         );
         
         res.json(result.rows);
@@ -95,9 +106,20 @@ router.post('/', auth.authenticateToken, async (req, res) => {
 });
 
 // Update review
-router.put('/:id', auth.authenticateToken, async (req, res) => {
-    try {
+router.put('/:id', auth.authenticateToken, async (req, res) => {    try {
         const { id } = req.params;
+        
+        // Validate id parameter
+        if (!id || id === 'undefined') {
+            return res.status(400).json({ error: 'Invalid review ID' });
+        }
+        
+        // Convert id to integer and validate
+        const reviewId = parseInt(id);
+        if (isNaN(reviewId)) {
+            return res.status(400).json({ error: 'Review ID must be a number' });
+        }
+        
         const { rating, comment } = req.body;
         
         // Validate rating
@@ -113,12 +135,10 @@ router.put('/:id', auth.authenticateToken, async (req, res) => {
         
         if (reviewExists.rows.length === 0) {
             return res.status(404).json({ error: 'Review not found or you do not have permission to update it' });
-        }
-        
-        // Update review
+        }        // Update review
         const result = await pool.query(
             'UPDATE reviews SET rating = $1, comment = $2 WHERE id = $3 RETURNING *',
-            [rating, comment, id]
+            [rating, comment, reviewId]
         );
         
         res.json(result.rows[0]);
@@ -129,22 +149,31 @@ router.put('/:id', auth.authenticateToken, async (req, res) => {
 });
 
 // Delete review
-router.delete('/:id', auth.authenticateToken, async (req, res) => {
-    try {
+router.delete('/:id', auth.authenticateToken, async (req, res) => {    try {
         const { id } = req.params;
+        
+        // Validate id parameter
+        if (!id || id === 'undefined') {
+            return res.status(400).json({ error: 'Invalid review ID' });
+        }
+        
+        // Convert id to integer and validate
+        const reviewId = parseInt(id);
+        if (isNaN(reviewId)) {
+            return res.status(400).json({ error: 'Review ID must be a number' });
+        }
         
         // Check if review exists and belongs to user
         const reviewExists = await pool.query(
             'SELECT * FROM reviews WHERE id = $1 AND user_id = $2',
-            [id, req.user.id]
+            [reviewId, req.user.id]
         );
         
         if (reviewExists.rows.length === 0) {
             return res.status(404).json({ error: 'Review not found or you do not have permission to delete it' });
         }
-        
-        // Delete review
-        await pool.query('DELETE FROM reviews WHERE id = $1', [id]);
+          // Delete review
+        await pool.query('DELETE FROM reviews WHERE id = $1', [reviewId]);
         
         res.json({ message: 'Review deleted successfully' });
     } catch (err) {
@@ -158,6 +187,17 @@ router.get('/stats/product/:product_id', async (req, res) => {
     try {
         const { product_id } = req.params;
         
+        // Validate product_id parameter
+        if (!product_id || product_id === 'undefined') {
+            return res.status(400).json({ error: 'Invalid product ID' });
+        }
+        
+        // Convert product_id to integer and validate
+        const productId = parseInt(product_id);
+        if (isNaN(productId)) {
+            return res.status(400).json({ error: 'Product ID must be a number' });
+        }
+        
         const result = await pool.query(
             `SELECT 
                 COUNT(*) as total_reviews,
@@ -169,7 +209,7 @@ router.get('/stats/product/:product_id', async (req, res) => {
                 COUNT(CASE WHEN rating = 1 THEN 1 END) as one_star
              FROM reviews 
              WHERE product_id = $1`,
-            [product_id]
+            [productId]
         );
         
         res.json(result.rows[0]);

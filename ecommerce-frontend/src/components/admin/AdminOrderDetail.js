@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderService } from '../../services/orderService'; // Sesuaikan path jika perlu
+import { getPaymentProofUrl } from '../../utils/imageHelper'; // Only import getPaymentProofUrl
 import toast from 'react-hot-toast';
+import ProductImageOptimized from '../../components/common/ProductImageOptimized'; // Use optimized image component
+import PaymentProofImage from '../../components/common/PaymentProofImage'; // Import PaymentProofImage
+import { normalizeImagePaths } from '../../utils/imageFixer'; // Import image path fixer
 
 const AdminOrderDetail = () => {
     const { id: orderId } = useParams();
@@ -17,13 +21,17 @@ const AdminOrderDetail = () => {
     const [isUpdating, setIsUpdating] = useState(false);
 
     const orderStatusOptions = ['diproses', 'selesai', 'dibatalkan'];
-    const paymentStatusOptions = ['menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan'];
-
-    const fetchOrderDetails = useCallback(async () => {
+    const paymentStatusOptions = ['menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan'];    const fetchOrderDetails = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
             const data = await orderService.getOrderById(orderId);
+            
+            // Fix image paths in order items
+            if (data && data.items && Array.isArray(data.items)) {
+                data.items = normalizeImagePaths(data.items);
+            }
+            
             setOrder(data);
             // Inisialisasi state form dengan data dari order
             setSelectedOrderStatus(data.order_status || '');
@@ -88,12 +96,12 @@ const AdminOrderDetail = () => {
         <div className="mb-6 p-4 border rounded">
             <h4 className="font-semibold text-lg mb-2">Item Pesanan</h4>
             <ul className="divide-y">
-                {order.items?.map((item) => (
-                    <li key={item.id} className="py-3 flex items-center">
-                        <img 
-                            src={`http://localhost:5000${item.image_url}`} 
-                            alt={item.name} 
+                {order.items?.map((item) => (                    <li key={item.id} className="py-3 flex items-center">
+                        <ProductImageOptimized 
+                            imageUrl={item.image_url} 
+                            productName={item.name} 
                             className="w-14 h-14 rounded object-cover mr-4"
+                            style={{ width: '56px', height: '56px' }}
                         />
                         <div className="flex-1">
                             <p className="font-medium">{item.name}</p>
@@ -116,17 +124,18 @@ const AdminOrderDetail = () => {
         // Tampilkan pesan jika belum upload
         if (!order.payment_proof_url) {
             return <p className="text-gray-500">Pelanggan belum mengupload bukti pembayaran.</p>;
-        }
-        // Tampilkan link dan gambar jika sudah upload
-        const proofUrl = order.payment_proof_url.startsWith('http') 
-                         ? order.payment_proof_url 
-                         : `http://localhost:5000${order.payment_proof_url}`;
+        }        // Tampilkan link dan gambar jika sudah upload
+        const proofUrl = getPaymentProofUrl(order.payment_proof_url);
         return (
             <div>
                 <a href={proofUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 font-medium">
                     Lihat Bukti Pembayaran
                 </a>
-                <img src={proofUrl} alt="Bukti Bayar" className="mt-2 max-w-xs h-auto rounded border"/>
+                <PaymentProofImage 
+                    imageUrl={order.payment_proof_url}
+                    orderNumber={order.id}
+                    className="mt-2 max-w-xs h-auto rounded border"
+                />
             </div>
         );
     };
@@ -235,4 +244,4 @@ const AdminOrderDetail = () => {
     );
 };
 
-export default AdminOrderDetail; 
+export default AdminOrderDetail;
