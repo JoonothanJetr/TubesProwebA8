@@ -27,8 +27,10 @@ Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya denga
 - **Demo progress ke mitra**
 
 ## Challenges & Solutions
-- **Challenge 1**:
-- **Solution**: 
+- **Challenge 1**: Mendapat kendala dimana gambar produk masih di render secara terus-menerus membuat web menjadi berat.
+- **Solution**: Mencari error lalu memperbaikinya dengan teliti
+- **Challenge 2**: Error compiling frontend, karena kekurangan module, dan UI belum sempurna.
+- **Solution**: Memperbaiki UI dan menginstall dependensi yang diperlukan
 
 ## Next Week Plan
 - **Implementasi fitur inti #4**
@@ -37,10 +39,10 @@ Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya denga
 - **Demo progress ke mitra**
 
 ## Contributions
-- **Chelsy Olivia**: 
-- **Andini Permata Sari**: 
-- **Jonathan Cristopher Jetro**: 
-- **Nicholas Christian Samuel Manurung**: 
+- **Chelsy Olivia**: Menyusun laporan
+- **Andini Permata Sari**: Menyusun laporan
+- **Jonathan Cristopher Jetro**: Membuat fitur inti #2 dan #3, Membuat UI/UX, Pengujian Integrasi.
+- **Nicholas Christian Samuel Manurung**: Menyusun laporan
 
 ## Screenshots 
 ## 1. Tampilan untuk Halaman Beranda
