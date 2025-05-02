@@ -39,11 +39,11 @@ Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya denga
 - **Demo progress ke mitra**
 
 ## Contributions
-- **Chelsy Olivia**: Menyusun laporan
-- **Andini Permata Sari**: Menyusun laporan
-- **Jonathan Cristopher Jetro**: Membuat fitur inti #2 dan #3, Membuat UI/UX, Pengujian Integrasi.
-- **Nicholas Christian Samuel Manurung**: Menyusun laporan
-
+- **Chelsy Olivia**: Membuat laporan dan membantu programmer dalam peyempurnaan UI/UX dengan memberi saran-saran
+- **Andini Permata Sari**: Membantu programmer dalam penyempurnaan UI/UX
+- **Jonathan Cristopher Jetro**: Membuat fitur inti #2 dan #3 dan Membuat UI/UX
+- **Nicholas Christian Samuel Manurung**: Melakukan pengujian fitur
+  
 ## Screenshots 
 ## 1. Tampilan untuk Halaman Beranda
 ![alt text](<Tampilan beranda.jpeg>)
