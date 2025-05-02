@@ -21,10 +21,10 @@ Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya denga
 
 
 ## Accomplished Tasks
-- **Implementasi fitur inti #2 dan #3**
-- **Penyempurnaan UI/UX**
-- **Pengujian integrasi**
-- **Demo progress ke mitra**
+- Implementasi fitur inti #2 dan #3
+- Penyempurnaan UI/UX
+- Pengujian integrasi
+- Demo progress ke mitra
 
 ## Challenges & Solutions
 - **Challenge 1**: Mendapat kendala dimana gambar produk masih di render secara terus-menerus membuat web menjadi berat.
