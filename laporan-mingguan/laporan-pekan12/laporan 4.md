@@ -14,7 +14,7 @@
 
 **Pekan ke-**: 12
 
-**Tanggal**: 06/05/2025
+**Tanggal**: 02/05/2025
 
 ## Progress Summary
 Pada minggu ini, tim melanjutkan pengembangan fitur dari minggu sebelumnya dengan menyelesaikan fitur inti untuk pelanggan seperti pembayaran, status pesanan, dan riwayat transaksi, serta menambahkan fitur pendukung seperti customer service dan logout. Seluruh fitur telah berhasil diintegrasikan dan diuji melalui pengujian integrasi untuk memastikan konektivitas antar komponen berjalan dengan baik. Progres minggu ini juga telah didemokan kepada mitra untuk mendapatkan masukan dan validasi lebih lanjut.
