@@ -35,6 +35,7 @@
 - **Penyempurnaan seluruh fitur**
 - **Bugfixing**
 - **Usability testing**
+- **Persiapan deployment (jika diperlukan)**
 - **Demo progress ke mitra**
 
 ## Contributions
@@ -44,4 +45,3 @@
 - **Nicholas Christian Samuel Manurung**: 
   
 ## Screenshots 
-
