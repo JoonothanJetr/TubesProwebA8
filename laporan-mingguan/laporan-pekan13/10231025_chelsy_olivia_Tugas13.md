@@ -28,7 +28,7 @@ Pada minggu ini, tim kami telah mengimplementasikan fitur inti #4 yang mencakup 
 
 ## Challenges & Solutions
 - **Challenge 1**: Tim kami kesulitian dalam penggunaan fungsi gate atau patch dalam menampilkan gambar di website.
-    **Solution**: Mencari error lalu memperbaikinya dengan teliti
+- **Solution**: Mencari error lalu memperbaikinya dengan teliti
 
 
 ## Next Week Plan
@@ -40,7 +40,7 @@ Pada minggu ini, tim kami telah mengimplementasikan fitur inti #4 yang mencakup 
 
 ## Contributions
 - **Chelsy Olivia**: Membuat laporan mingguan
-- **Andini Permata Sari**: membantu programmer dalam mengimplementasikan fitur intu #4
+- **Andini Permata Sari**: membantu programmer dalam mengimplementasikan fitur inti #4
 - **Jonathan Cristopher Jetro**: Mengimplementasikan fitur inti #4 dan pembuatan admin panel sederhana (dashboard) untuk pengelolaan data
 - **Nicholas Christian Samuel Manurung**: Mendemokan progress ke mitra
   
@@ -48,14 +48,14 @@ Pada minggu ini, tim kami telah mengimplementasikan fitur inti #4 yang mencakup 
 ## 1. Halaman admin panel (dashboard)
 ![alt text](dashboard.png)
 
-Pada gambar idtas menampilkan dashboard dari web kami yaitu SICATE ( SICATE Admin Panel), yang halaman utama saat admin pertama kali masuk ke sistem. Pada bagian kiri tampilan,  terdapat menu navigasi seperti Manajemen Produk, Manajemen Katalog, Manajemen Pengguna, dan Manajemen Pesanan yang bisa dipilih untuk mengelola.
+Pada gambar diatas menampilkan dashboard dari web kami yaitu SICATE ( SICATE Admin Panel), yaitu halaman utama saat admin pertama kali masuk ke sistem. Pada bagian kiri tampilan, terdapat menu navigasi seperti Manajemen Produk, Manajemen Katalog, Manajemen Pengguna, dan Manajemen Pesanan yang bisa dipilih untuk mengelola.
 
 Pada bagian tengah halaman, terdapat sambutan "Selamat datang di Panel Admin" dan beberapa tombol untuk langsung menuju ke bagian pengelolaan yang tersedia. Di bawahnya, ada grafik berjudul “Daily Sales Trend” yang menampilkan data penjualan harian dalam bentuk garis. Grafik ini membantu admin melihat bagaimana perkembangan penjualan dari hari ke hari. Di bagian kiri bawah grafik juga ditampilkan detail angka penjualan per tanggal, seperti "4/28/2025 Rp 27.000" dan seterusnya. Halaman ini dibuat agar admin bisa langsung melihat gambaran umum performa penjualan dan mudah memilih bagian mana yang ingin dikelola.
 
 ## 2. Halaman manajemen katalog
 ![alt text](<Manajemen katalog.png>)
 
-Pada gambar idtas menampilkan manajemen katalog dari web kami yaitu SICATE( SICATE Admin Panel), yang digunakan untuk mengatur kategori produk yang tersedia di sistem. Pada bagian ataas tampilan, terdapat kolom untuk menambahkan kategori baru, misalnya jika admin ingin menambah jenis makanan atau minuman baru, tinggal mengetikkan namanya lalu klik tombol "Tambah" berwarna hijau. Di bawahnya, ada daftar kategori yang sudah tersedia, seperti Makanan Berat, Makanan Pembuka, Makanan Penutup, dan sebagainya. Setiap kategori memiliki dua tombol: "Edit" untuk mengubah nama kategori, dan "Hapus" untuk menghapus kategori tersebut dari sistem. Halaman ini memudahkan admin untuk menambah, mengubah, atau menghapus jenis-jenis produk agar katalog tetap rapi dan sesuai dengan kebutuhan.
+Pada gambar diatas menampilkan manajemen katalog dari web kami yaitu SICATE( SICATE Admin Panel), yang digunakan untuk mengatur kategori produk yang tersedia di sistem. Pada bagian ataas tampilan, terdapat kolom untuk menambahkan kategori baru, misalnya jika admin ingin menambah jenis makanan atau minuman baru, tinggal mengetikkan namanya lalu klik tombol "Tambah" berwarna hijau. Di bawahnya, ada daftar kategori yang sudah tersedia, seperti Makanan Berat, Makanan Pembuka, Makanan Penutup, dan sebagainya. Setiap kategori memiliki dua tombol: "Edit" untuk mengubah nama kategori, dan "Hapus" untuk menghapus kategori tersebut dari sistem. Halaman ini memudahkan admin untuk menambah, mengubah, atau menghapus jenis-jenis produk agar katalog tetap rapi dan sesuai dengan kebutuhan.
 
 ## 3. Halaman manajemen produk
 ![alt text](<Manejemen produk.png>)
