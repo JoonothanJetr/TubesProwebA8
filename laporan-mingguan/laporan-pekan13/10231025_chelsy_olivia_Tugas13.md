@@ -17,7 +17,7 @@
 **Tanggal**: 09/05/2025
 
 ## Progress Summary
-Pada minggu ini, tim kami telah mengimplementasikan fitur inti #4 yang mencakup fitur untuk admin seperti manajemen katalog, manajemen produk, manajemen pesanan, dan manajemen pengguna. Selain itu, programmer juga membangun admin panel sederhana berupa dashboard serta menambahkan visualisasi data untuk memperjelas informasi yang relevan. Progres yang telah dicapai kemudian didemokan kepada mitra untuk memperoleh masukan dan validasi lebih lanjut.
+Pada minggu ini, tim kami telah mengimplementasikan fitur inti #4 yang mencakup fitur untuk admin seperti manajemen katalog, manajemen produk, manajemen pesanan, dan manajemen pengguna. Selain itu, programmer juga membangun admin panel sederhana berupa dashboard serta menambahkan visualisasi data untuk memperjelas informasi yang relevan. Progres yang telah dicapai kemudian didemokan kepada mitra untuk memperoleh masukan dan validasi lebih lanjut, dengan catatan bahwa tampilan dan fitur masih dalam tahap pengembangan dan hasil akhirnya kemungkinan akan mengalami penyesuaian.
 
 
 ## Accomplished Tasks
