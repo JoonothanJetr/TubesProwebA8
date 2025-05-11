@@ -1,7 +1,6 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cartService } from '../../services/cartService';
-import { orderService } from '../../services/orderService';
 import { Container, Row, Col, Card, Button, Form, Modal, Spinner } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 import ProductModalOptimized from '../products/ProductModalOptimized';
@@ -16,6 +15,7 @@ const CartList = () => {
     const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
     const [processing, setProcessing] = useState(false);
+    const [desiredCompletionDate, setDesiredCompletionDate] = useState(''); // State baru untuk tanggal penyelesaian
     
     // State for product modal
     const [showProductModal, setShowProductModal] = useState(false);
@@ -126,6 +126,7 @@ const CartList = () => {
     const handleCloseCheckoutModal = () => {
         setShowCheckoutModal(false);
         setSelectedPaymentMethod('');
+        setDesiredCompletionDate(''); // Reset tanggal saat modal ditutup
     };
 
     const handlePaymentMethodChange = (e) => {
@@ -143,46 +144,67 @@ const CartList = () => {
             return;
         }
 
-        const orderData = {
+        if (!desiredCompletionDate) { // Validasi tanggal penyelesaian
+            Swal.fire({
+                icon: 'error',
+                title: 'Tanggal Penyelesaian Dibutuhkan',
+                text: 'Silakan pilih tanggal kapan pesanan Anda ingin diselesaikan',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+
+        // Data ini akan digunakan untuk membuat "sesi checkout" atau "pra-order"
+        // yang akan diselesaikan di halaman pembayaran.
+        const checkoutData = {
             paymentMethod: selectedPaymentMethod,
             items: cartItems.map(item => ({
                 product_id: item.product_id,
                 quantity: item.quantity,
-                price: item.price
+                price: item.price,
+                name: item.name, // Tambahkan nama produk
+                image_url: item.image_url // Tambahkan URL gambar produk
             })),
-            totalAmount: calcTotal()
+            totalAmount: calcTotal(),
+            desiredCompletionDate: desiredCompletionDate // Tambahkan tanggal penyelesaian
         };
 
         setProcessing(true);
 
         try {
-            const result = await orderService.createOrder(orderData);
+            // Simpan data checkout ke localStorage untuk diambil di halaman pembayaran
+            localStorage.setItem('checkoutData', JSON.stringify(checkoutData));
             
-            setProcessing(false);
+            // Frontend: Kosongkan keranjang di state dan tutup modal
+            setCartItems([]); 
             handleCloseCheckoutModal();
             
-            // Show success message
+            // Arahkan ke halaman pembayaran baru
+            navigate('/payment'); 
+
+            // Tidak ada pembuatan order langsung di sini lagi
+            // Tidak ada penghapusan item keranjang dari DB di sini
+
             Swal.fire({
-                icon: 'success',
-                title: 'Pesanan Berhasil Dibuat!',
-                text: result.message || 'Pesanan Anda telah berhasil dibuat dan sedang diproses.',
-                confirmButtonColor: '#28a745'
-            }).then(() => {
-                // Empty cart and navigate to orders page
-                setCartItems([]);
-                navigate('/orders');
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'Lanjutkan ke Pembayaran',
+                text: 'Anda akan diarahkan ke halaman pembayaran.',
+                showConfirmButton: false,
+                timer: 3000
             });
 
         } catch (error) {
-            setProcessing(false);
-            console.error("Error creating order:", error);
-            
+            console.error("Error preparing for payment:", error);
             Swal.fire({
                 icon: 'error',
-                title: 'Gagal Membuat Pesanan',
-                text: error?.response?.data?.error || 'Gagal membuat pesanan. Silakan coba lagi.',
+                title: 'Gagal Memproses',
+                text: 'Terjadi kesalahan saat menyiapkan pembayaran. Silakan coba lagi.',
                 confirmButtonColor: '#dc3545'
             });
+        } finally {
+            setProcessing(false);
         }
     };
     
@@ -372,15 +394,26 @@ const CartList = () => {
                             <Form.Select 
                                 value={selectedPaymentMethod} 
                                 onChange={handlePaymentMethodChange}
+                                aria-label="Pilih metode pembayaran"
                             >
-                                {paymentMethods.map((method) => (
-                                    <option key={method.value} value={method.value} disabled={method.value === ''}>
+                                {paymentMethods.map(method => (
+                                    <option key={method.value} value={method.value}>
                                         {method.label}
                                     </option>
                                 ))}
                             </Form.Select>
                         </Form.Group>
                         
+                        <Form.Group className="mb-3"> 
+                            <Form.Label>Tanggal Pesanan Harus Jadi</Form.Label>
+                            <Form.Control 
+                                type="date" 
+                                value={desiredCompletionDate} 
+                                onChange={(e) => setDesiredCompletionDate(e.target.value)} 
+                                min={new Date().toISOString().split('T')[0]} // Tanggal minimum adalah hari ini
+                            />
+                        </Form.Group>
+
                         <div className="mb-3">
                             <h6 className="mb-2">Detail Pesanan</h6>
                             <div className="bg-light p-3 rounded">

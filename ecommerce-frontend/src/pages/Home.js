@@ -8,6 +8,7 @@ import { prefetchProductOnHover, prefetchVisibleProducts } from '../utils/prefet
 import Swal from 'sweetalert2';
 
 const Home = () => {
+  console.log('RENDERING: Home.js'); // Ditambahkan
   const [popularProducts, setPopularProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,7 +19,9 @@ const Home = () => {
   });
   // Add state for product modal
   const [showModal, setShowModal] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState(null);  useEffect(() => {
+  const [selectedProductId, setSelectedProductId] = useState(null);  
+
+  useEffect(() => {
     const fetchPopularProducts = async () => {
       try {
         setLoading(true);
@@ -74,6 +77,7 @@ const Home = () => {
     prefetchProductOnHover(productId);
   }, []);
 
+  // Redefine feedback handlers as dummy functions to prevent runtime errors
   const handleFeedbackChange = (e) => {
     const { name, value } = e.target;
     setFeedback(prev => ({
@@ -84,15 +88,8 @@ const Home = () => {
 
   const handleSubmitFeedback = (e) => {
     e.preventDefault();
-    // Here you would typically send the feedback to your backend
-    console.log('Feedback submitted:', feedback);
-    alert('Terima kasih atas feedback Anda!');
-    // Reset the form
-    setFeedback({
-      name: '',
-      email: '',
-      message: ''
-    });
+    console.log('Dummy handleSubmitFeedback in Home.js called. Data:', feedback);
+    alert('Fungsi feedback di Home.js (dummy). Seharusnya HomeOptimized.js yang aktif.');
   };
 
   // Hero section with background image
@@ -309,44 +306,44 @@ const Home = () => {
 
       {/* Feedback/Contact Section */}
       <Container className="mb-5">
-        <h2 className="text-center mb-5">Customer Service</h2>
+        <h2 className="text-center mb-5" style={{ fontSize: '2.5rem', fontWeight: 'bold' }}>Feedback</h2>
         <Row>
           <Col md={6} className="mx-auto">
             <Card className="shadow-sm">
               <Card.Body>
-                <h3 className="mb-4">Feedback</h3>
+                <h3 className="mb-4">Customer Service Form</h3>
                 <Form onSubmit={handleSubmitFeedback}>
                   <Form.Group className="mb-3" controlId="feedbackName">
                     <Form.Label>Nama</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      name="name" 
-                      value={feedback.name} 
-                      onChange={handleFeedbackChange} 
-                      required 
+                    <Form.Control
+                      type="text"
+                      name="name"
+                      value={feedback.name}
+                      onChange={handleFeedbackChange}
+                      required
                     />
                   </Form.Group>
 
                   <Form.Group className="mb-3" controlId="feedbackEmail">
                     <Form.Label>Email</Form.Label>
-                    <Form.Control 
-                      type="email" 
-                      name="email" 
-                      value={feedback.email} 
-                      onChange={handleFeedbackChange} 
-                      required 
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={feedback.email}
+                      onChange={handleFeedbackChange}
+                      required
                     />
                   </Form.Group>
 
                   <Form.Group className="mb-3" controlId="feedbackMessage">
                     <Form.Label>Pesan</Form.Label>
-                    <Form.Control 
-                      as="textarea" 
-                      rows={4} 
-                      name="message" 
-                      value={feedback.message} 
-                      onChange={handleFeedbackChange} 
-                      required 
+                    <Form.Control
+                      as="textarea"
+                      rows={4}
+                      name="message"
+                      value={feedback.message}
+                      onChange={handleFeedbackChange}
+                      required
                     />
                   </Form.Group>
 
@@ -358,7 +355,9 @@ const Home = () => {
             </Card>
           </Col>
         </Row>
-      </Container>      {/* Product Modal */}
+      </Container>      
+      
+      {/* Product Modal */}
       <ProductModalOptimized 
         productId={selectedProductId}
         show={showModal}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Outlet, Link, NavLink } from 'react-router-dom';
-import { Nav, Navbar } from 'react-bootstrap';
-// Removed unused imports: Container, Row, Col, Image
+import { Nav, Navbar } from 'react-bootstrap'; // Removed Container
 import { authService } from '../../services/authService'; // Untuk logout
 
 const AdminLayout = () => {
@@ -50,14 +49,11 @@ const AdminLayout = () => {
                             Manajemen Pesanan
                         </NavLink>
                     </Nav.Item>
-                    {/* Tambahkan link untuk Reviews jika diperlukan */}
-                    {/* 
                     <Nav.Item>
-                        <NavLink to="/admin/reviews" className={getNavLinkClass}>
-                            Manajemen Review
+                        <NavLink to="/admin/feedback" className={getNavLinkClass}>
+                            Customer Feedback
                         </NavLink>
-                    </Nav.Item> 
-                    */}
+                    </Nav.Item>
                 </Nav>
                 <hr className="text-secondary"/>
                 <div className="mt-auto">
@@ -82,4 +78,4 @@ const AdminLayout = () => {
     );
 };
 
-export default AdminLayout; 
+export default AdminLayout;

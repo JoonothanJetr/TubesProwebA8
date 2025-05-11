@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { orderService } from '../../services/orderService';
 import toast from 'react-hot-toast';
@@ -8,25 +8,19 @@ const OrderManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // State untuk filter
     const [filters, setFilters] = useState({
-        startDate: '',
-        endDate: '',
-        paymentStatus: '', // Opsi: 'all', 'menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan'
-        orderStatus: ''     // Opsi: 'all', 'diproses', 'selesai', 'dibatalkan'
+        paymentStatus: '',
+        orderStatus: ''
     });
+    const [sortOption, setSortOption] = useState('order_date-desc');
 
-    // Opsi untuk dropdown filter
     const paymentStatusOptions = ['', 'menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan'];
     const orderStatusOptions = ['', 'diproses', 'selesai', 'dibatalkan'];
 
-    // Menggunakan useCallback agar fetchAllOrders tidak dibuat ulang terus-menerus
-    // kecuali jika filternya berubah (nanti kita panggil dengan filter baru)
     const fetchAllOrders = useCallback(async (currentFilters) => {
         setLoading(true);
         setError('');
         try {
-            // Kirim filter sebagai query params ke service
             const data = await orderService.getAllOrders(currentFilters);
             setOrders(data);
         } catch (err) {
@@ -35,10 +29,16 @@ const OrderManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, []); // Dependency kosong karena kita akan panggil manual dengan filter    // Fetch data awal saat komponen dimuat
+    }, []); // Dependency kosong karena kita akan panggil manual dengan filter
+
     useEffect(() => {
-        fetchAllOrders(filters); // Panggil dengan filter awal (kosong)
-    }, [fetchAllOrders, filters]); // Tambahkan filters ke dependency
+        // This effect runs once on mount to fetch initial data.
+        // It uses the `filters` state at the time of mount (initial filters).
+        // `fetchAllOrders` is stable due to useCallback.
+        // Subsequent fetches with updated filters are triggered by `applyFiltersAndSort`.
+        fetchAllOrders(filters);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchAllOrders]); // Add fetchAllOrders, rule is disabled for 'filters'
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -48,25 +48,52 @@ const OrderManagement = () => {
         }));
     };
 
-    const applyFilters = () => {
-        console.log("Applying filters:", filters);
-        fetchAllOrders(filters); // Panggil fetch dengan filter saat ini
+    const handleSortChange = (e) => {
+        setSortOption(e.target.value);
     };
 
-    const resetFilters = () => {
+    const applyFiltersAndSort = () => {
+        fetchAllOrders(filters);
+    };
+
+    const resetFiltersAndSort = () => {
         const initialFilters = {
-            startDate: '',
-            endDate: '',
             paymentStatus: '',
             orderStatus: ''
         };
         setFilters(initialFilters);
-        fetchAllOrders(initialFilters); // Panggil fetch dengan filter kosong
+        setSortOption('order_date-desc');
+        fetchAllOrders(initialFilters);
     };
 
-    // Fungsi helper untuk warna status (bisa disamakan dengan OrderList atau dipisah ke util)
+    const processedOrders = useMemo(() => {
+        let sortedOrders = [...orders];
+
+        sortedOrders.sort((a, b) => {
+            switch (sortOption) {
+                case 'order_date-asc':
+                    return new Date(a.order_date || a.created_at) - new Date(b.order_date || b.created_at);
+                case 'completion_date-asc':
+                    const dateA = a.desired_completion_date ? new Date(a.desired_completion_date) : null;
+                    const dateB = b.desired_completion_date ? new Date(b.desired_completion_date) : null;
+                    if (dateA === null && dateB === null) return 0;
+                    if (dateA === null) return 1;
+                    if (dateB === null) return -1;
+                    return dateA - dateB;
+                case 'total-desc':
+                    return Number(b.total_amount) - Number(a.total_amount);
+                case 'total-asc':
+                    return Number(a.total_amount) - Number(b.total_amount);
+                case 'order_date-desc':
+                default:
+                    return new Date(b.order_date || b.created_at) - new Date(a.order_date || a.created_at);
+            }
+        });
+        return sortedOrders;
+    }, [orders, sortOption]);
+
     const getStatusColor = (status) => {
-         switch (status?.toLowerCase()) {
+        switch (status?.toLowerCase()) {
             case 'diproses': return 'bg-blue-100 text-blue-800';
             case 'selesai': return 'bg-green-100 text-green-800';
             case 'dibatalkan': return 'bg-red-100 text-red-800';
@@ -75,7 +102,7 @@ const OrderManagement = () => {
     };
 
     const getPaymentStatusColor = (status) => {
-         switch (status?.toLowerCase()) {
+        switch (status?.toLowerCase()) {
             case 'menunggu pembayaran': return 'bg-yellow-100 text-yellow-800';
             case 'pembayaran sudah dilakukan': return 'bg-green-100 text-green-800';
             case 'pembayaran dibatalkan': return 'bg-red-100 text-red-800';
@@ -83,51 +110,36 @@ const OrderManagement = () => {
         }
     };
 
-    if (loading) return <div className="text-center py-10">Loading pesanan...</div>;
-    if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+    if (loading) return (
+        <div className="flex justify-center items-center h-screen">
+            <div className="text-center">
+                <svg className="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p className="mt-2 text-lg font-medium text-gray-700">Loading pesanan...</p>
+            </div>
+        </div>
+    );
+    if (error) return <div className="text-center py-10 text-red-600 bg-red-50 p-4 rounded-md shadow-md">Error: {error}</div>;
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-2xl font-semibold mb-6">Manajemen Pesanan</h1>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="sm:flex sm:items-center sm:justify-between mb-6 pb-4 border-b border-gray-200">
+                <h1 className="text-3xl font-bold leading-tight text-gray-900">Manajemen Pesanan</h1>
+            </div>
 
-            {/* Filter Section */}
-            <div className="bg-gray-50 p-4 rounded-lg mb-6 shadow">
-                <h3 className="text-lg font-medium mb-3">Filter Pesanan</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Filter Tanggal */}
+            <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Filter & Urutkan Pesanan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                     <div>
-                        <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">Dari Tanggal</label>
-                        <input 
-                            type="date" 
-                            name="startDate" 
-                            id="startDate" 
-                            value={filters.startDate}
-                            onChange={handleFilterChange}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">Sampai Tanggal</label>
-                        <input 
-                            type="date" 
-                            name="endDate" 
-                            id="endDate" 
-                            value={filters.endDate}
-                            onChange={handleFilterChange}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            min={filters.startDate} // End date tidak bisa sebelum start date
-                        />
-                    </div>
-
-                    {/* Filter Status Pembayaran */}
-                    <div>
-                        <label htmlFor="paymentStatus" className="block text-sm font-medium text-gray-700">Status Pembayaran</label>
+                        <label htmlFor="paymentStatus" className="block text-sm font-medium text-gray-700 mb-1">Status Pembayaran</label>
                         <select
                             id="paymentStatus"
                             name="paymentStatus"
                             value={filters.paymentStatus}
                             onChange={handleFilterChange}
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm"
                         >
                             <option value="">Semua</option>
                             {paymentStatusOptions.filter(s => s).map(status => (
@@ -136,70 +148,90 @@ const OrderManagement = () => {
                         </select>
                     </div>
 
-                    {/* Filter Status Pesanan */}
                     <div>
-                        <label htmlFor="orderStatus" className="block text-sm font-medium text-gray-700">Status Pesanan</label>
+                        <label htmlFor="orderStatus" className="block text-sm font-medium text-gray-700 mb-1">Status Pesanan</label>
                         <select
                             id="orderStatus"
                             name="orderStatus"
                             value={filters.orderStatus}
                             onChange={handleFilterChange}
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm"
                         >
                             <option value="">Semua</option>
-                             {orderStatusOptions.filter(s => s).map(status => (
+                            {orderStatusOptions.filter(s => s).map(status => (
                                 <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
                             ))}
                         </select>
                     </div>
+                    
+                    <div>
+                        <label htmlFor="sortOption" className="block text-sm font-medium text-gray-700 mb-1">Urutkan Berdasarkan</label>
+                        <select
+                            id="sortOption"
+                            name="sortOption"
+                            value={sortOption}
+                            onChange={handleSortChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm"
+                        >
+                            <option value="order_date-desc">Tanggal Pesan (Terbaru)</option>
+                            <option value="order_date-asc">Tanggal Pesan (Terlama)</option>
+                            <option value="completion_date-asc">Tanggal Jadi (Terdekat)</option>
+                            <option value="total-desc">Total (Tertinggi)</option>
+                            <option value="total-asc">Total (Terendah)</option>
+                        </select>
+                    </div>
                 </div>
-                <div className="mt-4 flex justify-end space-x-3">
+                <div className="mt-6 flex justify-end space-x-3">
                     <button 
-                        onClick={resetFilters}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        onClick={resetFiltersAndSort}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                        Reset Filter
+                        Reset
                     </button>
-                     <button 
-                        onClick={applyFilters}
-                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                    <button 
+                        onClick={applyFiltersAndSort}
+                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                        Terapkan Filter
+                        Terapkan
                     </button>
                 </div>
             </div>
 
-            {/* Tabel Pesanan */}
-            {error && <div className="text-center py-4 text-red-500">{error}</div>} {/* Tampilkan error di atas tabel */}
-            <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+            <div className="shadow-lg overflow-hidden border-b border-gray-200 sm:rounded-lg">
                 <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-100">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Pesanan</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Bayar</th>
-                            <th scope="col" className="relative px-6 py-3">
-                                <span className="sr-only">Aksi</span>
-                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Pelanggan</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tgl. Pesan</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tgl. Jadi</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Pesanan</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Bayar</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {orders.length === 0 && !loading && (
+                        {processedOrders.length === 0 && !loading && (
                             <tr>
-                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">Tidak ada pesanan ditemukan{Object.values(filters).some(f => f) ? ' dengan filter ini' : ''}.</td>
+                                <td colSpan="8" className="px-6 py-10 text-center text-gray-500 text-lg">
+                                    Tidak ada pesanan ditemukan{Object.values(filters).some(f => f) ? ' dengan filter ini' : ''}.
+                                </td>
                             </tr>
                         )}
-                        {orders.map((order) => (
-                            <tr key={order.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{order.id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.username || order.user_id}</td>
+                        {processedOrders.map((order) => (
+                            <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">#{order.id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.username || order.user_id}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {new Date(order.order_date || order.created_at).toLocaleDateString('id-ID')}
+                                    {new Date(order.order_date || order.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {order.desired_completion_date ? 
+                                     new Date(order.desired_completion_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : 
+                                     <span className="text-gray-400 italic">N/A</span>}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">
                                     Rp {Number(order.total_amount).toLocaleString('id-ID')}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -212,8 +244,12 @@ const OrderManagement = () => {
                                         {order.payment_status?.charAt(0).toUpperCase() + order.payment_status?.slice(1)}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link to={`/admin/orders/${order.id}`} className="text-indigo-600 hover:text-indigo-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                    <Link 
+                                        to={`/admin/orders/${order.id}`} 
+                                        className="text-indigo-600 hover:text-indigo-900 inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 shadow-sm"
+                                        title="Kelola Pesanan"
+                                    >
                                         Kelola
                                     </Link>
                                 </td>
@@ -222,9 +258,8 @@ const OrderManagement = () => {
                     </tbody>
                 </table>
             </div>
-            {/* TODO: Tambahkan pagination jika perlu */}
         </div>
     );
 };
 
-export default OrderManagement; 
+export default OrderManagement;

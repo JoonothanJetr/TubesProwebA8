@@ -16,6 +16,9 @@ import { authService } from './services/authService';
 import AdminRoute from './components/routes/AdminRoute';
 import ProtectedRoute from './components/routes/ProtectedRoute';
 
+// Import halaman pembayaran baru
+import PaymentPage from './pages/PaymentPage';
+
 // Import komponen admin secara langsung untuk menghindari masalah dengan lazy loading
 import AdminDashboard from './components/admin/AdminDashboard';
 import ProductManagement from './components/admin/ProductManagement';
@@ -25,6 +28,7 @@ import CatalogManagement from './components/admin/CatalogManagement';
 import UserManagement from './components/admin/UserManagement';
 import OrderManagement from './components/admin/OrderManagement';
 import AdminOrderDetail from './components/admin/AdminOrderDetail';
+import AdminFeedbackPage from './pages/admin/AdminFeedbackPage'; // Import AdminFeedbackPage
 
 const AppContent = () => {
     // Using states but suppressing ESLint warnings since these are used internally
@@ -78,6 +82,7 @@ const AppContent = () => {
                 <Route path="/cart" element={<Layout><CartList /></Layout>} />
                 <Route path="/orders" element={<Layout><OrderList /></Layout>} />
                 <Route path="/orders/:id" element={<Layout><OrderDetail /></Layout>} />
+                <Route path="/payment" element={<Layout><PaymentPage /></Layout>} /> {/* Rute baru untuk pembayaran */}
             </Route>            {/* Admin Routes */}
             <Route element={<AdminRoute />}>
                 <Route element={<AdminLayout />}>
@@ -89,6 +94,7 @@ const AppContent = () => {
                     <Route path="/admin/users" element={<UserManagement />} />
                     <Route path="/admin/orders" element={<OrderManagement />} />
                     <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+                    <Route path="/admin/feedback" element={<AdminFeedbackPage />} /> {/* Add this line */}
                 </Route>
             </Route>
 

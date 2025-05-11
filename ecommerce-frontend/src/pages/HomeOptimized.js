@@ -2,11 +2,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Form } from 'react-bootstrap';
+import axios from 'axios';
 import { productService } from '../services/productService';
-import ProductModal from '../components/products/ProductModal';
+import ProductModalOptimized from '../components/products/ProductModalOptimized';
 import { prefetchProductOnHover } from '../utils/prefetchHelper';
 import ProductImageOptimized from '../components/common/ProductImageOptimized';
 import Swal from 'sweetalert2';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Base64 encoded tiny image placeholder for hero image lazy loading
 const PLACEHOLDER_BASE64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';
@@ -54,6 +57,7 @@ const Testimonial = ({ image, name, location, text, rating }) => (
 );
 
 const HomeOptimized = () => {
+  console.log('RENDERING: HomeOptimized.js'); // Ditambahkan
   // State management
   const [popularProducts, setPopularProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +67,8 @@ const HomeOptimized = () => {
     email: '',
     message: ''
   });
-  
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -136,17 +141,47 @@ const HomeOptimized = () => {
     }));
   }, []);
 
-  const handleSubmitFeedback = useCallback((e) => {
+  const handleSubmitFeedback = useCallback(async (e) => {
     e.preventDefault();
-    // Here you would typically send the feedback to your backend
-    console.log('Feedback submitted:', feedback);
-    alert('Terima kasih atas feedback Anda!');
-    // Reset the form
-    setFeedback({
-      name: '',
-      email: '',
-      message: ''
-    });
+    if (!feedback.name || !feedback.email || !feedback.message) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Nama, Email, dan Pesan tidak boleh kosong!',
+        confirmButtonColor: '#ffc107'
+      });
+      return;
+    }
+    setIsSubmittingFeedback(true);
+    try {
+      const response = await axios.post(`${API_URL}/feedback`, feedback);
+      if (response.status === 201) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Feedback Terkirim!',
+          text: 'Terima kasih atas feedback Anda.',
+          confirmButtonColor: '#ffc107'
+        });
+        setFeedback({ name: '', email: '', message: '' });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Mengirim',
+          text: response.data?.message || 'Terjadi kesalahan saat mengirim feedback.',
+          confirmButtonColor: '#ffc107'
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Mengirim Feedback',
+        text: error.response?.data?.message || 'Tidak dapat terhubung ke server atau terjadi kesalahan lain.',
+        confirmButtonColor: '#ffc107'
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
   }, [feedback]);
 
   // Memoized hero section style to prevent unnecessary recalculations
@@ -392,8 +427,15 @@ const HomeOptimized = () => {
                     />
                   </Form.Group>
 
-                  <Button variant="warning" type="submit" className="w-100">
-                    Kirim
+                  <Button variant="warning" type="submit" className="w-100" disabled={isSubmittingFeedback}>
+                    {isSubmittingFeedback ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        {' '}Mengirim...
+                      </>
+                    ) : (
+                      'Kirim'
+                    )}
                   </Button>
                 </Form>
               </Card.Body>
@@ -403,10 +445,13 @@ const HomeOptimized = () => {
       </Container>
 
       {/* Product Modal */}
-      <ProductModal 
+      <ProductModalOptimized 
         productId={selectedProductId}
         show={showModal}
-        onHide={handleCloseModal}
+        onHide={() => {
+          setShowModal(false);
+          setSelectedProductId(null);
+        }}
       />
     </div>
   );

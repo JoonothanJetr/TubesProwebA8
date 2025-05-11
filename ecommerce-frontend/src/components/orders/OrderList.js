@@ -68,7 +68,10 @@ const OrderList = () => {
                                                     ID Pesanan
                                                 </th>
                                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Tanggal
+                                                    Tanggal Pesan
+                                                </th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Tanggal Jadi
                                                 </th>
                                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Total
@@ -91,7 +94,10 @@ const OrderList = () => {
                                                         #{order.id}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {new Date(order.order_date || order.created_at).toLocaleDateString()}
+                                                        {new Date(order.order_date || order.created_at).toLocaleDateString('id-ID')}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {order.desired_completion_date ? new Date(order.desired_completion_date).toLocaleDateString('id-ID') : '-'}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                         Rp {Number(order.total_amount).toLocaleString('id-ID')}
@@ -125,4 +131,4 @@ const OrderList = () => {
     );
 };
 
-export default OrderList; 
+export default OrderList;

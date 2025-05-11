@@ -11,6 +11,7 @@ CREATE TABLE orders (
     order_status VARCHAR(50) NOT NULL DEFAULT 'diproses' CHECK (order_status IN ('diproses', 'dibatalkan', 'selesai')),
     payment_status VARCHAR(50) NOT NULL DEFAULT 'menunggu pembayaran' CHECK (payment_status IN ('menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan')),
     order_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    desired_completion_date DATE NULL, -- Kolom baru untuk tanggal penyelesaian yang diinginkan
     payment_proof_url VARCHAR(255) NULL,
     admin_comment TEXT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -43,4 +44,4 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_orders_updated_at
 BEFORE UPDATE ON orders
 FOR EACH ROW
-EXECUTE FUNCTION update_updated_at_column(); 
+EXECUTE FUNCTION update_updated_at_column();
