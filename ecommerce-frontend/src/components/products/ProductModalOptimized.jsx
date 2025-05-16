@@ -36,6 +36,25 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   
+  // Handle body scroll lock when modal is open
+  useEffect(() => {
+    if (show) {
+      document.body.classList.add('modal-open');
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    } else {
+      document.body.classList.remove('modal-open');
+      document.body.style.paddingRight = '';
+    }
+
+    return () => {
+      document.body.classList.remove('modal-open');
+      document.body.style.paddingRight = '';
+    };
+  }, [show]);
+
   // Reset modal state when closed
   useEffect(() => {
     if (!show) {
@@ -86,14 +105,6 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
     };
 
     fetchProductDetails();
-    
-    // Body scroll lock implementation
-    document.body.style.overflow = 'hidden';
-    
-    // Cleanup function to ensure scroll is re-enabled when component unmounts
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [productId, show]);
 
   const handleQuantityChange = useCallback((e) => {
@@ -226,15 +237,22 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
       size="lg"
       aria-labelledby="product-modal"
       backdrop="static"
+      keyboard={false}
       className="product-detail-modal"
       animation={true}
+      scrollable={true}
+      enforceFocus={true}
+      restoreFocus={true}
+      onEntering={() => document.body.classList.add('modal-open')}
+      onExited={() => document.body.classList.remove('modal-open')}
     >
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title id="product-modal">
           {loading ? 'Memuat Produk...' : product?.name || 'Detail Produk'}
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body>        {loading ? (
+      <Modal.Body>
+        {loading ? (
           <div className="text-center py-5">
             <div className="spinner-border text-warning" role="status" style={{ width: '3rem', height: '3rem', opacity: 0.8 }}>
               <span className="visually-hidden">Loading...</span>

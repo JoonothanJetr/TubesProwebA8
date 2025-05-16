@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../../services/productService';
-// import ProductModal from './ProductModal';
-import ProductModalOptimized from './ProductModalOptimized'; // Using optimized modal
-import { Spinner, Row, Col, Card, Button } from 'react-bootstrap';
+import ProductModalOptimized from './ProductModalOptimized';
 import { authService } from '../../services/authService';
 import { cartService } from '../../services/cartService';
 import Swal from 'sweetalert2';
 import { getProductImageUrl } from '../../utils/imageHelper';
 import ProductImageOptimized from '../common/ProductImageOptimized';
 import { prefetchProductOnHover, prefetchVisibleProducts } from '../../utils/prefetchHelper';
+import './ProductList.css';
 
 const ProductList = () => {
     console.log('ProductList rendering...'); // <-- Tambahkan kembali log render
@@ -145,94 +144,96 @@ const ProductList = () => {
     };
 
     if (loading) return (
-        // Gunakan Spinner dari react-bootstrap agar konsisten
-        <div className="d-flex justify-content-center align-items-center min-vh-100">
-            <Spinner animation="border" role="status">
-                <span className="visually-hidden">Loading...</span>
-            </Spinner>
+        <div className="flex justify-center items-center min-h-screen">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-500"></div>
         </div>
     );
     
     if (error) return (
-        <div className="text-center text-danger p-4">
+        <div className="text-center text-red-500 p-4">
             {error}
         </div>
     );
 
     return (
-        <div className="container py-8">
-            {/* Category Filter (gunakan Bootstrap jika ingin konsisten) */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Katalog Menu</h2>
-                <div className="flex flex-wrap gap-2">
+        <div className="container mx-auto px-4 py-8">
+            <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-4">Katalog Menu</h2>
+                <div className="flex flex-wrap gap-2 mb-6">
                     {categories.map((category) => (
                         <button
                             key={category}
                             onClick={() => setSelectedCategory(category)}
-                            className={`btn btn-sm ${selectedCategory === category ? 'btn-primary' : 'btn-outline-secondary'}`}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                                selectedCategory === category 
+                                ? 'bg-yellow-400 text-gray-900' 
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
                         >
+                            {category === 'makanan-utama' && <i className="bi bi-egg-fried mr-1"></i>}
+                            {category === 'makanan-pembuka' && <i className="bi bi-cup-hot mr-1"></i>}
+                            {category === 'makanan-penutup' && <i className="bi bi-cake2 mr-1"></i>}
+                            {category === 'minuman' && <i className="bi bi-cup-straw mr-1"></i>}
                             {categoryLabels[category]}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Products Grid */}
             {filteredProducts.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                    Tidak ada produk dalam kategori ini.
+                <div className="text-center py-10">
+                    <h5 className="text-gray-500">Tidak ada produk dalam kategori ini.</h5>
                 </div>
             ) : (
-                // Gunakan Row dan Col dari react-bootstrap jika ingin konsisten
-                <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {filteredProducts.map((product) => (
-                        <Col key={product.id}>                            <Card 
-                                className="h-100 shadow-sm product-card"
-                                onClick={() => handleShowModal(product.id)}
-                                onMouseEnter={() => handleProductHover(product.id)}
-                            >                                <div style={{ position: 'relative', overflow: 'hidden', height: '200px' }}>
+                        <div key={product.id} className="group">
+                            <div className="bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full flex flex-col">
+                                <div className="relative aspect-[4/3] overflow-hidden">
                                     <ProductImageOptimized 
                                         imageUrl={product.image_url}
                                         productName={product.name}
-                                        style={{ 
-                                            height: '200px', 
-                                            width: '100%',
-                                            objectFit: 'cover'
-                                        }}
+                                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                                         loading="lazy"
                                     />
-                                    {product.category_name && (
-                                        <span className="category-badge">
-                                            {product.category_name}
-                                        </span>
-                                    )}
-                                </div>
-                                <Card.Body className="d-flex flex-column">
-                                    <Card.Title className="h6 mb-1">{product.name}</Card.Title>
-                                    <Card.Text className="small mb-2 text-truncate">
-                                        {product.description?.substring(0, 60) || 'Tidak ada deskripsi'}...
-                                    </Card.Text>
-                                    <Card.Text className="h5 mt-auto mb-0 fw-bold">
-                                        Rp {product.price ? product.price.toLocaleString('id-ID') : '0'}
-                                    </Card.Text>
-                                </Card.Body>
-                                <Card.Footer className="bg-white border-top-0 pt-0">
-                                    <Button 
-                                        variant="outline-warning" 
-                                        size="sm" 
-                                        className="w-100"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleShowModal(product.id);
-                                        }}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                                    <div className="absolute bottom-3 left-3 bg-white px-2.5 py-1.5 rounded-md text-xs font-medium text-gray-700 shadow-sm">
+                                        <i className="bi bi-tag-fill mr-1.5"></i>
+                                        {product.category_name}
+                                    </div>
+                                    <button 
+                                        onClick={() => handleAddToCart(product.id)}
+                                        className="absolute top-3 right-3 p-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-yellow-50 shadow-sm"
                                     >
-                                        <i className="bi bi-eye-fill me-1"></i> Detail
-                                    </Button>
-                                </Card.Footer>
-                            </Card>
-                        </Col>
+                                        <i className="bi bi-heart text-gray-600 hover:text-yellow-500"></i>
+                                    </button>
+                                </div>
+                                <div className="p-4 flex-grow flex flex-col">
+                                    <h3 className="font-medium text-gray-900 text-lg mb-1 line-clamp-1">
+                                        {product.name}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">
+                                        {product.description}
+                                    </p>
+                                    <div className="flex items-center justify-between mt-auto">
+                                        <span className="text-yellow-500 font-bold">
+                                            Rp {product.price?.toLocaleString('id-ID')}
+                                        </span>
+                                        <button 
+                                            onClick={() => handleShowModal(product.id)}
+                                            className="px-4 py-2 text-sm bg-yellow-400 text-gray-900 rounded-lg hover:bg-yellow-500 transition-colors shadow-sm"
+                                        >
+                                            <i className="bi bi-eye mr-1.5"></i>
+                                            Detail
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ))}
-                </Row>            )}            {/* Render Modal Detail Produk - using optimized version */}
+                </div>
+            )}
+            
             <ProductModalOptimized 
                 productId={selectedProduct}
                 show={showModal} 

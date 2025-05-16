@@ -5,7 +5,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 
 // Constants
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:5173/api';
 
 /**
  * Generic API error handler
@@ -87,9 +87,16 @@ export const createApiClient = (config = {}) => {
         config.headers.Authorization = `Bearer ${token}`;
       }
       
+      console.log('Making API request:', {
+        method: config.method,
+        url: config.url,
+        data: config.data
+      });
+      
       return config;
     },
     (error) => {
+      console.error('API Request Error:', error);
       return Promise.reject(error);
     }
   );
@@ -97,9 +104,15 @@ export const createApiClient = (config = {}) => {
   // Response interceptor
   client.interceptors.response.use(
     (response) => {
+      console.log('API Response:', {
+        status: response.status,
+        data: response.data
+      });
       return response;
     },
     (error) => {
+      console.error('API Response Error:', error.response || error);
+      
       // Handle 401 Unauthorized errors globally
       if (error.response && error.response.status === 401) {
         // If not on login page

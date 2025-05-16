@@ -1,0 +1,309 @@
+/* Modern Modal Styles with Glassmorphism */
+.modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(17, 17, 17, 0.7) !important;
+  backdrop-filter: blur(8px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(180%) !important;
+  z-index: 1040 !important;
+  opacity: 0 !important;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.modal-backdrop.show {
+  opacity: 1 !important;
+}
+
+.modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1050 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  outline: 0 !important;
+  padding: 1rem !important;
+}
+
+.product-detail-modal {
+  pointer-events: none;
+}
+
+.product-detail-modal .modal-dialog {
+  position: relative !important;
+  width: 100% !important;
+  margin: 1.75rem auto !important;
+  max-width: 800px !important;
+  pointer-events: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: calc(100% - 3.5rem) !important;
+  transform: translateY(24px) scale(0.98) !important;
+  opacity: 0 !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform, opacity !important;
+}
+
+.modal.show .modal-dialog {
+  transform: translateY(0) scale(1) !important;
+  opacity: 1 !important;
+}
+
+.product-detail-modal .modal-content {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 8px 24px -8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  overflow: hidden !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.92)
+  ) !important;
+}
+
+.product-detail-modal .modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 1.5rem 2rem !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.product-detail-modal .modal-title {
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+  background: linear-gradient(135deg, #1a1a1a, #4a4a4a) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  margin: 0 !important;
+}
+
+.product-detail-modal .close {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease-in-out !important;
+}
+
+.product-detail-modal .close:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  transform: rotate(90deg) !important;
+}
+
+.product-detail-modal .modal-body {
+  padding: 2rem !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.98) 100%
+  ) !important;
+  position: relative !important;
+}
+
+/* Product Content Styles */
+.product-detail-modal .product-image {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  transition: transform 0.3s ease-in-out !important;
+}
+
+.product-detail-modal .product-image:hover {
+  transform: scale(1.02) !important;
+}
+
+.product-detail-modal .price-tag {
+  font-size: 2.25rem !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  display: inline-block !important;
+  padding: 0.5rem 0 !important;
+  letter-spacing: -0.025em !important;
+}
+
+/* Button Styles */
+.product-detail-modal .btn {
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.product-detail-modal .btn::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0)
+  ) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.product-detail-modal .btn:hover::after {
+  opacity: 1 !important;
+}
+
+.product-detail-modal .btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+  color: #000 !important;
+  box-shadow: 
+    0 4px 6px -1px rgba(251, 191, 36, 0.2),
+    0 2px 4px -1px rgba(251, 191, 36, 0.1) !important;
+}
+
+.product-detail-modal .btn-warning:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    0 10px 15px -3px rgba(251, 191, 36, 0.3),
+    0 4px 6px -2px rgba(251, 191, 36, 0.15) !important;
+}
+
+.product-detail-modal .btn-light {
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #4b5563 !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.product-detail-modal .btn-light:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #1f2937 !important;
+}
+
+/* Form Select Styles */
+.product-detail-modal .form-select {
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 0.625rem 2.5rem 0.625rem 1rem !important;
+  font-size: 1rem !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.product-detail-modal .form-select:focus {
+  border-color: #fbbf24 !important;
+  box-shadow: 
+    0 0 0 3px rgba(251, 191, 36, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Description */
+.product-detail-modal .product-description {
+  color: #4b5563 !important;
+  line-height: 1.75 !important;
+  font-size: 1.125rem !important;
+}
+
+/* Category Badge */
+.product-detail-modal .badge {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb) !important;
+  color: #4b5563 !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Scrollbar Styling */
+.product-detail-modal .modal-body::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.product-detail-modal .modal-body::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5) !important;
+  border-radius: 8px !important;
+}
+
+.product-detail-modal .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5) !important;
+  border-radius: 8px !important;
+  border: 2px solid rgba(243, 244, 246, 0.5) !important;
+}
+
+.product-detail-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.5) !important;
+}
+
+/* Footer Styles */
+.product-detail-modal .modal-footer {
+  padding: 1.5rem 2rem !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Loading Animation */
+.product-detail-modal .spinner-border {
+  color: #f59e0b !important;
+  width: 3rem !important;
+  height: 3rem !important;
+  border-width: 0.25rem !important;
+  animation-duration: 1s !important;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .product-detail-modal .modal-dialog {
+    margin: 0.5rem !important;
+  }
+  
+  .product-detail-modal .modal-body {
+    padding: 1.5rem !important;
+  }
+  
+  .product-detail-modal .modal-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .product-detail-modal .price-tag {
+    font-size: 1.75rem !important;
+  }
+  
+  .product-detail-modal .btn {
+    padding: 0.625rem 1.25rem !important;
+  }
+}

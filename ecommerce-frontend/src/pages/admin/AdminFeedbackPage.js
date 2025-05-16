@@ -1,5 +1,5 @@
 import React from 'react';
-import FeedbackManagement from '../../components/admin/FeedbackManagement.jsx';
+import FeedbackManagement from './FeedbackManagement.jsx';
 
 const AdminFeedbackPage = () => {
   return (

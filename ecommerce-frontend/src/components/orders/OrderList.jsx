@@ -1,0 +1,350 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { orderService } from '../../services/orderService';
+import { FaSort, FaSortUp, FaSortDown, FaSearch, FaFilter } from 'react-icons/fa';
+
+const OrderList = () => {
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [sortField, setSortField] = useState('id');
+    const [sortDirection, setSortDirection] = useState('desc');
+    const [filters, setFilters] = useState({
+        status: '',
+        paymentStatus: '',
+        dateRange: {
+            start: '',
+            end: ''
+        }
+    });
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const fetchOrders = async () => {
+        try {
+            const data = await orderService.getAllOrders();
+            setOrders(data);
+            setLoading(false);
+        } catch (err) {
+            setError('Gagal memuat pesanan');
+            setLoading(false);
+        }
+    };
+
+    // Sort functions
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    const getSortedOrders = () => {
+        const sortedOrders = [...orders].sort((a, b) => {
+            let aValue = a[sortField];
+            let bValue = b[sortField];
+
+            // Handle special cases for dates
+            if (sortField === 'order_date' || sortField === 'desired_completion_date') {
+                aValue = new Date(aValue || '').getTime();
+                bValue = new Date(bValue || '').getTime();
+            }
+            // Handle special case for total_amount
+            else if (sortField === 'total_amount') {
+                aValue = Number(aValue);
+                bValue = Number(bValue);
+            }
+
+            if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return sortedOrders;
+    };
+
+    const handleFilterChange = (field, value) => {
+        setFilters(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleDateRangeChange = (field, value) => {
+        setFilters(prev => ({
+            ...prev,
+            dateRange: {
+                ...prev.dateRange,
+                [field]: value
+            }
+        }));
+    };
+
+    const getFilteredOrders = () => {
+        let filteredOrders = getSortedOrders();
+
+        // Filter by status
+        if (filters.status) {
+            filteredOrders = filteredOrders.filter(order => 
+                order.order_status.toLowerCase() === filters.status.toLowerCase()
+            );
+        }
+
+        // Filter by payment status
+        if (filters.paymentStatus) {
+            filteredOrders = filteredOrders.filter(order => 
+                order.payment_status.toLowerCase() === filters.paymentStatus.toLowerCase()
+            );
+        }
+
+        // Filter by date range
+        if (filters.dateRange.start) {
+            filteredOrders = filteredOrders.filter(order => 
+                new Date(order.order_date) >= new Date(filters.dateRange.start)
+            );
+        }
+        if (filters.dateRange.end) {
+            filteredOrders = filteredOrders.filter(order => 
+                new Date(order.order_date) <= new Date(filters.dateRange.end)
+            );
+        }
+
+        return filteredOrders;
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'diproses':
+                return 'bg-blue-100 text-blue-800';
+            case 'selesai':
+                return 'bg-green-100 text-green-800';
+            case 'dibatalkan':
+                return 'bg-red-100 text-red-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const getPaymentStatusColor = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'menunggu pembayaran':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'pembayaran sudah dilakukan':
+                return 'bg-green-100 text-green-800';
+            case 'pembayaran dibatalkan':
+                return 'bg-red-100 text-red-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const getSortIcon = (field) => {
+        if (sortField !== field) return <FaSort className="ml-1 inline text-gray-400" />;
+        return sortDirection === 'asc' ? 
+            <FaSortUp className="ml-1 inline text-yellow-500" /> : 
+            <FaSortDown className="ml-1 inline text-yellow-500" />;
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="flex flex-col items-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+                    <p className="mt-4 text-gray-600">Memuat data pesanan...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-r" role="alert">
+                    <p className="font-bold">Error</p>
+                    <p>{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header Section */}
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">Riwayat Pesanan</h1>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Kelola dan pantau status pesanan pelanggan
+                    </p>
+                </div>
+
+                {/* Filter Section */}
+                <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <div className="flex items-center mb-4">
+                        <FaFilter className="text-gray-400 mr-2" />
+                        <h2 className="text-lg font-medium text-gray-900">Filter Pesanan</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Status Pesanan</label>
+                            <select
+                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 transition-colors"
+                                value={filters.status}
+                                onChange={(e) => handleFilterChange('status', e.target.value)}
+                            >
+                                <option value="">Semua Status</option>
+                                <option value="diproses">Diproses</option>
+                                <option value="selesai">Selesai</option>
+                                <option value="dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Status Pembayaran</label>
+                            <select
+                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 transition-colors"
+                                value={filters.paymentStatus}
+                                onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
+                            >
+                                <option value="">Semua Status</option>
+                                <option value="menunggu pembayaran">Menunggu Pembayaran</option>
+                                <option value="pembayaran sudah dilakukan">Pembayaran Sudah Dilakukan</option>
+                                <option value="pembayaran dibatalkan">Pembayaran Dibatalkan</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                            <input
+                                type="date"
+                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 transition-colors"
+                                value={filters.dateRange.start}
+                                onChange={(e) => handleDateRangeChange('start', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Tanggal Akhir</label>
+                            <input
+                                type="date"
+                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 transition-colors"
+                                value={filters.dateRange.end}
+                                onChange={(e) => handleDateRangeChange('end', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Table Section */}
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr className="bg-gray-50">                                {[
+                                    {
+                                        field: 'id',
+                                        label: 'ID Pesanan'
+                                    },
+                                    {
+                                        field: 'order_date',
+                                        label: 'Tanggal Pesan'
+                                    },
+                                    {
+                                        field: 'desired_completion_date',
+                                        label: 'Tanggal Jadi'
+                                    },
+                                    {
+                                        field: 'total_amount',
+                                        label: 'Total'
+                                    }
+                                ].map((column) => (
+                                        <th
+                                            key={column.field}
+                                            scope="col"
+                                            className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group"
+                                            onClick={() => handleSort(column.field)}
+                                        >
+                                            <span className="flex items-center hover:text-gray-700">
+                                                {column.label}
+                                                {getSortIcon(column.field)}
+                                            </span>
+                                        </th>
+                                    ))}
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pembayaran</th>
+                                    <th scope="col" className="relative px-6 py-4">
+                                        <span className="sr-only">Aksi</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {getFilteredOrders().map((order) => (
+                                    <tr 
+                                        key={order.id}
+                                        className="hover:bg-gray-50 transition-colors duration-200"
+                                    >
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-gray-900">#{order.id}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-500">
+                                                {new Date(order.order_date || order.created_at).toLocaleDateString('id-ID', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-500">
+                                                {order.desired_completion_date ? 
+                                                    new Date(order.desired_completion_date).toLocaleDateString('id-ID', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    }) : '-'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                Rp {Number(order.total_amount).toLocaleString('id-ID')}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.order_status)}`}>
+                                                {order.order_status?.charAt(0).toUpperCase() + order.order_status?.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.payment_status)}`}>
+                                                {order.payment_status?.charAt(0).toUpperCase() + order.payment_status?.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <Link 
+                                                to={`/orders/${order.id}`}
+                                                className="text-yellow-600 hover:text-yellow-900 bg-yellow-50 px-3 py-1 rounded-md transition-colors duration-200"
+                                            >
+                                                Detail
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {getFilteredOrders().length === 0 && (
+                                    <tr>
+                                        <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                                            Tidak ada pesanan yang sesuai dengan filter
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default OrderList;

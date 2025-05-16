@@ -158,59 +158,63 @@ const ProductModal = ({ productId, show, onHide }) => {
           />
         </div>
         <div className="col-md-6">
-          <h4 className="mb-3">{product.name}</h4>
-          <div className="mb-3">
-            <span className="price-tag">
-              Rp {(product.price || 0).toLocaleString('id-ID')}
+          <div className="product-info-section">
+            <span className="category-badge">
+              {product.category}
             </span>
-            {product.old_price && product.old_price > product.price && (
-              <span className="ms-2 text-decoration-line-through text-muted">
-                Rp {product.old_price.toLocaleString('id-ID')}
+            
+            <h2 className="product-title text-2xl font-bold mb-3">
+              {product.name}
+            </h2>
+
+            <div className="price-section">
+              <span className="text-lg font-semibold">Harga:</span>
+              <span className="price-tag text-2xl font-bold">
+                Rp {new Intl.NumberFormat('id-ID').format(product.price)}
               </span>
-            )}
-          </div>
-          
-          {/* Display any product stats if available */}
-          {product.stats && (
-            <div className="mb-3">
-              <div className="d-flex align-items-center">
-                <div className="text-warning me-1">
-                  {[...Array(5)].map((_, i) => (
-                    <i key={i} className={`bi bi-star${i < Math.floor(product.stats.rating || 0) ? '-fill' : (i < (product.stats.rating || 0) + 0.5 ? '-half' : '')}`}></i>
-                  ))}
-                </div>
-                <span className="ms-1 small text-muted">
-                  ({product.stats.total_reviews || 0} ulasan)
-                </span>
-              </div>
             </div>
-          )}
-          
-          <p className="mb-3" style={{ maxHeight: '150px', overflowY: 'auto', lineHeight: '1.6' }}>
-            {product.description || 'Tidak ada deskripsi'}
-          </p>
-          <div className="mb-3">
-            <Form.Group className="d-flex align-items-center">
-              <Form.Label className="me-3 mb-0 fw-medium">Jumlah:</Form.Label>
-              <Form.Select 
-                value={quantity} 
-                onChange={handleQuantityChange}
-                style={{ width: '100px' }}
-                className="form-select-sm"
+
+            <div className="product-description">
+              <p className="text-gray-700 leading-relaxed">
+                {product.description}
+              </p>
+            </div>
+
+            <div className="quantity-section">
+              <label htmlFor="quantity" className="quantity-label">
+                Jumlah:
+              </label>
+              <select
+                id="quantity"
+                className="form-select"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
               >
-                {quantityOptions}
-              </Form.Select>
-            </Form.Group>
-          </div>
-          {product.category_name && (
-            <div className="mb-3">
-              <span className="badge bg-secondary">{product.category_name}</span>
+                {[...Array(10)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+
+            <div className="flex gap-3 mt-6">
+              <Button variant="light" onClick={onHide}>
+                <i className="bi bi-x-lg me-1"></i> Tutup
+              </Button>
+              <Button 
+                variant="warning" 
+                onClick={handleAddToCart} 
+                disabled={loading || !product}
+              >
+                <i className="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     );
-  }, [product, quantity, handleQuantityChange, quantityOptions]);
+  }, [product, quantity, handleQuantityChange]);
 
   return (
     <Modal
@@ -244,18 +248,6 @@ const ProductModal = ({ productId, show, onHide }) => {
           <div className="text-center py-4">Produk tidak ditemukan</div>
         )}
       </Modal.Body>
-      <Modal.Footer className="border-0 pt-0">
-        <Button variant="light" onClick={onHide}>
-          <i className="bi bi-x-lg me-1"></i> Tutup
-        </Button>
-        <Button 
-          variant="warning" 
-          onClick={handleAddToCart} 
-          disabled={loading || !product}
-        >
-          <i className="bi bi-cart-plus me-1"></i> Tambah ke Keranjang
-        </Button>
-      </Modal.Footer>
     </Modal>
   );
 };

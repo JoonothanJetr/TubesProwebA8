@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Table, Spinner, Alert, Form } from 'react-bootstrap';
 import { productService } from '../../services/productService';
 import { catalogService } from '../../services/catalogService';
-import ProductImage from '../../components/common/ProductImage';
+import ProductImage from '../common/ProductImage';
 
 const ProductManagement = () => {
     const [products, setProducts] = useState([]);

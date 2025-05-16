@@ -1,84 +1,133 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import AdminLayout from './components/layout/AdminLayout.js';
-import AdminDashboardPage from './pages/admin/AdminDashboard.js';
-import AdminFeedbackPage from './pages/admin/AdminFeedbackPage.js';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+
+// Layouts
+import Layout from './components/layout/Layout.jsx';
+import AdminLayout from './components/layout/AdminLayout.jsx';
+
+// Pages & Components
+import HomeOptimized from './pages/HomeOptimized.jsx';
+import About from './pages/About.jsx';
+import ImageDebugger from './pages/ImageDebugger.jsx';
+import PaymentPage from './pages/PaymentPage.jsx';
+
+// Auth Components
+import Login from './components/auth/Login.jsx';
+import Register from './components/auth/Register.jsx';
+
+// Product Components
+import ProductList from './components/products/ProductList.jsx';
+import ProductDetail from './components/products/ProductDetail.jsx';
+
+// Cart & Order Components
+import CartList from './components/cart/CartList.jsx';
+import OrderList from './components/orders/OrderList.jsx';
+import OrderDetail from './components/orders/OrderDetail.jsx';
+
+// Services
 import { authService } from './services/authService';
-import HomeOptimized from './pages/HomeOptimized.js'; // Ditambahkan
 
-// A simple component for a login page, replace with your actual login page
-const LoginPagePlaceholder = () => <div><h2>Login Page</h2><p>Please log in to continue.</p></div>;
+// Route Protectors
+import AdminRoute from './components/routes/AdminRoute.jsx';
+import ProtectedRoute from './components/routes/ProtectedRoute.jsx';
 
-// Dummy auth check function - replace with your actual authentication logic
-const isAuthenticated = () => {
-  return !!localStorage.getItem('token'); // Example: checks if a token exists
-};
-
-// ProtectedRoute component to handle routes that require authentication
-const ProtectedRoute = ({ children }) => {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
+// Admin Components
+import AdminDashboard from './components/admin/AdminDashboard.jsx';
+import ProductManagement from './components/admin/ProductManagement.jsx';
+import ProductForm from './components/admin/ProductForm.jsx';
+import CatalogManagement from './components/admin/CatalogManagement.jsx';
+import UserManagement from './components/admin/UserManagement.jsx';
+import OrderManagement from './components/admin/OrderManagement.jsx';
+import AdminOrderDetail from './components/admin/AdminOrderDetail.jsx';
+import AdminFeedbackPage from './pages/admin/AdminFeedbackPage.jsx';
 
 function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
+    const [isAuthenticatedState, setIsAuthenticatedState] = useState(authService.isAuthenticated());
+    const [userState, setUserState] = useState(authService.getUser());
+    const location = useLocation();
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    const user = authService.getUser();
-    console.log(`App.js useEffect triggered. Path: ${location.pathname}, User from authService:`, user);
+    useEffect(() => {
+        const authenticated = authService.isAuthenticated();
+        const currentUser = authService.getUser();
+        setIsAuthenticatedState(authenticated);
+        setUserState(currentUser);
 
-    if (user && user.token) {
-      console.log(`App.js useEffect: User IS authenticated. Role: ${user.role}`);
-      if (user.role === 'admin') {
-        const isAdminOnNonAdminPath = location.pathname === '/' || location.pathname === '/login' || location.pathname.startsWith('/user');
-        console.log(`App.js useEffect (Admin Check): isAdminOnNonAdminPath for path "${location.pathname}" is ${isAdminOnNonAdminPath}`);
-        if (isAdminOnNonAdminPath) {
-          console.log("App.js useEffect (Admin Redirect): Admin on non-admin path. Redirecting to /admin.");
-          navigate('/admin', { replace: true });
+        console.log(`App.jsx useEffect: Path: ${location.pathname}, User:`, currentUser, "Auth:", authenticated);
+
+        if (authenticated && currentUser?.role === 'admin') {
+            const isAdminOnNonAdminPath = location.pathname === '/' || location.pathname === '/login' || location.pathname.startsWith('/user');
+            if (isAdminOnNonAdminPath) {
+                console.log('App.jsx useEffect: Admin on non-admin path, redirecting to /admin');
+                navigate('/admin', { replace: true });
+            }
+        } else if (authenticated && currentUser?.role === 'customer') {
+            const isCustomerOnNonCustomerPath = location.pathname === '/login' || location.pathname.startsWith('/admin');
+            if (isCustomerOnNonCustomerPath) {
+                console.log('App.jsx useEffect: Customer on non-customer path, redirecting to /');
+                navigate('/', { replace: true });
+            }
+        } else if (!authenticated) {
+            const isProtectedPath = location.pathname.startsWith('/admin') || 
+                                    location.pathname.startsWith('/cart') || 
+                                    location.pathname.startsWith('/orders') ||
+                                    location.pathname.startsWith('/payment') ||
+                                    location.pathname.startsWith('/user');
+            if (isProtectedPath && location.pathname !== '/login' && location.pathname !== '/register') {
+                console.log(`App.jsx useEffect: Unauthenticated access to ${location.pathname}, redirecting to /login.`);
+                navigate('/login', { replace: true });
+            }
         }
-      } else if (user.role === 'customer') {
-        const isCustomerOnNonCustomerPath = location.pathname === '/' || location.pathname === '/login' || location.pathname.startsWith('/admin');
-        console.log(`App.js useEffect (Customer Check): isCustomerOnNonCustomerPath for path "${location.pathname}" is ${isCustomerOnNonCustomerPath}`);
-        if (isCustomerOnNonCustomerPath) {
-          console.log("App.js useEffect (Customer Redirect): Customer on non-customer path. Redirecting to /user/dashboard.");
-          navigate('/user/dashboard', { replace: true });
-        }
-      }
-    } else {
-      console.log(`App.js useEffect: User is NOT authenticated (or no token). Path: ${location.pathname}`);
-      if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/user')) {
-        if (location.pathname !== '/login' && location.pathname !== '/register') {
-          console.log(`App.js useEffect (Unauth Redirect): No user, but trying to access protected path ${location.pathname}. Redirecting to /login.`);
-          navigate('/login', { replace: true });
-        }
-      }
-    }
-  }, [navigate, location.pathname]);
+    }, [location.pathname, navigate]);
 
-  return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<HomeOptimized />} /> {/* Diubah */}
-        <Route path="/login" element={<LoginPagePlaceholder />} />
+    const handleLoginSuccess = (loggedInUser) => {
+        setIsAuthenticatedState(true);
+        setUserState(loggedInUser);
+        if (loggedInUser?.role === 'admin') {
+            navigate('/admin', { replace: true });
+        } else {
+            navigate('/', { replace: true });
+        }
+    };
 
-        {/* Admin Routes - Protected and within AdminLayout */}
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<AdminDashboardPage />} />
-          <Route path="feedback" element={<AdminFeedbackPage />} />
-        </Route>
-      </Routes>
-    </Router>
-  );
+    return (
+        <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Layout><HomeOptimized /></Layout>} />
+            <Route path="/about" element={<Layout><About /></Layout>} />
+            <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/products" element={<Layout><ProductList /></Layout>} />
+            <Route path="/products/:id" element={<Layout><ProductDetail /></Layout>} />
+            <Route path="/debug-images" element={<Layout><ImageDebugger /></Layout>} />
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+                <Route path="/cart" element={<Layout><CartList /></Layout>} />
+                <Route path="/orders" element={<Layout><OrderList /></Layout>} />
+                <Route path="/orders/:id" element={<Layout><OrderDetail /></Layout>} />
+                <Route path="/payment" element={<Layout><PaymentPage /></Layout>} />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route element={<AdminRoute />}>
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/products" element={<ProductManagement />} />
+                    <Route path="/admin/products/new" element={<ProductForm />} />
+                    <Route path="/admin/products/edit/:productId" element={<ProductForm />} />
+                    <Route path="/admin/catalogs" element={<CatalogManagement />} />
+                    <Route path="/admin/users" element={<UserManagement />} />
+                    <Route path="/admin/orders" element={<OrderManagement />} />
+                    <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+                    <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+                </Route>
+            </Route>
+
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
 }
 
 export default App;

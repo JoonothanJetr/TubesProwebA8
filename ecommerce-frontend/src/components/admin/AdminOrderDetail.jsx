@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { orderService } from '../../services/orderService'; // Sesuaikan path jika perlu
 import { getPaymentProofUrl } from '../../utils/imageHelper'; // Only import getPaymentProofUrl
 import toast from 'react-hot-toast';
-import ProductImageOptimized from '../../components/common/ProductImageOptimized'; // Use optimized image component
-import PaymentProofImage from '../../components/common/PaymentProofImage'; // Import PaymentProofImage
+import ProductImageOptimized from '../common/ProductImageOptimized'; // Use optimized image component
+import PaymentProofImage from '../common/PaymentProofImage'; // Import PaymentProofImage
 import { normalizeImagePaths } from '../../utils/imageFixer'; // Import image path fixer
 
 const AdminOrderDetail = () => {

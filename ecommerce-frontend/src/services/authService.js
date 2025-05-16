@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Ambil API_URL dari environment variable, sama seperti productService
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Konfigurasi base URL untuk axios
 const axiosInstance = axios.create({
@@ -150,4 +150,4 @@ axiosInstance.interceptors.response.use(
     }
 );
 
-export const authService = new AuthService(); 
+export const authService = new AuthService();
