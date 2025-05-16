@@ -51,6 +51,22 @@ Pada minggu ini, tim kami telah melakukan penyempurnaan terhadap seluruh fitur y
 Pada halaman feedback terjadi bug yaitu ketika saat menginput feedback, feedback nya tidak tertampil di admin panel. Untuk solusinya sendiri, karena halaman feedbacknya masih belum terhubung dengan database, jadi kami perlu membuat tabel di database untuk feedback
 
 ### 2. Hasil pengujian dengan minimal 3 user
+### a. User 1
+#### - Halaman Login
+#### - Berhasil mencoba memasukan menu ke keranjang
+#### - Membuka detail menu
+#### - Membuka halaman keranjang
+#### - Memesan Produk
+#### - Melihat halaman riwayat pesanan
+
+### b. User 2
+#### - Halaman Login
+#### - Memasukkan produk ke keranjang
+#### - Berhasil memasukkan produk ke keranjang
+#### - Menampilkan halaman keranjang
+#### - 
+
 
 ### 3. Data Visualization: grafik sederhana
 ![alt text](dashboard.png)
+
