@@ -45,3 +45,11 @@
 - **Nicholas Christian Samuel Manurung**: 
   
 ## Screenshots 
+1. Daftar bug pada SICATE
+### a. Bug Feedback
+![alt text](<Bug feedback.jpg>)
+Pada halaman feedback terjadi bug yaitu ketika saat menginput feedback, feedback nya tidak tertampil di admin panel. Untuk solusinya sendiri, karena halaman feedbacknya masih belum terhubung dengan database, jadi kami perlu membuat tabel di database untuk feedback
+
+2. Hasil pengujian dengan minimal 3 user
+
+3. Data Visualization: Chart/grafik sederhana
