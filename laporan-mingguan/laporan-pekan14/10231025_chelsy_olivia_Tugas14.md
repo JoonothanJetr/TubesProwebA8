@@ -17,7 +17,7 @@
 **Tanggal**: 16/05/2025
 
 ## Progress Summary
-
+Pada minggu ini, tim kami telah melakukan penyempurnaan terhadap seluruh fitur yang telah dikembangkan guna memastikan setiap fungsionalitas berjalan dengan baik dan sesuai kebutuhan. Selain itu, tim kami juga melakukan perbaikan terhadap satu bug yang ditemukan selama proses pengujian, serta melakukan usability testing untuk menilai sejauh mana sistem dapat digunakan dengan nyaman dan mudah oleh pengguna. Progres yang telah dicapai kemudian didemokan kepada mitra untuk memperoleh masukan dan validasi akhir, serta dilakukan persiapan untuk deployment apabila diperlukan pada tahap selanjutnya.
 
 
 ## Accomplished Tasks
@@ -52,4 +52,5 @@ Pada halaman feedback terjadi bug yaitu ketika saat menginput feedback, feedback
 
 ### 2. Hasil pengujian dengan minimal 3 user
 
-### 3. Data Visualization: Chart/grafik sederhana
+### 3. Data Visualization: grafik sederhana
+![alt text](dashboard.png)
