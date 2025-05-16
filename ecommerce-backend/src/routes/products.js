@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Pool } = require('pg');
+const pool = require('../database/db.js'); // Impor pool dari db.js
 const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -42,15 +42,6 @@ const upload = multer({
     fileFilter: fileFilter
 }).single('image'); // Menangani satu file dengan field name 'image'
 
-
-const pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'catering_ecommerce',
-    password: process.env.DB_PASSWORD || 'your_password',
-    port: process.env.DB_PORT || 5432,
-});
-
 // Get all products with category name
 router.get('/', async (req, res) => {
     try {
@@ -59,6 +50,7 @@ router.get('/', async (req, res) => {
             SELECT p.*, c.name AS category_name 
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
+            WHERE p.is_deleted = false OR p.is_deleted IS NULL
             ORDER BY p.created_at DESC
         `;
         const result = await pool.query(queryText);
@@ -111,8 +103,9 @@ router.get('/:id', async (req, res) => {
             SELECT p.*, c.name AS category_name 
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
-            WHERE p.id = $1
-        `;        const result = await pool.query(queryText, [productId]);
+            WHERE p.id = $1 AND (p.is_deleted = false OR p.is_deleted IS NULL)
+        `;
+        const result = await pool.query(queryText, [productId]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });
@@ -299,7 +292,8 @@ router.delete('/:id', auth.isAdmin, async (req, res) => { // Use isAdmin middlew
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Access denied' });
-        }        const { id } = req.params;
+        }
+        const { id } = req.params;
         
         // Validate id parameter
         if (!id || id === 'undefined') {
@@ -312,7 +306,11 @@ router.delete('/:id', auth.isAdmin, async (req, res) => { // Use isAdmin middlew
             return res.status(400).json({ error: 'Product ID must be a number' });
         }
         
-        const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [productId]);
+        // Implement soft delete by setting is_deleted flag to true
+        const result = await pool.query(
+            'UPDATE products SET is_deleted = true WHERE id = $1 RETURNING *',
+            [productId]
+        );
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });

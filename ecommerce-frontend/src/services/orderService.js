@@ -29,8 +29,23 @@ export const orderService = {
             const response = await api.post('/orders', orderData);
             return response.data;
         } catch (error) {
-            console.error('Error in createOrder service:', error.response || error.message);
-            throw error;
+            console.error('Error creating order:', error.response?.data || error.message);
+            throw error.response?.data || error; // Melempar error yang lebih informatif
+        }
+    },
+
+    createOrderWithProof: async (formData) => {
+        try {
+            // Pastikan header Content-Type adalah multipart/form-data untuk pengiriman file
+            const response = await api.post('/orders/with-proof', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error creating order with proof:', error.response?.data || error.message);
+            throw error.response?.data || error;
         }
     },
 

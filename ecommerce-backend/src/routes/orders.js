@@ -297,6 +297,103 @@ router.post('/', auth.authenticateToken, async (req, res) => {
     }
 });
 
+// === BARU: Create order with payment proof ===
+router.post('/with-proof', auth.authenticateToken, uploadProof.single('paymentProof'), async (req, res) => {
+    const {
+        paymentMethod,
+        items: itemsString, // items akan datang sebagai JSON string dari FormData
+        totalAmount,
+        desiredCompletionDate
+    } = req.body;
+    const userId = req.user.id;
+
+    if (!req.file) {
+        return res.status(400).json({ error: 'Bukti pembayaran wajib diunggah.' });
+    }
+
+    let items;
+    try {
+        items = JSON.parse(itemsString);
+    } catch (e) {
+        // Hapus file yang mungkin sudah terunggah jika parsing JSON gagal
+        if (req.file && req.file.path) {
+            fs.unlink(req.file.path, (unlinkErr) => {
+                if (unlinkErr) console.error('Error deleting orphaned file after JSON parse error:', unlinkErr);
+            });
+        }
+        return res.status(400).json({ error: 'Format data item tidak valid.' });
+    }
+
+    if (!paymentMethod || !items || items.length === 0 || !totalAmount || !desiredCompletionDate) {
+        // Hapus file yang mungkin sudah terunggah jika validasi gagal
+        if (req.file && req.file.path) {
+            fs.unlink(req.file.path, (unlinkErr) => {
+                if (unlinkErr) console.error('Error deleting orphaned file after validation error:', unlinkErr);
+            });
+        }
+        return res.status(400).json({ error: 'Data pesanan tidak lengkap.' });
+    }
+
+    const paymentProofUrl = `/proofs/${req.file.filename}`;
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const orderInsertQuery = `
+            INSERT INTO orders (user_id, total_amount, payment_method, desired_completion_date, payment_proof_url, order_status, payment_status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id, order_status, payment_status, order_date, created_at, payment_proof_url, desired_completion_date;
+        `;
+        const orderRes = await client.query(orderInsertQuery, [
+            userId,
+            totalAmount,
+            paymentMethod,
+            desiredCompletionDate,
+            paymentProofUrl,
+            'diproses',
+            'pembayaran sudah dilakukan'
+        ]);
+        const newOrderId = orderRes.rows[0].id;
+        const newOrder = orderRes.rows[0];
+
+        for (const item of items) {
+            if (!item.product_id || typeof item.quantity === 'undefined' || typeof item.price === 'undefined') {
+                throw new Error('Data item produk tidak lengkap (product_id, quantity, atau price hilang).');
+            }
+            const orderItemInsertQuery = `
+                INSERT INTO order_items (order_id, product_id, quantity, price)
+                VALUES ($1, $2, $3, $4);
+            `;
+            await client.query(orderItemInsertQuery, [newOrderId, item.product_id, item.quantity, item.price]);
+        }
+
+        const deleteCartQuery = `DELETE FROM cart WHERE user_id = $1;`;
+        await client.query(deleteCartQuery, [userId]);
+
+        await client.query('COMMIT');
+
+        res.status(201).json({
+            message: 'Pesanan berhasil dibuat dan bukti pembayaran diterima!',
+            order: newOrder
+        });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Order Creation with Proof Error:', err.message);
+        // Hapus file yang sudah terupload jika terjadi error database
+        if (req.file && req.file.path) {
+            fs.unlink(req.file.path, (unlinkErr) => {
+                if (unlinkErr) console.error('Error deleting orphaned file after DB error:', unlinkErr);
+            });
+        }
+        res.status(500).json({ error: err.message || 'Gagal memproses pesanan dengan bukti pembayaran.' });
+    } finally {
+        client.release();
+    }
+});
+
 // Update order status (Admin only)
 router.put('/:id/status', auth.authenticateToken, async (req, res) => {
     try {
@@ -528,6 +625,44 @@ router.put('/:id/admin/status', auth.authenticateToken, async (req, res) => {
     } catch (err) {
         console.error('Admin Update Status Error:', err);
         res.status(500).json({ error: 'Gagal memperbarui status pesanan.' });
+    }
+});
+
+// Get completed orders
+router.get('/status/completed', auth.authenticateToken, async (req, res) => {
+    try {
+        let query;
+        const queryParams = [];
+        
+        if (req.user.role === 'admin') {
+            // Admin can see all completed orders
+            query = `
+                SELECT o.*, u.username, u.email 
+                FROM orders o 
+                JOIN users u ON o.user_id = u.id
+                WHERE o.order_status = 'selesai'
+                ORDER BY o.created_at DESC
+            `;
+        } else {
+            // Regular users can only see their own completed orders
+            query = `
+                SELECT o.* 
+                FROM orders o
+                WHERE o.user_id = $1 AND o.order_status = 'selesai'
+                ORDER BY o.created_at DESC
+            `;
+            queryParams.push(req.user.id);
+        }
+        
+        // Debugging query
+        console.log("Executing completed orders query:", query);
+        console.log("With params:", queryParams);
+        
+        const result = await pool.query(query, queryParams);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Get Completed Orders Error:', err);
+        res.status(500).json({ error: 'Server error retrieving completed orders' });
     }
 });
 

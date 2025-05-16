@@ -1,32 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Table, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Table, Spinner, Alert, Form } from 'react-bootstrap';
 import { productService } from '../../services/productService';
+import { catalogService } from '../../services/catalogService';
 import ProductImage from '../../components/common/ProductImage';
 
 const ProductManagement = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [catalogs, setCatalogs] = useState([]);
+    const [selectedCatalog, setSelectedCatalog] = useState('');
+    const [sortOption, setSortOption] = useState('id-asc');
 
-    // Fungsi untuk memuat ulang data produk
-    const fetchProducts = async () => {
+    const fetchData = async () => {
         setLoading(true);
         setError(null);
         try {
-            const data = await productService.getAllProductsAdmin();
-            setProducts(Array.isArray(data) ? data : []);
+            const productData = await productService.getAllProductsAdmin();
+            const catalogData = await catalogService.getAllCatalogs();
+            setProducts(Array.isArray(productData) ? productData : []);
+            setCatalogs(Array.isArray(catalogData) ? catalogData : []);
         } catch (err) {
-            console.error("Error fetching products:", err);
-            setError(err.message || "Gagal memuat data produk.");
+            console.error("Error fetching data:", err);
+            setError(err.message || "Gagal memuat data.");
             setProducts([]);
+            setCatalogs([]);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchProducts();
+        fetchData();
     }, []);
 
     const handleDelete = async (productId) => {
@@ -42,13 +48,36 @@ const ProductManagement = () => {
         }
     };
 
-    // Style untuk tabel - mencegah perubahan ukuran yang menyebabkan "getar-getar"
+    const processedProducts = useMemo(() => {
+        let filtered = [...products];
+
+        if (selectedCatalog) {
+            filtered = filtered.filter(product => product.category_id === parseInt(selectedCatalog));
+        }
+
+        switch (sortOption) {
+            case 'name-asc':
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'price-desc':
+                filtered.sort((a, b) => b.price - a.price);
+                break;
+            case 'price-asc':
+                filtered.sort((a, b) => a.price - b.price);
+                break;
+            case 'id-asc':
+            default:
+                filtered.sort((a, b) => a.id - b.id);
+                break;
+        }
+        return filtered;
+    }, [products, selectedCatalog, sortOption]);
+
     const tableStyles = {
         tableLayout: 'fixed',
         width: '100%'
     };
 
-    // Style untuk kolom tabel yang konsisten
     const columnStyles = {
         id: { width: '50px' },
         image: { width: '80px', height: '80px' },
@@ -61,20 +90,61 @@ const ProductManagement = () => {
 
     return (
         <Container className="mt-4">
-            <Row className="mb-3">
-                <Col>
+            <Row className="mb-3 align-items-center">
+                <Col md={6}>
                     <h2>Manajemen Produk</h2>
                 </Col>
-                <Col className="text-end">
+                <Col md={6} className="text-end">
                     <Button as={Link} to="/admin/products/new" variant="primary">
-                        Tambah Produk Baru
+                        <i className="bi bi-plus-circle-fill me-2"></i>Tambah Produk Baru
                     </Button>
                 </Col>
             </Row>
+
+            <Card className="mb-4">
+                <Card.Header>Filter dan Urutkan</Card.Header>
+                <Card.Body>
+                    <Row>
+                        <Col md={6}>
+                            <Form.Group controlId="catalogFilter">
+                                <Form.Label>Filter Berdasarkan Katalog</Form.Label>
+                                <Form.Select 
+                                    aria-label="Filter by catalog"
+                                    value={selectedCatalog}
+                                    onChange={(e) => setSelectedCatalog(e.target.value)}
+                                >
+                                    <option value="">Semua Katalog</option>
+                                    {catalogs.map(catalog => (
+                                        <option key={catalog.id} value={catalog.id}>
+                                            {catalog.name}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
+                        <Col md={6}>
+                            <Form.Group controlId="sortOption">
+                                <Form.Label>Urutkan Berdasarkan</Form.Label>
+                                <Form.Select 
+                                    aria-label="Sort by option"
+                                    value={sortOption}
+                                    onChange={(e) => setSortOption(e.target.value)}
+                                >
+                                    <option value="id-asc">ID Produk (Default)</option>
+                                    <option value="name-asc">Nama Produk (A-Z)</option>
+                                    <option value="price-desc">Harga (Tertinggi)</option>
+                                    <option value="price-asc">Harga (Terendah)</option>
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                </Card.Body>
+            </Card>
+
             <Row>
                 <Col>
                     <Card>
-                        <Card.Body className="p-0"> {/* Menghilangkan padding untuk konsistensi */}
+                        <Card.Body className="p-0">
                             {loading && (
                                 <div className="text-center p-5">
                                     <Spinner animation="border" />
@@ -97,8 +167,8 @@ const ProductManagement = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {products.length > 0 ? (
-                                                products.map(product => (
+                                            {processedProducts.length > 0 ? (
+                                                processedProducts.map(product => (
                                                     <tr key={product.id}>
                                                         <td style={columnStyles.id}>{product.id}</td>
                                                         <td style={columnStyles.image} className="text-center p-1">
@@ -117,7 +187,7 @@ const ProductManagement = () => {
                                                                         height: '64px',
                                                                         objectFit: 'cover'
                                                                     }}
-                                                                    className="img-thumbnail"
+                                                                    className="img-thumbnail p-0"
                                                                 />
                                                             </div>
                                                         </td>
@@ -133,18 +203,21 @@ const ProductManagement = () => {
                                                             <Button
                                                                 as={Link}
                                                                 to={`/admin/products/edit/${product.id}`}
-                                                                variant="warning"
+                                                                variant="outline-warning"
                                                                 size="sm"
                                                                 className="me-2 mb-1"
+                                                                title="Edit Produk"
                                                             >
-                                                                Edit
+                                                                <i className="bi bi-pencil-square"></i> Edit
                                                             </Button>
                                                             <Button
-                                                                variant="danger"
+                                                                variant="outline-danger"
                                                                 size="sm"
                                                                 onClick={() => handleDelete(product.id)}
+                                                                title="Hapus Produk"
+                                                                className="mb-1"
                                                             >
-                                                                Hapus
+                                                                <i className="bi bi-trash-fill"></i> Hapus
                                                             </Button>
                                                         </td>
                                                     </tr>
@@ -152,7 +225,7 @@ const ProductManagement = () => {
                                             ) : (
                                                 <tr>
                                                     <td colSpan="7" className="text-center py-4">
-                                                        Tidak ada data produk
+                                                        {products.length === 0 && !loading ? "Tidak ada data produk." : "Tidak ada produk yang sesuai dengan filter."}
                                                     </td>
                                                 </tr>
                                             )}

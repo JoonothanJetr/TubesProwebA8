@@ -120,7 +120,18 @@ router.put('/:product_id', auth.authenticateToken, async (req, res) => {
     }
 });
 
-// Remove item from cart
+// BARU: Clear all items from cart for the authenticated user
+router.delete('/clear-all', auth.authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM cart WHERE user_id = $1', [req.user.id]);
+        res.json({ message: 'Cart cleared successfully' });
+    } catch (err) {
+        console.error('Error clearing all cart items:', err);
+        res.status(500).json({ error: 'Server error while clearing cart' });
+    }
+});
+
+// Remove a specific item from cart
 router.delete('/:product_id', auth.authenticateToken, async (req, res) => {
     try {
         const { product_id } = req.params;
@@ -141,15 +152,4 @@ router.delete('/:product_id', auth.authenticateToken, async (req, res) => {
     }
 });
 
-// Clear cart
-router.delete('/', auth.authenticateToken, async (req, res) => {
-    try {
-        await pool.query('DELETE FROM cart WHERE user_id = $1', [req.user.id]);
-        res.json({ message: 'Cart cleared successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-module.exports = router; 
+module.exports = router;

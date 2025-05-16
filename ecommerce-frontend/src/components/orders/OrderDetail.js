@@ -167,9 +167,25 @@ const OrderDetail = () => {
                                     Bukti Pembayaran
                                 </dt>
                                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    <a href={getPaymentProofUrl(order.payment_proof_url)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
-                                        Lihat Bukti Pembayaran
+                                    <a 
+                                        href={getPaymentProofUrl(order.payment_proof_url)} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="text-indigo-600 hover:text-indigo-900 block mb-2"
+                                    >
+                                        Lihat Bukti Pembayaran (Tautan)
                                     </a>
+                                    <img 
+                                        src={getPaymentProofUrl(order.payment_proof_url)} 
+                                        alt="Bukti Pembayaran" 
+                                        className="max-w-xs h-auto rounded-md border border-gray-200 shadow-sm"
+                                        onError={(e) => {
+                                            console.error('Gagal memuat gambar bukti pembayaran:', e.target.src);
+                                            e.target.alt = 'Gagal memuat gambar bukti pembayaran';
+                                            // Anda bisa mengganti src ke placeholder jika gambar gagal dimuat
+                                            // e.target.src = 'https://via.placeholder.com/150?text=Error'; 
+                                        }}
+                                    />
                                 </dd>
                             </div>
                         )}
