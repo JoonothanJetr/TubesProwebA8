@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
     console.error('Error submitting feedback:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: 'Error submitting feedback: ' + (error.message || 'Internal server error')
     });
   }
 });
@@ -44,14 +44,13 @@ router.get('/', auth.isAdmin, async (req, res) => {
     
     res.status(200).json({
       success: true,
-      count: result.rows.length,
       data: result.rows
     });
   } catch (error) {
     console.error('Error getting feedback:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: 'Error getting feedback: ' + (error.message || 'Internal server error')
     });
   }
 });
@@ -91,7 +90,7 @@ router.put('/:id', auth.isAdmin, async (req, res) => {
     console.error('Error updating feedback:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: 'Error updating feedback: ' + (error.message || 'Internal server error')
     });
   }
 });

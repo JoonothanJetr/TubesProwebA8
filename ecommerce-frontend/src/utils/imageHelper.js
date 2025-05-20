@@ -70,50 +70,80 @@ export const getProductImageUrl = (productImage) => {
   
   try {
     let result;
-    console.log('Processing image URL:', productImage); // Debug logging
+    console.log('[imageHelper] Processing image URL:', productImage); // Debug logging
     
     // If it's already a full URL (starts with http/https), use it as is
     if (productImage && typeof productImage === 'string' && productImage.startsWith('http')) {
-      result = productImage;
-    }
-    // Handle paths that start with /images/ (seed data)
-    else if (productImage && typeof productImage === 'string' && productImage.startsWith('/images/')) {
-      // Remove leading slash if present
-      const cleanPath = productImage.startsWith('/') ? productImage.substring(1) : productImage;
-      result = `${API_IMAGE_URL}/${cleanPath}`;
-    }
-    // Handle paths that direct start with /products/ (avoiding double products/ in path)
-    else if (productImage && typeof productImage === 'string' && productImage.match(/^\/?products\//)) {
-      // Remove leading slash if present
-      const cleanPath = productImage.startsWith('/') ? productImage.substring(1) : productImage;
-      result = `${API_IMAGE_URL}/uploads/${cleanPath}`;
-    }
-    // For uploaded images
-    else {
-      // Remove leading slash if present
-      let cleanPath = productImage && typeof productImage === 'string' && productImage.startsWith('/') ? 
-        productImage.substring(1) : productImage;
-      
-      // Fix duplicate paths like 'uploads/products/products/'
-      if (cleanPath && typeof cleanPath === 'string' && cleanPath.includes('products/products/')) {
-        cleanPath = cleanPath.replace('products/products/', 'products/');
-      }
-        // If the path already includes 'uploads/', don't add it again
-      if (cleanPath && typeof cleanPath === 'string' && cleanPath.includes('uploads/')) {
-        result = `${API_IMAGE_URL}/${cleanPath}`;
+      // If it's a full URL but incorrectly contains /product_images/products/ due to double processing,
+      // attempt to correct it.
+      if (productImage.includes('/product_images/products/')) {
+        console.warn('[imageHelper] Correcting double "products/" in full URL:', productImage);
+        result = productImage.replace('/product_images/products/', '/product_images/');
       } else {
-        // Default: assume this is a filename in uploads/products/
-        result = `${API_IMAGE_URL}/uploads/products/${cleanPath}`;
+        result = productImage;
       }
     }
-      console.log('Generated image URL:', result); // Debug the final URL
+    // Handle paths that might be coming directly from the database or filesystem
+    else if (productImage && typeof productImage === 'string') {
+      let cleanPath = productImage;
+
+      // 0. Normalize: Remove any leading slashes from the input string first.
+      // Example: "/products/image.jpg" becomes "products/image.jpg"
+      cleanPath = cleanPath.replace(/^\/+/, ''); 
+
+      // 1. Remove known backend prefixes if they exist at the start of the string.
+      // Order matters: check for more specific prefixes first.
+      const prefixesToRemove = [
+        /^uploads\/products\//, // e.g., uploads/products/image.jpg
+        /^product_images\/products\//, // e.g., product_images/products/image.jpg (potential double processing)
+        /^product_images\//,       // e.g., product_images/image.jpg
+        /^products\//,             // e.g., products/image.jpg (from database or after leading slash removal)
+        /^uploads\//,              // e.g., uploads/image.jpg
+      ];
+
+      for (const prefixRegex of prefixesToRemove) {
+        if (prefixRegex.test(cleanPath)) {
+          cleanPath = cleanPath.replace(prefixRegex, '');
+          console.log(`[imageHelper] Removed prefix, cleanPath is now: ${cleanPath}`);
+          break; // Remove only the first matching prefix
+        }
+      }
+      
+      // ADDED: Specifically handle cases like "uploads/products/products/image.jpg"
+      // where the first prefix removal (uploads/products/) might leave "products/image.jpg"
+      if (cleanPath.startsWith('products/')) {
+        console.log(`[imageHelper] cleanPath starts with "products/", stripping it: ${cleanPath}`);
+        cleanPath = cleanPath.substring('products/'.length);
+        console.log(`[imageHelper] cleanPath after stripping "products/": ${cleanPath}`);
+      }
+      
+      // At this point, cleanPath could be "filename.jpg", "../filename.jpg", "folder/filename.jpg", etc.
+      // We only want the actual filename.
+      let finalFilename = cleanPath.split('/').pop();
+
+      // If cleanPath was empty or ended with '/', pop() might return "" or undefined.
+      // If cleanPath was ".." or "something/..", finalFilename would be "..".
+      // We don't want ".." as a filename.
+      if (!finalFilename || finalFilename === '' || finalFilename === '..') {
+        console.warn(`[imageHelper] productImage \"${productImage}\" resulted in an invalid or empty filename component from path \"${cleanPath}\". Attempted filename: \"${finalFilename || ''}\". Returning null.`);
+        productImageUrlCache[productImage] = null;
+        return null;
+      }
+      
+      console.log(`[imageHelper] Extracted final filename: ${finalFilename} from processed path: ${cleanPath}`);
+      
+      result = `${API_IMAGE_URL}/product_images/${finalFilename}`;
+    } else {
+      console.warn('[imageHelper] Unexpected productImage value:', productImage);
+      return 'https://via.placeholder.com/300x200?text=Invalid+Image+Path';
+    }
     
-    // Cache the result to avoid processing it again
+    console.log('[imageHelper] Generated image URL:', result); // Debug the final URL
+    
     productImageUrlCache[productImage] = result;
     return result;
   } catch (error) {
-    console.error('Error processing image URL:', error, 'Original URL:', productImage);
-    // Return a placeholder image on error
+    console.error('[imageHelper] Error processing image URL:', error, 'Original URL:', productImage);
     return 'https://via.placeholder.com/300x200?text=Error+Loading+Image';
   }
 };

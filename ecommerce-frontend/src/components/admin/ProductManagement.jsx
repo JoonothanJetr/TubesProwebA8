@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Table, Spinner, Alert, Form } from 'react-bootstrap';
 import { productService } from '../../services/productService';
 import { catalogService } from '../../services/catalogService';
 import ProductImage from '../common/ProductImage';
@@ -73,171 +72,158 @@ const ProductManagement = () => {
         return filtered;
     }, [products, selectedCatalog, sortOption]);
 
-    const tableStyles = {
-        tableLayout: 'fixed',
-        width: '100%'
-    };
-
-    const columnStyles = {
-        id: { width: '50px' },
-        image: { width: '80px', height: '80px' },
-        name: { width: '25%' },
-        price: { width: '15%' },
-        stock: { width: '10%' },
-        category: { width: '15%' },
-        actions: { width: '15%' }
-    };
-
     return (
-        <Container className="mt-4">
-            <Row className="mb-3 align-items-center">
-                <Col md={6}>
-                    <h2>Manajemen Produk</h2>
-                </Col>
-                <Col md={6} className="text-end">
-                    <Button as={Link} to="/admin/products/new" variant="primary">
-                        <i className="bi bi-plus-circle-fill me-2"></i>Tambah Produk Baru
-                    </Button>
-                </Col>
-            </Row>
+        <div className="min-h-screen bg-gray-50 p-8">
+            <div className="max-w-7xl mx-auto">
+                {/* Header Section */}
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Manajemen Produk
+                    </h1>
+                    <Link 
+                        to="/admin/products/new" 
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                    >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Produk Baru
+                    </Link>
+                </div>
 
-            <Card className="mb-4">
-                <Card.Header>Filter dan Urutkan</Card.Header>
-                <Card.Body>
-                    <Row>
-                        <Col md={6}>
-                            <Form.Group controlId="catalogFilter">
-                                <Form.Label>Filter Berdasarkan Katalog</Form.Label>
-                                <Form.Select 
-                                    aria-label="Filter by catalog"
-                                    value={selectedCatalog}
-                                    onChange={(e) => setSelectedCatalog(e.target.value)}
-                                >
-                                    <option value="">Semua Katalog</option>
-                                    {catalogs.map(catalog => (
-                                        <option key={catalog.id} value={catalog.id}>
-                                            {catalog.name}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                            </Form.Group>
-                        </Col>
-                        <Col md={6}>
-                            <Form.Group controlId="sortOption">
-                                <Form.Label>Urutkan Berdasarkan</Form.Label>
-                                <Form.Select 
-                                    aria-label="Sort by option"
-                                    value={sortOption}
-                                    onChange={(e) => setSortOption(e.target.value)}
-                                >
-                                    <option value="id-asc">ID Produk (Default)</option>
-                                    <option value="name-asc">Nama Produk (A-Z)</option>
-                                    <option value="price-desc">Harga (Tertinggi)</option>
-                                    <option value="price-asc">Harga (Terendah)</option>
-                                </Form.Select>
-                            </Form.Group>
-                        </Col>
-                    </Row>
-                </Card.Body>
-            </Card>
+                {/* Filter Section */}
+                <div className="bg-white rounded-lg shadow-sm mb-6 p-6">
+                    <h2 className="text-lg font-medium text-gray-900 mb-4">Filter dan Urutkan</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Filter Berdasarkan Katalog
+                            </label>
+                            <select
+                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                value={selectedCatalog}
+                                onChange={(e) => setSelectedCatalog(e.target.value)}
+                            >
+                                <option value="">Semua Katalog</option>
+                                {catalogs.map(catalog => (
+                                    <option key={catalog.id} value={catalog.id}>
+                                        {catalog.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Urutkan Berdasarkan
+                            </label>
+                            <select
+                                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                value={sortOption}
+                                onChange={(e) => setSortOption(e.target.value)}
+                            >
+                                <option value="id-asc">ID Produk (Default)</option>
+                                <option value="name-asc">Nama Produk (A-Z)</option>
+                                <option value="price-desc">Harga (Tertinggi)</option>
+                                <option value="price-asc">Harga (Terendah)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
-            <Row>
-                <Col>
-                    <Card>
-                        <Card.Body className="p-0">
-                            {loading && (
-                                <div className="text-center p-5">
-                                    <Spinner animation="border" />
-                                    <p className="mt-2">Memuat data produk...</p>
-                                </div>
-                            )}
-                            {error && <Alert variant="danger" className="m-3">{error}</Alert>}
-                            {!loading && !error && (
-                                <div className="table-responsive">
-                                    <Table striped bordered hover style={tableStyles}>
-                                        <thead>
-                                            <tr>
-                                                <th style={columnStyles.id}>ID</th>
-                                                <th style={columnStyles.image}>Gambar</th>
-                                                <th style={columnStyles.name}>Nama Produk</th>
-                                                <th style={columnStyles.price}>Harga</th>
-                                                <th style={columnStyles.stock}>Stok</th>
-                                                <th style={columnStyles.category}>Kategori</th>
-                                                <th style={columnStyles.actions}>Aksi</th>
+                {/* Table Section */}
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    {loading && (
+                        <div className="flex flex-col items-center justify-center p-8">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                            <p className="mt-4 text-gray-600">Memuat data produk...</p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+                            <p className="font-bold">Error</p>
+                            <p>{error}</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gambar</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Produk</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {processedProducts.length > 0 ? (
+                                        processedProducts.map(product => (
+                                            <tr key={product.id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {product.id}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center justify-center">
+                                                        <ProductImage
+                                                            imageUrl={product.image_url}
+                                                            productName={product.name}
+                                                            className="h-16 w-16 object-cover rounded-lg"
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {product.name}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    Rp {product.price ? product.price.toLocaleString('id-ID') : '0'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {product.stock}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {product.category_name || 'N/A'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                    <Link
+                                                        to={`/admin/products/edit/${product.id}`}
+                                                        className="inline-flex items-center px-3 py-1.5 border border-yellow-500 text-yellow-500 hover:bg-yellow-50 rounded-md transition-colors"
+                                                    >
+                                                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                        Edit
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(product.id)}
+                                                        className="inline-flex items-center px-3 py-1.5 border border-red-500 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                                    >
+                                                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        Hapus
+                                                    </button>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {processedProducts.length > 0 ? (
-                                                processedProducts.map(product => (
-                                                    <tr key={product.id}>
-                                                        <td style={columnStyles.id}>{product.id}</td>
-                                                        <td style={columnStyles.image} className="text-center p-1">
-                                                            <div style={{
-                                                                width: '100%',
-                                                                height: '100%',
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center'
-                                                            }}>
-                                                                <ProductImage
-                                                                    imageUrl={product.image_url}
-                                                                    productName={product.name}
-                                                                    style={{ 
-                                                                        width: '64px',
-                                                                        height: '64px',
-                                                                        objectFit: 'cover'
-                                                                    }}
-                                                                    className="img-thumbnail p-0"
-                                                                />
-                                                            </div>
-                                                        </td>
-                                                        <td style={columnStyles.name} className="text-truncate">
-                                                            {product.name}
-                                                        </td>
-                                                        <td style={columnStyles.price}>
-                                                            Rp {product.price ? product.price.toLocaleString('id-ID') : '0'}
-                                                        </td>
-                                                        <td style={columnStyles.stock}>{product.stock}</td>
-                                                        <td style={columnStyles.category}>{product.category_name || 'N/A'}</td>
-                                                        <td style={columnStyles.actions}>
-                                                            <Button
-                                                                as={Link}
-                                                                to={`/admin/products/edit/${product.id}`}
-                                                                variant="outline-warning"
-                                                                size="sm"
-                                                                className="me-2 mb-1"
-                                                                title="Edit Produk"
-                                                            >
-                                                                <i className="bi bi-pencil-square"></i> Edit
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline-danger"
-                                                                size="sm"
-                                                                onClick={() => handleDelete(product.id)}
-                                                                title="Hapus Produk"
-                                                                className="mb-1"
-                                                            >
-                                                                <i className="bi bi-trash-fill"></i> Hapus
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="7" className="text-center py-4">
-                                                        {products.length === 0 && !loading ? "Tidak ada data produk." : "Tidak ada produk yang sesuai dengan filter."}
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </Table>
-                                </div>
-                            )}
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Container>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                                                {products.length === 0 && !loading ? "Tidak ada data produk." : "Tidak ada produk yang sesuai dengan filter."}
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 };
 

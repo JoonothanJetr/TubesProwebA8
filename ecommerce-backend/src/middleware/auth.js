@@ -35,15 +35,27 @@ const authenticateToken = (req, res, next) => {
 
 // Middleware to check if user is admin
 const isAdmin = (req, res, next) => {
-    // First, ensure user is authenticated
-    authenticateToken(req, res, () => {
-        // Check if user role is 'admin'
-        if (req.user && req.user.role === 'admin') {
-            next(); // User is admin, proceed
-        } else {
-            res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+    try {
+        // Get token from Authorization header
+        const authHeader = req.header('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: 'No token, authorization denied' });
         }
-    });
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+        req.user = decoded;
+
+        // Check if user is admin
+        if (req.user && req.user.role === 'admin') {
+            next();
+        } else {
+            res.status(403).json({ success: false, message: 'Access denied. Admin privileges required.' });
+        }
+    } catch (err) {
+        console.error('Admin authentication error:', err.message);
+        res.status(401).json({ success: false, message: 'Invalid or expired token' });
+    }
 };
 
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Card, Form, Button, Spinner, Alert, Image } from 'react-bootstrap';
 import { productService } from '../../services/productService';
 import { catalogService } from '../../services/catalogService';
 
@@ -135,120 +134,215 @@ const ProductForm = () => {
     };
 
     if (loadingProduct || loadingCatalogs) {
-        return <div className="text-center mt-5"><Spinner animation="border" /> Memuat...</div>;
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    <p className="mt-4 text-gray-600">Memuat data...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <Container className="mt-4">
-            <Row>
-                <Col md={{ span: 8, offset: 2 }}>
-                    <Card>
-                        <Card.Header as="h2">{isEditMode ? 'Edit Produk' : 'Tambah Produk Baru'}</Card.Header>
-                        <Card.Body>
-                            {error && <Alert variant="danger">{error}</Alert>}
-                            <Form onSubmit={handleSubmit}>
-                                <Form.Group className="mb-3" controlId="productName">
-                                    <Form.Label>Nama Produk</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="name"
-                                        value={product.name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </Form.Group>
+        <div className="min-h-screen bg-gray-100 py-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900">
+                        {isEditMode ? 'Edit Produk' : 'Tambah Produk Baru'}
+                    </h1>
+                    <button
+                        onClick={() => navigate('/admin/products')}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        ← Kembali ke Daftar
+                    </button>
+                </div>
 
-                                <Form.Group className="mb-3" controlId="productDescription">
-                                    <Form.Label>Deskripsi</Form.Label>
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={3}
-                                        name="description"
-                                        value={product.description}
-                                        onChange={handleChange}
-                                    />
-                                </Form.Group>
+                <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div className="p-8">
+                        {error && (
+                            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
+                                <p className="font-medium">Error</p>
+                                <p>{error}</p>
+                            </div>
+                        )}
 
-                                <Row>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3" controlId="productPrice">
-                                            <Form.Label>Harga (Rp)</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                name="price"
-                                                value={product.price}
-                                                onChange={handleChange}
-                                                required
-                                                min="1"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3" controlId="productStock">
-                                            <Form.Label>Stok</Form.Label>
-                                            <Form.Control
-                                                type="number"
-                                                name="stock"
-                                                value={product.stock}
-                                                onChange={handleChange}
-                                                required
-                                                min="0"
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Nama Produk
+                                </label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    id="name"
+                                    value={product.name}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Masukkan nama produk"
+                                    className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                />
+                            </div>
 
-                                <Form.Group className="mb-3" controlId="productCategory">
-                                    <Form.Label>Kategori</Form.Label>
-                                    <Form.Select
-                                        name="category_id"
-                                        value={product.category_id}
-                                        onChange={handleChange}
-                                        required
-                                        disabled={loadingCatalogs}
-                                    >
-                                        <option value="">{loadingCatalogs ? 'Memuat...' : '-- Pilih Kategori --'}</option>
-                                        {catalogs.map(cat => (
-                                            <option key={cat.id} value={cat.id}>
-                                                {cat.name}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                    {catalogs.length === 0 && !loadingCatalogs && <Form.Text className="text-muted">Tidak ada kategori tersedia. Tambahkan di Manajemen Katalog.</Form.Text>}
-                                </Form.Group>
+                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Deskripsi
+                                </label>
+                                <textarea
+                                    name="description"
+                                    id="description"
+                                    rows={4}
+                                    value={product.description}
+                                    onChange={handleChange}
+                                    placeholder="Masukkan deskripsi produk"
+                                    className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                />
+                            </div>
 
-                                <Form.Group controlId="productImage" className="mb-3">
-                                    <Form.Label>Gambar Produk</Form.Label>
-                                    <Form.Control
-                                        type="file"
-                                        name="image"
-                                        accept="image/*"
-                                        onChange={handleFileChange}
-                                        required={!isEditMode}
-                                    />
-                                    {currentImageUrl && (
-                                        <div className="mt-2">
-                                            <Form.Text>Preview:</Form.Text><br/>
-                                            <Image src={currentImageUrl.startsWith('blob:') ? currentImageUrl : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${currentImageUrl}`} alt="Preview Produk" thumbnail style={{ maxHeight: '150px' }} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                    <label htmlFor="price" className="block text-sm font-semibold text-gray-900 mb-2">
+                                        Harga (Rp)
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span className="text-gray-500 sm:text-sm">Rp</span>
                                         </div>
-                                    )}
-                                    {isEditMode && !product.image && <Form.Text className="text-muted">Kosongkan jika tidak ingin mengubah gambar.</Form.Text>}
-                                </Form.Group>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            id="price"
+                                            value={product.price}
+                                            onChange={handleChange}
+                                            required
+                                            min="1"
+                                            placeholder="0"
+                                            className="mt-1 block w-full pl-12 pr-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                        />
+                                    </div>
+                                </div>
 
-                                <Button variant="primary" type="submit" disabled={loading}>
-                                    {loading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : ''}
-                                    {loading ? ' Menyimpan...' : (isEditMode ? 'Update Produk' : 'Tambah Produk')}
-                                </Button>
-                                <Button variant="secondary" onClick={() => navigate('/admin/products')} className="ms-2" disabled={loading}>
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                    <label htmlFor="stock" className="block text-sm font-semibold text-gray-900 mb-2">
+                                        Stok
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="stock"
+                                        id="stock"
+                                        value={product.stock}
+                                        onChange={handleChange}
+                                        required
+                                        min="0"
+                                        placeholder="0"
+                                        className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                <label htmlFor="category_id" className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Kategori
+                                </label>
+                                <select
+                                    name="category_id"
+                                    id="category_id"
+                                    value={product.category_id}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={loadingCatalogs}
+                                    className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                >
+                                    <option value="">{loadingCatalogs ? 'Memuat...' : '-- Pilih Kategori --'}</option>
+                                    {catalogs.map(cat => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {cat.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {catalogs.length === 0 && !loadingCatalogs && (
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        Tidak ada kategori tersedia. Tambahkan di Manajemen Katalog.
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Gambar Produk
+                                </label>
+                                <div className="mt-1 flex flex-col items-center justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg bg-white">
+                                    <div className="space-y-2 text-center">
+                                        {currentImageUrl ? (
+                                            <div className="mb-4">
+                                                <img
+                                                    src={currentImageUrl.startsWith('blob:') ? currentImageUrl : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${currentImageUrl}`}
+                                                    alt="Preview"
+                                                    className="mx-auto h-40 w-40 object-cover rounded-lg shadow-md"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        )}
+                                        <div className="flex text-sm text-gray-600 justify-center">
+                                            <label htmlFor="image" className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                                <span className="inline-flex items-center px-4 py-2 border border-blue-500 rounded-lg hover:bg-blue-50">
+                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                                    </svg>
+                                                    Pilih Gambar
+                                                </span>
+                                                <input
+                                                    id="image"
+                                                    name="image"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleFileChange}
+                                                    required={!isEditMode}
+                                                    className="sr-only"
+                                                />
+                                            </label>
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                            PNG, JPG, GIF sampai 5MB
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-4 pt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/admin/products')}
+                                    disabled={loading}
+                                    className="px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                                >
                                     Batal
-                                </Button>
-                            </Form>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Container>
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="px-6 py-3 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2 inline-block"></div>
+                                            Menyimpan...
+                                        </>
+                                    ) : (
+                                        isEditMode ? 'Update Produk' : 'Tambah Produk'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
-export default ProductForm; 
+export default ProductForm;

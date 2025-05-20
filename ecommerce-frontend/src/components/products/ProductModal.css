@@ -1,15 +1,16 @@
-/* Base modal styles */
+/* Base modal styles with enhanced backdrop */
 .modal-backdrop {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  background-color: rgba(0, 0, 0, 0.7) !important;
-  backdrop-filter: blur(8px) !important;
+  background: rgba(17, 17, 17, 0.7) !important;
+  backdrop-filter: blur(8px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(180%) !important;
   z-index: 1040 !important;
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out !important;
+  opacity: 0 !important;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .modal-backdrop.show {
@@ -34,13 +35,16 @@
 .product-detail-modal .modal-dialog {
   position: relative !important;
   width: 100% !important;
+  margin: 1.75rem auto !important;
   max-width: 800px !important;
-  margin: 0 auto !important;
   pointer-events: auto !important;
-  transform: translateY(20px) scale(0.95) !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: calc(100% - 3.5rem) !important;
+  transform: translateY(24px) scale(0.98) !important;
   opacity: 0 !important;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
-              opacity 0.3s ease-out !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform, opacity !important;
 }
 
 .product-detail-modal.show .modal-dialog {
@@ -54,19 +58,33 @@
   flex-direction: column !important;
   width: 100% !important;
   background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(10px) !important;
-  border: none !important;
-  border-radius: 20px !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
-              0 8px 24px -8px rgba(0, 0, 0, 0.12),
-              0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 8px 24px -8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.1) !important;
   overflow: hidden !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.92)
+  ) !important;
 }
 
 .product-detail-modal .modal-header {
-  padding: 1.5rem !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-  background: rgba(255, 255, 255, 0.9) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 1.5rem 2rem !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
 }
 
 .product-detail-modal .modal-title {
@@ -91,6 +109,12 @@
 
 .product-detail-modal .modal-body {
   padding: 2rem !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.98) 100%
+  ) !important;
+  position: relative !important;
   max-height: calc(100vh - 200px) !important;
   overflow-y: auto !important;
 }
@@ -117,17 +141,25 @@
 .product-detail-modal .product-image {
   border-radius: 16px !important;
   overflow: hidden !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  transition: transform 0.3s ease-in-out !important;
+}
+
+.product-detail-modal .product-image:hover {
+  transform: scale(1.02) !important;
 }
 
 .product-detail-modal .price-tag {
-  font-size: 2rem !important;
+  font-size: 2.25rem !important;
   font-weight: 800 !important;
-  color: #f59e0b !important;
-  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24) !important;
+  background-clip: text !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
+  display: inline-block !important;
+  padding: 0.5rem 0 !important;
   letter-spacing: -0.025em !important;
 }
 
@@ -192,11 +224,11 @@
 }
 
 .product-detail-modal .btn-warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-  border: none !important;
-  color: white !important;
-  box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3),
-              0 2px 4px -1px rgba(245, 158, 11, 0.2) !important;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24) !important;
+  color: #000 !important;
+  box-shadow: 
+    0 4px 6px -1px rgba(251, 191, 36, 0.2),
+    0 2px 4px -1px rgba(251, 191, 36, 0.1) !important;
 }
 
 .product-detail-modal .btn-warning:hover {

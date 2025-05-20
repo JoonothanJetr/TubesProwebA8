@@ -9,8 +9,41 @@ import ProductImageOptimized from '../components/common/ProductImageOptimized';
 import Swal from 'sweetalert2';
 import { FaUtensils, FaCog, FaTruck, FaCreditCard, FaHeart, FaPlus, FaEye } from 'react-icons/fa';
 import { BiDrink } from 'react-icons/bi';
+import '../styles/animations.css';
+import '../styles/carousel.css';  // Import carousel styles
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:5000/api';
+
+const foodImages = [
+  {
+    url: "https://images.unsplash.com/photo-1603088549155-6ae9395b928f",
+    title: "Saksang Spesial",
+    description: "Daging yang dimasak dengan rempah-rempah khas Batak dan daun serai"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1580476262798-bddd9f4b7369",
+    title: "Arsik Ikan Mas",
+    description: "Ikan mas yang dimasak dengan bumbu kuning dan andaliman"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1617093727343-374698b1b08d",
+    title: "Nagget Dengke",
+    description: "Olahan modern dari ikan mas khas Batak"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1585937421612-70a008356fbe",
+    title: "Sambal Andaliman",
+    description: "Sambal dengan rempah khas Batak yang memberikan sensasi getir"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1626509653291-18d9a934b9db",
+    title: "Naniura",
+    description: "Hidangan ikan mas mentah yang direndam dalam air jeruk nipis"
+  }
+];
 
 // Section Title Component (with underline)
 const SectionTitle = ({ children }) => (
@@ -200,34 +233,91 @@ const HomeOptimized = () => {
   return (
     <div className="home-page bg-gray-50 text-gray-800">
       {/* Hero Section */}
-      <div className="bg-white pt-12 pb-10 md:pt-20 md:pb-16">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 text-center md:text-left mb-8 md:mb-0">
-              <h1 className="text-4xl lg:text-5xl font-bold mb-5 text-gray-800 leading-tight p-10">
-                Nikmati Kelezatan Masakan Rumahan
-              </h1>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-gray-700">
-                Toba <span className="text-yellow-500">&</span> Nusantara Di Meja Anda
-              </h2>
-              <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto md:mx-0">
-                Cita rasa otentik langsung dari dapur kami, menggunakan bahan-bahan segar pilihan untuk setiap hidangan istimewa.
-              </p>
-              <Link
-                to="/products"
-                className="bg-yellow-500 text-white font-bold py-3 px-10 text-lg rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block"
-              >
-                Pesan Sekarang <i className="bi bi-arrow-right-short ml-1"></i>
-              </Link>
+      <div className="relative min-h-screen bg-gradient-animation pt-12 pb-10 md:pt-20 md:pb-16 overflow-hidden">
+        {/* Ulos Pattern Overlay */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: `url('https://i.pinimg.com/originals/8b/44/51/8b4451265b6d6cd9117b4c869e69bdf6.png')`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '200px'
+        }}></div>
+        
+        <div className="container mx-auto px-4 relative">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="md:w-1/2 text-center md:text-left">
+              <div className="space-y-6">
+                {/* Ornamental Border using Ulos-inspired colors */}
+                <div className="inline-block relative">
+                  <div className="absolute -left-4 top-0 w-2 h-full bg-gradient-to-b from-yellow-500 via-yellow-400 to-yellow-600"></div>
+                  <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                    Nikmati Kelezatan Masakan <span className="text-yellow-600">Batak Toba</span>
+                  </h1>
+                </div>
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-800">
+                  Toba <span className="text-yellow-500">&</span> Nusantara Di Meja Anda
+                </h2>
+                <p className="text-lg text-gray-700 max-w-xl">
+                  Rasakan cita rasa autentik dari dapur kami, disiapkan dengan resep turun-temurun dan bumbu rempah pilihan khas Tanah Batak.
+                </p>
+                <div className="mt-8 space-x-4">
+                  <Link
+                    to="/products"
+                    className="bg-yellow-500 text-white font-bold py-3 px-10 text-lg rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block border-2 border-yellow-400"
+                  >
+                    Pesan Sekarang <i className="bi bi-arrow-right-short ml-1"></i>
+                  </Link>
+                  <Link
+                    to="/about"
+                    className="bg-transparent text-gray-800 font-bold py-3 px-10 text-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-yellow-50 inline-block border-2 border-yellow-400 hover:border-yellow-500"
+                  >
+                    Tentang Kami
+                  </Link>
+                </div>
+              </div>
             </div>
-            <div className="md:w-1/2 flex justify-center md:justify-end">
-              <img 
-                src="https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Hidangan Toba Nusantara" 
-                className="rounded-lg shadow-2xl max-w-sm md:max-w-md lg:max-w-lg object-cover"
-                style={{ aspectRatio: '4/3' }}
-                loading="lazy"
-              />
+            <div className="md:w-1/2">
+              <div className="relative rounded-xl shadow-2xl overflow-hidden">
+                {/* Traditional Pattern Border */}
+                <div className="absolute inset-0 border-8 border-opacity-30 rounded-xl z-10 pointer-events-none"
+                     style={{
+                       borderImage: 'linear-gradient(45deg, #FFD700, #FFA500, #FFB800) 1'
+                     }}>
+                </div>
+                
+                <Slider
+                  dots={true}
+                  infinite={true}
+                  speed={1000}
+                  slidesToShow={1}
+                  slidesToScroll={1}
+                  autoplay={true}
+                  autoplaySpeed={3000}
+                  fade={true}
+                  pauseOnHover={true}
+                  className="food-carousel"
+                >
+                  {foodImages.map((image, index) => (
+                    <div key={index} className="carousel-slide">
+                      <img
+                        src={image.url}
+                        alt={image.title}
+                        className="carousel-image w-full object-cover"
+                        style={{ height: '500px' }}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                      />                      <div className="carousel-overlay bg-gradient-to-t from-yellow-900/90 via-yellow-800/70 to-transparent">
+                        <div className="absolute bottom-0 left-0 right-0 p-6 text-center md:text-left">
+                          <h3 className="carousel-title text-2xl md:text-3xl font-bold text-white mb-2">
+                            {image.title}
+                          </h3>
+                          <p className="text-white/90 text-sm md:text-base mb-3 max-w-md">
+                            {image.description}
+                          </p>
+                          <div className="w-20 h-1 bg-yellow-400 mx-auto md:mx-0"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </Slider>
+              </div>
             </div>
           </div>
         </div>
@@ -269,29 +359,36 @@ const HomeOptimized = () => {
                     onClick={() => handleShowModal(product.id)}
                     onMouseEnter={() => { handleProductHover(product.id); setHoveredProductId(product.id); }}
                     onMouseLeave={() => setHoveredProductId(null)}
-                  >                    <div className="h-52 overflow-hidden relative bg-gray-100">
-                      <ProductImageOptimized
-                        imageUrl={product.image_url}
-                        productName={product.name}
-                        className="object-cover h-full w-full transition-transform duration-500 ease-in-out group-hover:scale-105"
-                        loading="lazy"
-                      />                      {product.category_name && (
-                        <span className="absolute top-3 left-3 bg-yellow-400 bg-opacity-90 text-gray-800 py-1 px-3 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
-                          {product.category_name.toLowerCase().includes('minuman') ? <BiDrink className="text-sm" /> : <FaUtensils className="text-sm" />}
-                          {product.category_name}
-                        </span>
-                      )}
-                    </div>
-                    <div className="p-5 flex flex-col flex-grow">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate group-hover:text-yellow-600" title={product.name}>{product.name}</h3>
-                      <p className="text-gray-600 text-sm mb-3 min-h-[40px] flex-grow">
-                        {product.description?.substring(0, 60) || 'Deskripsi tidak tersedia'}...
-                      </p>
-                      <div className="flex justify-between items-center mt-auto pt-2">
-                        <span className="text-xl font-bold text-yellow-500">Rp {product.price?.toLocaleString('id-ID')}</span>
-                      </div>
+                  >                    <div 
+                      className={`h-52 overflow-hidden relative bg-gray-100 rounded-t-xl wave-bg transition-all duration-300 ease-out ${hoveredProductId === product.id ? 'transform scale-[1.02]' : ''}`}
+                  >
+                    <ProductImageOptimized
+                      imageUrl={product.image_url}
+                      productName={product.name}
+                      className="object-cover h-full w-full transition-all duration-500 ease-in-out group-hover:scale-105 rounded-t-xl shadow-md"
+                      loading="lazy"
+                    />
+                    {product.category_name && (
+                      <span className="absolute top-3 left-3 bg-yellow-400 bg-opacity-90 text-gray-800 py-1.5 px-4 rounded-full text-xs font-bold shadow-lg flex items-center gap-2 backdrop-blur-sm transition-transform duration-300 hover:scale-105">
+                        {product.category_name.toLowerCase().includes('minuman') ? <BiDrink className="text-base" /> : <FaUtensils className="text-base" />}
+                        {product.category_name}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="p-6 flex flex-col flex-grow bg-white rounded-b-xl">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate group-hover:text-yellow-600 transition-colors duration-300" 
+                        title={product.name}>{product.name}</h3>
+                    <p className="text-gray-600 text-sm mb-3 min-h-[40px] flex-grow line-clamp-2">
+                      {product.description?.substring(0, 60) || 'Deskripsi tidak tersedia'}...
+                    </p>
+                    <div className="flex justify-between items-center mt-auto pt-2">
+                      <span className="text-xl font-bold text-yellow-500 transition-all duration-300 group-hover:scale-105">
+                        Rp {product.price?.toLocaleString('id-ID')}
+                      </span>
                     </div>
                   </div>
+                </div>
                 ))}
               </div>
             );

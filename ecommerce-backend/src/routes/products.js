@@ -67,7 +67,11 @@ router.get('/', async (req, res) => {
                 else if (product.image_url.includes('uploads/products/')) {
                     // Already correctly formatted
                 }
-                // If image_url is just a filename (from upload), add the proper path
+                // If image_url is "products/image.jpg" (from database), prepend "uploads/"
+                else if (product.image_url.startsWith('products/')) {
+                    product.image_url = `uploads/${product.image_url}`;
+                }
+                // If image_url is just a filename (e.g., "image.jpg")
                 else if (!product.image_url.startsWith('/') && !product.image_url.includes('http')) {
                     product.image_url = `uploads/products/${product.image_url}`;
                 }
@@ -122,7 +126,11 @@ router.get('/:id', async (req, res) => {
             else if (product.image_url.includes('uploads/products/')) {
                 // Already correctly formatted
             }
-            // If image_url is just a filename (from upload), add the proper path
+            // If image_url is "products/image.jpg" (from database), prepend "uploads/"
+            else if (product.image_url.startsWith('products/')) {
+                product.image_url = `uploads/${product.image_url}`;
+            }
+            // If image_url is just a filename (e.g., "image.jpg")
             else if (!product.image_url.startsWith('/') && !product.image_url.includes('http')) {
                 product.image_url = `uploads/products/${product.image_url}`;
             }
