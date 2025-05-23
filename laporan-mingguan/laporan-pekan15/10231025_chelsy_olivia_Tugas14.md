@@ -17,14 +17,13 @@
 **Tanggal**: 23/05/2025
 
 ## Progress Summary
-
+Pada minggu terakhir ini, tim telah menyelesaikan seluruh pengembangan aplikasi SICATE dengan melakukan finalisasi dokumentasi, penyusunan README, dokumentasi API, dan panduan pengguna, serta deployment aplikasi ke server. Presentasi final telah disiapkan secara lengkap yang mencakup penjelasan tentang SICATE, latar belakang proyek, tujuan pengembangan, sasaran pengguna, teknologi yang digunakan, serta arsitektur sistem.
 
 
 ## Accomplished Tasks
-- Presentasi final ke mitra dan dosen
-- Dokumentasi lengkap (README, API docs, user manual)
-- Penyerahan kode sumber dan deployment
-- Evaluasi proyek dan lessons learned
+- Menyelesaikan seluruh dokumentasi proyek (README, API docs, user manual)
+- Menyiapkan presentasi final yang mencakup penjelasan lengkap tentang SI CATE
+- Melakukan final testing dan memastikan semua fitur berjalan dengan baik
 
 ## Challenges & Solutions
 - **Challenge 1**: 
@@ -32,7 +31,9 @@
 
 
 ## Next Week Plan
-
+- Monitoring dan maintenance aplikasi yang sudah di-deploy
+- Persiapan untuk penyerahan proyek ke Toba Home Catering
+- Evaluasi feedback dari pengguna untuk pengembangan selanjutnya
 
 ## Contributions
 - **Chelsy Olivia**: 
