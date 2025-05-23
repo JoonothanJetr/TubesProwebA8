@@ -103,7 +103,8 @@ router.get('/revenue', auth.isAdmin, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         
-        // Query untuk mendapatkan pendapatan per hari dalam range tanggal
+        // Query untuk mendapatkan pendapatan per hari dalam range tanggal        console.log('Fetching revenue data with params:', { startDate, endDate });
+
         const result = await client.query(`
             SELECT 
                 DATE(created_at) as date,
@@ -111,10 +112,12 @@ router.get('/revenue', auth.isAdmin, async (req, res) => {
                 COUNT(*) as order_count
             FROM orders 
             WHERE payment_status = 'pembayaran sudah dilakukan'
-            AND created_at BETWEEN $1 AND $2
+            AND DATE(created_at) BETWEEN DATE($1) AND DATE($2)
             GROUP BY DATE(created_at)
             ORDER BY date
         `, [startDate, endDate]);
+        
+        console.log('Revenue query result:', result.rows);
 
         res.json(result.rows);
     } catch (err) {
