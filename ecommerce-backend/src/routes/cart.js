@@ -25,18 +25,17 @@ router.get('/', auth.authenticateToken, async (req, res) => {
         
         // Format image URLs consistently like in products.js
         const formattedItems = result.rows.map(item => {
-            if (item.image_url) {
-                // If image_url starts with '/images/', this is from seed data
+            if (item.image_url) {                // If image_url starts with '/images/', this is from seed data
                 if (item.image_url.startsWith('/images/')) {
                     // Keep as is, the frontend will handle it
                 } 
-                // If image_url already includes the uploads/products path, don't modify it
-                else if (item.image_url.includes('uploads/products/')) {
+                // If image_url already starts with /product_images/, don't modify it
+                else if (item.image_url.startsWith('/product_images/')) {
                     // Already correctly formatted
                 }
                 // If image_url is just a filename (from upload), add the proper path
                 else if (!item.image_url.startsWith('/') && !item.image_url.includes('http')) {
-                    item.image_url = `uploads/products/${item.image_url}`;
+                    item.image_url = `/product_images/${item.image_url}`;
                 }
             }
             return item;
@@ -152,4 +151,5 @@ router.delete('/:product_id', auth.authenticateToken, async (req, res) => {
     }
 });
 
+// Export the router
 module.exports = router;

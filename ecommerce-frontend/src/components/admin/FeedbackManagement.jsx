@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import id from 'date-fns/locale/id';
+import { apiClient } from '../../utils/apiHelper';
 
 const FeedbackManagement = () => {
     const [feedbacks, setFeedbacks] = useState([]);
@@ -10,11 +11,12 @@ const FeedbackManagement = () => {
 
     useEffect(() => {
         const fetchFeedbacks = async () => {
-            try {
-                const token = localStorage.getItem('token');
+            try {                const token = localStorage.getItem('token');
+                // Remove 'Bearer ' prefix if it exists in the stored token
+                const cleanToken = token.startsWith('Bearer ') ? token.slice(7) : token;
                 const response = await fetch('http://localhost:5000/api/feedback', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${cleanToken}`
                     }
                 });
                 
@@ -154,8 +156,7 @@ const FeedbackManagement = () => {
                 </div>
 
                 {/* Main Content */}
-                <div className="bg-white rounded-lg shadow">
-                    {loading ? (
+                <div className="bg-white rounded-lg shadow">                    {loading ? (
                         <div className="flex items-center justify-center p-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                             <span className="ml-2 text-gray-600">Memuat data...</span>
@@ -163,6 +164,14 @@ const FeedbackManagement = () => {
                     ) : error ? (
                         <div className="p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
                             {error}
+                        </div>
+                    ) : feedbacks.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-8">
+                            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <p className="mt-4 text-lg font-medium text-gray-600">Belum ada feedback</p>
+                            <p className="mt-1 text-sm text-gray-500">Feedback dari pelanggan akan muncul di sini</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">

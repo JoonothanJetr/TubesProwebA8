@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import Swal from 'sweetalert2';
 import { productService } from '../../services/productService';
 import { catalogService } from '../../services/catalogService';
 import ProductImage from '../common/ProductImage';
@@ -34,15 +36,61 @@ const ProductManagement = () => {
         fetchData();
     }, []);
 
-    const handleDelete = async (productId) => {
-        if (window.confirm('Apakah Anda yakin ingin menghapus produk ini? Operasi ini tidak dapat dibatalkan.')) {
+    const handleDelete = async (productId, productName) => {
+        // Show delete confirmation modal with animation
+        const result = await Swal.fire({
+            title: 'Konfirmasi Penghapusan',
+            html: `
+                <div class="text-center">
+                    <p class="mb-4">Apakah Anda yakin ingin menghapus produk:</p>
+                    <p class="font-semibold text-lg mb-4">${productName}</p>
+                    <p class="text-red-500">Operasi ini tidak dapat dibatalkan.</p>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp animate__faster'
+            }
+        });
+
+        if (result.isConfirmed) {
             try {
                 await productService.deleteProduct(productId);
                 setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
-                alert('Produk berhasil dihapus.');
+                
+                // Show success toast
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                });
+
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Produk berhasil dihapus'
+                });
             } catch (err) {
                 console.error("Error deleting product:", err);
-                alert(err.message || 'Gagal menghapus produk.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal menghapus produk',
+                    text: err.message || 'Terjadi kesalahan saat menghapus produk.',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
     };
@@ -96,15 +144,14 @@ const ProductManagement = () => {
                     <h2 className="text-lg font-medium text-gray-900 mb-4">Filter dan Urutkan</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Filter Berdasarkan Katalog
+                            <label className="block text-sm font-medium text-gray-700 mb-2">                                Filter Berdasarkan Menu Katalog
                             </label>
                             <select
                                 className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 value={selectedCatalog}
                                 onChange={(e) => setSelectedCatalog(e.target.value)}
                             >
-                                <option value="">Semua Katalog</option>
+                                <option value="">Semua Menu Katalog</option>
                                 {catalogs.map(catalog => (
                                     <option key={catalog.id} value={catalog.id}>
                                         {catalog.name}
@@ -156,7 +203,7 @@ const ProductManagement = () => {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Produk</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Katalog</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                     </tr>
                                 </thead>
@@ -199,7 +246,7 @@ const ProductManagement = () => {
                                                         Edit
                                                     </Link>
                                                     <button
-                                                        onClick={() => handleDelete(product.id)}
+                                                        onClick={() => handleDelete(product.id, product.name)}
                                                         className="inline-flex items-center px-3 py-1.5 border border-red-500 text-red-500 hover:bg-red-50 rounded-md transition-colors"
                                                     >
                                                         <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

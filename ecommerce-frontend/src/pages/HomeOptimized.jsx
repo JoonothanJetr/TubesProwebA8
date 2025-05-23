@@ -1,19 +1,31 @@
 // filepath: c:\Users\Jetro\Documents\GitHub\TubesProwebA8\ecommerce-frontend\src\pages\HomeOptimized.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { productService } from '../services/productService';
-import ProductModalOptimized from '../components/products/ProductModalOptimized';
-import { prefetchProductOnHover } from '../utils/prefetchHelper';
-import ProductImageOptimized from '../components/common/ProductImageOptimized';
-import Swal from 'sweetalert2';
-import { FaUtensils, FaCog, FaTruck, FaCreditCard, FaHeart, FaPlus, FaEye } from 'react-icons/fa';
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
+import { FaUtensils, FaCog, FaTruck, FaCreditCard } from 'react-icons/fa';
 import { BiDrink } from 'react-icons/bi';
-import '../styles/animations.css';
-import '../styles/carousel.css';  // Import carousel styles
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
+import ProductModalOptimized from '../components/products/ProductModalOptimized';
+import ProductImageOptimized from '../components/common/ProductImageOptimized';
+import { productService } from '../services/productService';
+import Swal from 'sweetalert2';
+import axios from 'axios';
+
+// Custom CSS untuk carousel
+// Add an animation for the floating logo
+const styleSheet = document.createElement("style");
+styleSheet.innerText = `
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+`;
+document.head.appendChild(styleSheet);
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -80,35 +92,6 @@ const HowItWorksStep = ({ icon: Icon, title, description, isHovered, onMouseEnte
   </div>
 );
 
-const Testimonial = ({ image, name, location, text, rating }) => (
-  <div className="mb-6 w-full px-3 md:w-1/2 lg:w-1/2">
-    <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-lg transition-transform duration-300 ease-in-out hover:-translate-y-1.5 h-full flex flex-col">
-      <div className="mb-4 flex items-center">
-        <img
-          src={image}
-          alt={name}
-          className="mr-4 h-16 w-16 rounded-full border-2 border-yellow-400 object-cover"
-          loading="lazy"
-        />
-        <div>
-          <h5 className="mb-0 text-xl font-semibold text-gray-800">{name}</h5>
-          <small className="text-sm text-gray-500">{location}</small>
-        </div>
-      </div>
-      <blockquote className="mb-4 text-gray-700 flex-grow italic relative">
-        <span className="absolute -left-3 -top-2 text-5xl text-yellow-300 opacity-80">“</span>
-        {text}
-        <span className="absolute -right-0 -bottom-3 text-5xl text-yellow-300 opacity-80 transform rotate-180">“</span>
-      </blockquote>
-      <div className="text-yellow-400 text-lg">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <i key={i} className={`bi bi-star${i < Math.floor(rating) ? '-fill' : (i < rating + 0.5 ? '-half' : '')} mr-1`}></i>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
 const HomeOptimized = () => {
   const [popularProducts, setPopularProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,11 +109,14 @@ const HomeOptimized = () => {
         setLoading(true);
         const products = await productService.getFeaturedProducts(8);
         setPopularProducts(products || []);
+        
+        // Prefetch the first few products
         if (products && products.length > 0) {
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             const idsToPreFetch = products.slice(0, 3).map(p => p.id);
-            productService.prefetchMultipleProducts(idsToPreFetch);
-          }, 1000);
+            productService.prefetchMultipleProducts(idsToPreFetch)
+              .catch(err => console.error('Error prefetching featured products:', err));
+          });
         }
       } catch (err) {
         console.error('Error fetching popular products:', err);
@@ -140,6 +126,7 @@ const HomeOptimized = () => {
         setLoading(false);
       }
     };
+
     fetchPopularProducts();
   }, []);
 
@@ -225,37 +212,53 @@ const HomeOptimized = () => {
     }
   ], []);
 
-  const testimonials = useMemo(() => [
-    { image: 'https://randomuser.me/api/portraits/women/65.jpg', name: 'Siska Dewi', location: 'Jakarta', text: 'Saya sangat senang dengan kualitas makanan dan pelayanan mereka. Makanan selalu datang tepat waktu dan rasanya lezat!', rating: 5 },
-    { image: 'https://randomuser.me/api/portraits/men/32.jpg', name: 'Joko Prabowo', location: 'Bandung', text: 'Sebagai pecinta makanan tradisional, saya menemukan surga kuliner di sini. Semua menu memiliki cita rasa autentik.', rating: 4.5 }
-  ], []);
-
   return (
     <div className="home-page bg-gray-50 text-gray-800">
-      {/* Hero Section */}
-      <div className="relative min-h-screen bg-gradient-animation pt-12 pb-10 md:pt-20 md:pb-16 overflow-hidden">
-        {/* Ulos Pattern Overlay */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: `url('https://i.pinimg.com/originals/8b/44/51/8b4451265b6d6cd9117b4c869e69bdf6.png')`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: '200px'
-        }}></div>
-        
-        <div className="container mx-auto px-4 relative">
+      {/* Hero Section */}      {/* Hero Section with Full-Width Background Carousel */}
+      <div className="relative min-h-screen bg-gray-50">
+        {/* Background Carousel */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
+          <Slider
+            dots={false}
+            infinite={true}
+            speed={1000}
+            slidesToShow={1}
+            slidesToScroll={1}
+            autoplay={true}
+            autoplaySpeed={5000}
+            fade={true}
+            arrows={false}
+            className="h-full"
+          >
+            {foodImages.map((image, index) => (
+              <div key={index} className="relative h-screen">
+                <div className="absolute inset-0 bg-black/50"></div> {/* Dark overlay */}
+                <img
+                  src={image.url}
+                  alt={image.title}
+                  className="w-full h-full object-cover"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              </div>
+            ))}
+          </Slider>
+        </div>
+
+        {/* Content */}
+        <div className="relative container mx-auto px-4 pt-20 pb-16">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="md:w-1/2 text-center md:text-left">
               <div className="space-y-6">
-                {/* Ornamental Border using Ulos-inspired colors */}
                 <div className="inline-block relative">
                   <div className="absolute -left-4 top-0 w-2 h-full bg-gradient-to-b from-yellow-500 via-yellow-400 to-yellow-600"></div>
-                  <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                    Nikmati Kelezatan Masakan <span className="text-yellow-600">Batak Toba</span>
+                  <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
+                    Nikmati Kelezatan Masakan <span className="text-yellow-400">Batak Toba</span>
                   </h1>
                 </div>
-                <h2 className="text-3xl lg:text-4xl font-bold text-gray-800">
-                  Toba <span className="text-yellow-500">&</span> Nusantara Di Meja Anda
+                <h2 className="text-3xl lg:text-4xl font-bold text-white">
+                  Toba <span className="text-yellow-400">&</span> Nusantara Di Meja Anda
                 </h2>
-                <p className="text-lg text-gray-700 max-w-xl">
+                <p className="text-lg text-gray-200 max-w-xl">
                   Rasakan cita rasa autentik dari dapur kami, disiapkan dengan resep turun-temurun dan bumbu rempah pilihan khas Tanah Batak.
                 </p>
                 <div className="mt-8 space-x-4">
@@ -264,59 +267,13 @@ const HomeOptimized = () => {
                     className="bg-yellow-500 text-white font-bold py-3 px-10 text-lg rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block border-2 border-yellow-400"
                   >
                     Pesan Sekarang <i className="bi bi-arrow-right-short ml-1"></i>
-                  </Link>
-                  <Link
+                  </Link>                  <Link
                     to="/about"
-                    className="bg-transparent text-gray-800 font-bold py-3 px-10 text-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-yellow-50 inline-block border-2 border-yellow-400 hover:border-yellow-500"
+                    className="bg-yellow-500 text-white font-bold py-3 px-10 text-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block"
                   >
                     Tentang Kami
                   </Link>
                 </div>
-              </div>
-            </div>
-            <div className="md:w-1/2">
-              <div className="relative rounded-xl shadow-2xl overflow-hidden">
-                {/* Traditional Pattern Border */}
-                <div className="absolute inset-0 border-8 border-opacity-30 rounded-xl z-10 pointer-events-none"
-                     style={{
-                       borderImage: 'linear-gradient(45deg, #FFD700, #FFA500, #FFB800) 1'
-                     }}>
-                </div>
-                
-                <Slider
-                  dots={true}
-                  infinite={true}
-                  speed={1000}
-                  slidesToShow={1}
-                  slidesToScroll={1}
-                  autoplay={true}
-                  autoplaySpeed={3000}
-                  fade={true}
-                  pauseOnHover={true}
-                  className="food-carousel"
-                >
-                  {foodImages.map((image, index) => (
-                    <div key={index} className="carousel-slide">
-                      <img
-                        src={image.url}
-                        alt={image.title}
-                        className="carousel-image w-full object-cover"
-                        style={{ height: '500px' }}
-                        loading={index === 0 ? 'eager' : 'lazy'}
-                      />                      <div className="carousel-overlay bg-gradient-to-t from-yellow-900/90 via-yellow-800/70 to-transparent">
-                        <div className="absolute bottom-0 left-0 right-0 p-6 text-center md:text-left">
-                          <h3 className="carousel-title text-2xl md:text-3xl font-bold text-white mb-2">
-                            {image.title}
-                          </h3>
-                          <p className="text-white/90 text-sm md:text-base mb-3 max-w-md">
-                            {image.description}
-                          </p>
-                          <div className="w-20 h-1 bg-yellow-400 mx-auto md:mx-0"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </Slider>
               </div>
             </div>
           </div>
@@ -412,12 +369,28 @@ const HomeOptimized = () => {
                 Dari pemilihan bahan hingga proses memasak, kami menerapkan standar tertinggi untuk memastikan Anda mendapatkan pengalaman kuliner terbaik.
               </p>
             </div>
-            <div className="md:w-1/2">
+            <div className="md:w-1/2 grid grid-cols-2 gap-4">
               <img 
-                src="https://images.unsplash.com/photo-1556911220-e48504827519?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Our Kitchen Space" 
-                className="rounded-lg shadow-xl object-cover w-full"
-                style={{ aspectRatio: '16/10' }}
+                src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                alt="Professional Kitchen Setup" 
+                className="rounded-lg shadow-xl object-cover w-full h-48"
+                loading="lazy"
+              />              <img 
+                src="https://images.unsplash.com/photo-1576867757603-05b134ebc379?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                alt="Traditional Indonesian Food"
+                className="rounded-lg shadow-xl object-cover w-full h-48"
+                loading="lazy"
+              />
+              <img 
+                src="https://images.unsplash.com/photo-1581299894341-367e6517569c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                alt="Professional Cooking Area"
+                className="rounded-lg shadow-xl object-cover w-full h-48"
+                loading="lazy"
+              />
+              <img 
+                src="https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                alt="Food Plating Area"
+                className="rounded-lg shadow-xl object-cover w-full h-48"
                 loading="lazy"
               />
             </div>
@@ -425,20 +398,8 @@ const HomeOptimized = () => {
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <div className="py-16 bg-yellow-50">
-        <div className="container mx-auto px-4">
-          <SimpleSectionTitle>Testimoni Pelanggan</SimpleSectionTitle>
-          <div className="flex flex-wrap justify-center -mx-3">
-            {testimonials.map((testimonial, index) => (
-              <Testimonial key={index} {...testimonial} />
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Customer Service / Feedback Section */}
-      <div className="py-16">
+      <div className="py-16 bg-yellow-50">
         <div className="container mx-auto px-4">
           <SimpleSectionTitle>Customer Service</SimpleSectionTitle>
           <div className="max-w-2xl mx-auto">

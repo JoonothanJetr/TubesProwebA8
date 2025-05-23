@@ -1,17 +1,8 @@
-import React from 'react';
-import ImageWithFallback from './ImageWithFallback';
+import React, { useState } from 'react';
 import { getProductImageUrl } from '../../utils/imageHelper';
 
 /**
  * Product Image component with improved image handling
- * Uses a text placeholder for products without images
- * 
- * @param {Object} props Component props
- * @param {string} props.imageUrl Original image URL or path from the product
- * @param {string} props.productName Product name for alt text and placeholders
- * @param {Object} props.style Custom styles for the image container
- * @param {string} props.className Additional CSS classes
- * @returns {JSX.Element} Rendered component
  */
 const ProductImage = ({ 
   imageUrl, 
@@ -20,19 +11,46 @@ const ProductImage = ({
   className = '',
   ...props 
 }) => {
-  // Get the properly formatted URL directly
-  const formattedUrl = getProductImageUrl(imageUrl);
+  const [imageError, setImageError] = useState(false);
+  const defaultImage = '/images/default-product.png';
   
-  // Pass the calculated URL directly to ImageWithFallback
+  // Get formatted URL using the helper
+  const formattedUrl = !imageError ? getProductImageUrl(imageUrl) : defaultImage;
+  
+  // Default placeholder style if no image URL
+  const placeholderStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f3f4f6',
+    color: '#6b7280',
+    fontSize: '0.875rem',
+    ...style
+  };
+
+  // If no image URL or previous error, show placeholder
+  if (!formattedUrl || imageError) {
+    return (
+      <div className={`${className} rounded-lg`} style={placeholderStyle}>
+        <div className="text-center p-4">
+          <span className="material-icons text-4xl mb-2">image</span>
+          <p className="text-sm">{productName || 'Product Image'}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <ImageWithFallback
-      src={formattedUrl} // Use the directly calculated URL
-      alt={productName || 'Product image'}
-      className={className}
-      style={style}
-      // No fallbackSrc - let ImageWithFallback use the text placeholder
-      {...props}
-    />
+    <div className={`${className} overflow-hidden`}>
+      <img
+        src={formattedUrl}
+        alt={productName || 'Product image'}
+        onError={() => setImageError(true)}
+        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+        loading="lazy"
+        {...props}
+      />
+    </div>
   );
 };
 

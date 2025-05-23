@@ -11,12 +11,18 @@ const cartRoutes = require('./routes/cart');
 const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
 const feedbackRoutes = require('./routes/feedback');
+const userRoutes = require('./routes/users');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000'], // Add your frontend URLs
+    credentials: true,
+    exposedHeaders: ['Content-Disposition'] // For file downloads
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Middleware untuk logging setiap request
 app.use((req, res, next) => {
@@ -24,29 +30,88 @@ app.use((req, res, next) => {
     next();
 });
 
-// Serve static files (images)
-const proofsStaticPath = path.join(__dirname, '..', 'uploads', 'proofs');
-console.log(`Serving static files from /proofs at path: ${proofsStaticPath}`);
-app.use('/proofs', express.static(proofsStaticPath));
+// Serve static files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
-// Serve product images from uploads/products
-// This will make files in 'ecommerce-backend/uploads/products' available under the '/product_images' URL path.
-// For example, /product_images/image.jpeg will serve ecommerce-backend/uploads/products/image.jpeg
-const productImagesStaticPath = path.join(__dirname, '..', 'uploads', 'products');
-console.log(`Serving static files from /product_images at path: ${productImagesStaticPath}`);
-app.use('/product_images', express.static(productImagesStaticPath));
-
-// The following line for /products seems to serve the entire 'uploads' directory under /products.
-// This might be conflicting or redundant if specific routes for subdirectories like /proofs and /product_images are already defined.
-// It is kept commented out to avoid potential conflicts. If you need to serve other files directly from the 'uploads'
-// directory under the '/products' path, you might need to re-evaluate this line.
-// app.use('/products', express.static(path.join(__dirname, '../uploads')));
-
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/feedback', feedbackRoutes);
+
+// Enhanced error handling middleware
+app.use((err, req, res, next) => {
+    // Log the error with timestamp and request details
+    console.error(`[${new Date().toISOString()}] Error:`, {
+        method: req.method,
+        url: req.url,
+        error: err.stack || err.message,
+        user: req.user?.id
+    });
+
+    // Handle specific types of errors
+    if (err.name === 'UnauthorizedError' || err.status === 401) {
+        return res.status(401).json({
+            error: 'Unauthorized',
+            message: 'Authentication credentials are invalid or missing'
+        });
+    }
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({
+            error: 'Validation Error',
+            message: err.message
+        });
+    }
+    if (err.name === 'MulterError') {
+        return res.status(400).json({
+            error: 'File Upload Error',
+            message: err.message
+        });
+    }
+
+    // Default server error
+    res.status(err.status || 500).json({
+        error: 'Internal Server Error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
+        code: err.code
+    });
+});
+const proofsStaticPath = path.join(__dirname, '..', 'uploads', 'proofs');
+console.log(`Serving static files from /proofs at path: ${proofsStaticPath}`);
+app.use('/proofs', express.static(proofsStaticPath));
+
+// Serve product images 
+const productImagesStaticPath = path.join(__dirname, '..', 'uploads', 'products');
+console.log(`[Static Files] Serving product images from: ${productImagesStaticPath}`);
+app.use('/product_images', express.static(productImagesStaticPath, {
+    // Set Cache-Control header
+    setHeaders: (res, path) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+    },
+    // Better error handling
+    fallthrough: false, // Return 404 for missing files
+    redirect: false // Don't redirect if URL has trailing slash
+}));
+
+// Error handler for static files
+app.use((err, req, res, next) => {
+    if (err.code === 'ENOENT') {
+        console.error(`[Static Files] File not found: ${req.url}`);
+        res.status(404).json({ error: 'File not found' });
+    } else {
+        console.error(`[Static Files] Error serving file: ${req.url}`, err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/cart', cartRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/feedback', feedbackRoutes);
 

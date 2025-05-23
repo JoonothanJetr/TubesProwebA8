@@ -58,14 +58,16 @@ const Register = () => {
         }
 
         setLoading(true);
-        try {            await authService.register({
+        try {
+            // Mencoba melakukan registrasi
+            await authService.register({
                 username: formData.username,
                 email: formData.email,
                 password: formData.password
             });
-              // Login otomatis setelah registrasi berhasil
+
+            // Login otomatis setelah registrasi berhasil
             try {
-                // Login dan dapatkan respons
                 await authService.login(formData.email, formData.password);
                 
                 // Periksa apakah ada produk yang tertunda untuk ditambahkan ke keranjang
@@ -102,26 +104,16 @@ const Register = () => {
                     navigate('/');
                 }, 2000);
             } catch (loginErr) {
-                console.error('Auto-login error after registration:', loginErr);
-                setSuccess('Akun berhasil dibuat! Anda akan dialihkan ke halaman login...');
+                console.error('Error during auto-login:', loginErr);
+                setError('Akun berhasil dibuat tetapi gagal login otomatis. Silakan login manual.');
                 setTimeout(() => {
                     navigate('/login');
                 }, 2000);
             }
         } catch (err) {
-            if (err.response?.status === 400) {
-                const errorMessage = err.response.data?.error;
-                if (errorMessage.includes('already exists')) {
-                    if (errorMessage.includes('email')) {
-                        setError('Email sudah terdaftar. Silakan gunakan email lain.');
-                    } else if (errorMessage.includes('username')) {
-                        setError('Username sudah digunakan. Silakan pilih username lain.');
-                    } else {
-                        setError(errorMessage);
-                    }
-                } else {
-                    setError(errorMessage || 'Terjadi kesalahan saat registrasi');
-                }
+            console.error('Registration error:', err);
+            if (err.response?.data?.error) {
+                setError(err.response.data.error);
             } else {
                 setError('Terjadi kesalahan pada server. Silakan coba lagi nanti.');
             }

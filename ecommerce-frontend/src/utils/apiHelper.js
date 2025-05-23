@@ -3,9 +3,10 @@
  */
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { authService } from '../services/authService';
 
 // Constants
-export const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:5173/api';
+export const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL || 'http://localhost:5000/api';
 
 /**
  * Generic API error handler
@@ -35,12 +36,15 @@ export const handleApiError = (error, fallbackMessage = 'Terjadi kesalahan', sho
     });
   }
 
+  // If the error is due to auth, redirect to login
+  if (error?.response?.status === 401 || error?.response?.status === 403) {
+    authService.clearAuth();
+  }
+
   // Return standardized error object
   return {
-    message: errorMessage,
-    status: error?.response?.status || 500,
-    isApiError: true,
-    originalError: error
+    error: errorMessage,
+    status: error?.response?.status
   };
 };
 
@@ -69,71 +73,38 @@ export const makeApiRequest = async (apiCall, fallbackMessage = 'Permintaan gaga
 export const createApiClient = (config = {}) => {
   const client = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000,
-    headers: {
-      'Content-Type': 'application/json',
-    },
     ...config,
   });
 
-  // Request interceptor
+  // Request interceptor 
   client.interceptors.request.use(
     (config) => {
-      // Get token from storage
-      const token = localStorage.getItem('token');
-      
-      // Add token to headers if available
+      // Set default Content-Type if not already set
+      if (!config.headers['Content-Type'] && !(config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json';
+      }      // Get token and clean any existing Bearer prefix
+      const token = authService.getToken();
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        // Remove Bearer prefix if exists and add it once
+        const cleanToken = token.replace('Bearer ', '');
+        const formattedToken = `Bearer ${cleanToken}`;
+        config.headers['Authorization'] = formattedToken;
       }
-      
-      console.log('Making API request:', {
-        method: config.method,
-        url: config.url,
-        data: config.data
-      });
-      
+
       return config;
     },
-    (error) => {
-      console.error('API Request Error:', error);
-      return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
   );
 
   // Response interceptor
   client.interceptors.response.use(
-    (response) => {
-      console.log('API Response:', {
-        status: response.status,
-        data: response.data
-      });
-      return response;
-    },
+    (response) => response,
     (error) => {
-      console.error('API Response Error:', error.response || error);
-      
-      // Handle 401 Unauthorized errors globally
-      if (error.response && error.response.status === 401) {
-        // If not on login page
-        if (!window.location.pathname.includes('login')) {
-          // Clear local storage
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          
-          // Show message
-          Swal.fire({
-            icon: 'warning',
-            title: 'Sesi Berakhir',
-            text: 'Sesi Anda telah berakhir. Silakan login kembali.',
-            confirmButtonColor: '#ffc107'
-          }).then(() => {
-            // Redirect to login page
-            window.location.href = '/login';
-          });
-        }
+      // Handle 401 Unauthorized and 403 Forbidden errors globally 
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        authService.clearAuth();
+        window.location.href = '/login';
       }
-      
       return Promise.reject(error);
     }
   );

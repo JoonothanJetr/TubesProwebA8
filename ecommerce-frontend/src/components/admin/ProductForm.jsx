@@ -1,7 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { productService } from '../../services/productService';
 import { catalogService } from '../../services/catalogService';
+import { authService } from '../../services/authService';
+import { getProductImageUrl } from '../../utils/imageHelper';
+import { FiCheck, FiX } from 'react-icons/fi';
+
+const Toast = ({ message, type, onClose }) => (
+    <motion.div
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className={`fixed top-4 right-4 z-50 flex items-center p-4 rounded-lg shadow-lg border ${
+            type === 'success' ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'
+        }`}
+    >
+        <div className="flex-shrink-0 mr-3">
+            {type === 'success' ? <FiCheck className="w-5 h-5" /> : <FiX className="w-5 h-5" />}
+        </div>
+        <div className="flex-1 mr-2">{message}</div>
+        <button
+            onClick={onClose}
+            className="flex-shrink-0 ml-4 focus:outline-none hover:opacity-75 transition-opacity"
+        >
+            <FiX className="w-4 h-4" />
+        </button>
+    </motion.div>
+);
 
 const ProductForm = () => {
     const { productId } = useParams();
@@ -22,8 +48,21 @@ const ProductForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [loadingProduct, setLoadingProduct] = useState(isEditMode);
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
     useEffect(() => {
+        // Check authentication
+        if (!authService.isAuthenticated()) {
+            navigate('/login');
+            return;
+        }
+
+        const user = authService.getUser();
+        if (user?.role !== 'admin') {
+            navigate('/');
+            return;
+        }
+
         const fetchCatalogs = async () => {
             try {
                 setLoadingCatalogs(true);
@@ -32,6 +71,11 @@ const ProductForm = () => {
                 setError(null);
             } catch (err) {
                 console.error("Error fetching catalogs:", err);
+                if (err.response?.status === 401 || err.response?.status === 403) {
+                    authService.logout();
+                    navigate('/login');
+                    return;
+                }
                 setError("Gagal memuat daftar katalog.");
                 setCatalogs([]);
             } finally {
@@ -39,11 +83,16 @@ const ProductForm = () => {
             }
         };
         fetchCatalogs();
-    }, []);
+    }, [navigate]);
 
     useEffect(() => {
         if (isEditMode) {
             const fetchProduct = async () => {
+                if (!authService.isAuthenticated()) {
+                    navigate('/login');
+                    return;
+                }
+
                 try {
                     setLoadingProduct(true);
                     const data = await productService.getProductById(productId);
@@ -59,6 +108,11 @@ const ProductForm = () => {
                     setError(null);
                 } catch (err) {
                     console.error(`Error fetching product ${productId}:`, err);
+                    if (err.response?.status === 401 || err.response?.status === 403) {
+                        authService.logout();
+                        navigate('/login');
+                        return;
+                    }
                     setError("Gagal memuat data produk untuk diedit.");
                 } finally {
                     setLoadingProduct(false);
@@ -66,7 +120,7 @@ const ProductForm = () => {
             };
             fetchProduct();
         }
-    }, [productId, isEditMode]);
+    }, [productId, isEditMode, navigate]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -74,20 +128,29 @@ const ProductForm = () => {
     };
 
     const handleFileChange = (e) => {
-        setProduct(prev => ({ ...prev, image: e.target.files[0] }));
-        if (e.target.files[0]) {
-            setCurrentImageUrl(URL.createObjectURL(e.target.files[0]));
-        } else if (isEditMode) {
-            const fetchProductAgain = async () => {
-                try {
-                    const data = await productService.getProductById(productId);
-                    setCurrentImageUrl(data.image_url || null);
-                } catch (err) { console.error("Failed to refetch image", err) }
+        const file = e.target.files[0];
+        if (file) {
+            // Validasi tipe file
+            if (!file.type.match('image.*')) {
+                setError('File harus berupa gambar (JPEG, PNG, GIF)');
+                return;
             }
-            fetchProductAgain();
-        } else {
-            setCurrentImageUrl(null);
+            // Validasi ukuran file (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                setError('Ukuran file tidak boleh lebih dari 5MB');
+                return;
+            }
+            setProduct(prev => ({ ...prev, image: file }));
+            setCurrentImageUrl(URL.createObjectURL(file));
+            setError(null);
         }
+    };
+
+    const showNotification = (message, type = 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => {
+            setNotification({ show: false, message: '', type: 'success' });
+        }, 3000);
     };
 
     const handleSubmit = async (e) => {
@@ -95,20 +158,34 @@ const ProductForm = () => {
         setError(null);
         setLoading(true);
 
+        if (!authService.isAuthenticated()) {
+            navigate('/login');
+            return;
+        }
+
+        const user = authService.getUser();
+        if (user?.role !== 'admin') {
+            setError("Unauthorized. Admin access required.");
+            setLoading(false);
+            return;
+        }
+
+        // Validasi
         if (!product.name || !product.price || !product.stock || !product.category_id || (!isEditMode && !product.image)) {
-             setError("Semua field wajib diisi (termasuk kategori), dan gambar untuk produk baru.");
-             setLoading(false);
-             return;
-         }
-         if (isNaN(product.price) || isNaN(product.stock) || product.price <= 0 || product.stock < 0) {
-             setError("Harga harus angka positif dan Stok harus angka positif atau nol.");
-             setLoading(false);
-             return;
-         }
+            setError("Semua field wajib diisi (termasuk kategori), dan gambar untuk produk baru.");
+            setLoading(false);
+            return;
+        }
+
+        if (isNaN(product.price) || isNaN(product.stock) || product.price <= 0 || product.stock < 0) {
+            setError("Harga harus angka positif dan Stok harus angka positif atau nol.");
+            setLoading(false);
+            return;
+        }
 
         const formData = new FormData();
         formData.append('name', product.name);
-        formData.append('description', product.description);
+        formData.append('description', product.description || '');
         formData.append('price', product.price);
         formData.append('stock', product.stock);
         formData.append('category_id', product.category_id);
@@ -119,15 +196,24 @@ const ProductForm = () => {
         try {
             if (isEditMode) {
                 await productService.updateProduct(productId, formData);
-                alert('Produk berhasil diperbarui!');
+                showNotification('Produk berhasil diperbarui!');
             } else {
                 await productService.createProduct(formData);
-                alert('Produk baru berhasil ditambahkan!');
+                showNotification('Produk baru berhasil ditambahkan!');
             }
-            navigate('/admin/products');
+            setTimeout(() => {
+                navigate('/admin/products');
+            }, 2000);
         } catch (err) {
             console.error("Error saving product:", err);
-            setError(err.message || `Gagal ${isEditMode ? 'memperbarui' : 'menyimpan'} produk.`);
+            if (err.response?.status === 401 || err.response?.status === 403) {
+                authService.logout();
+                navigate('/login');
+                return;
+            }
+            const errorMessage = err.response?.data?.error || err.message || `Gagal ${isEditMode ? 'memperbarui' : 'menyimpan'} produk.`;
+            setError(errorMessage);
+            showNotification(errorMessage, 'error');
         } finally {
             setLoading(false);
         }
@@ -146,6 +232,16 @@ const ProductForm = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 py-8">
+            <AnimatePresence>
+                {notification.show && (
+                    <Toast
+                        message={notification.message}
+                        type={notification.type}
+                        onClose={() => setNotification({ show: false, message: '', type: 'success' })}
+                    />
+                )}
+            </AnimatePresence>
+
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-3xl font-bold text-gray-900">
@@ -241,9 +337,8 @@ const ProductForm = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                <label htmlFor="category_id" className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Kategori
+                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">                                <label htmlFor="category_id" className="block text-sm font-semibold text-gray-900 mb-2">
+                                    Katalog
                                 </label>
                                 <select
                                     name="category_id"
@@ -254,7 +349,7 @@ const ProductForm = () => {
                                     disabled={loadingCatalogs}
                                     className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                                 >
-                                    <option value="">{loadingCatalogs ? 'Memuat...' : '-- Pilih Kategori --'}</option>
+                                    <option value="">{loadingCatalogs ? 'Memuat...' : '-- Pilih Katalog --'}</option>
                                     {catalogs.map(cat => (
                                         <option key={cat.id} value={cat.id}>
                                             {cat.name}
@@ -277,7 +372,7 @@ const ProductForm = () => {
                                         {currentImageUrl ? (
                                             <div className="mb-4">
                                                 <img
-                                                    src={currentImageUrl.startsWith('blob:') ? currentImageUrl : `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${currentImageUrl}`}
+                                                    src={currentImageUrl && getProductImageUrl(currentImageUrl)}
                                                     alt="Preview"
                                                     className="mx-auto h-40 w-40 object-cover rounded-lg shadow-md"
                                                 />

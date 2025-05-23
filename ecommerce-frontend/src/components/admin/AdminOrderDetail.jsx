@@ -26,18 +26,17 @@ const AdminOrderDetail = () => {
     const paymentStatusOptions = ['menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan'];
 
     const fetchOrderDetails = useCallback(async () => {
-        setLoading(true);
         setError('');
+        setLoading(true);
         try {
             const data = await orderService.getOrderById(orderId);
-            
             // Fix image paths in order items
             if (data && data.items && Array.isArray(data.items)) {
+                console.log('Order items before normalization:', data.items);
                 data.items = normalizeImagePaths(data.items);
+                console.log('Order items after normalization:', data.items);
             }
-            
             setOrder(data);
-            // Inisialisasi state form dengan data dari order
             setSelectedOrderStatus(data.order_status || '');
             setSelectedPaymentStatus(data.payment_status || '');
             setAdminComment(data.admin_comment || '');
@@ -65,20 +64,19 @@ const AdminOrderDetail = () => {
 
         try {
             const result = await orderService.adminUpdateOrder(orderId, updateData);
+            
             toast.dismiss(loadingToast);
-            toast.success(result.message || 'Perubahan berhasil disimpan!');
+            toast.success('Perubahan berhasil disimpan!');
             
             // Show success notification
             setShowSuccessNotif(true);
             setTimeout(() => setShowSuccessNotif(false), 3000);
-            
-            // Panggil fetchOrderDetails() lagi untuk mendapatkan data terbaru yang lengkap
-            fetchOrderDetails(); 
 
+            // Fetch fresh order data to ensure we have all the details
+            fetchOrderDetails();
         } catch (err) {
             toast.dismiss(loadingToast);
-            const errorMessage = err?.response?.data?.error || 'Gagal menyimpan perubahan.';
-            toast.error(errorMessage);
+            toast.error('Gagal menyimpan perubahan: ' + (err?.response?.data?.error || err.message));
         } finally {
             setIsUpdating(false);
         }
@@ -320,14 +318,28 @@ const AdminOrderDetail = () => {
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                        <p className="text-sm font-medium text-gray-500 mb-1">Tanggal Pesan</p>
                                        <p className="text-gray-900 font-medium">{new Date(order.order_date || order.created_at).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })}</p>
-                                    </div>
-                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                    </div>                                    <div className="bg-gray-50 p-4 rounded-lg">
                                        <p className="text-sm font-medium text-gray-500 mb-1">Tanggal Jadi (Estimasi)</p>
                                        <p className="text-gray-900 font-medium">{order.desired_completion_date ? 
                                         new Date(order.desired_completion_date).toLocaleString('id-ID', { dateStyle: 'full' }) : 
                                         <span className="italic text-gray-400">Belum ditentukan</span>}
                                        </p>
                                     </div>
+
+                                    {order.delivery_address && (
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <p className="text-sm font-medium text-gray-500 mb-1">Alamat Pengiriman</p>
+                                            <p className="text-gray-900">{order.delivery_address}</p>
+                                        </div>
+                                    )}
+
+                                    {order.phone_number && (
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <p className="text-sm font-medium text-gray-500 mb-1">Nomor Telepon</p>
+                                            <p className="text-gray-900">{order.phone_number}</p>
+                                        </div>
+                                    )}
+
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                        <p className="text-sm font-medium text-gray-500 mb-1">Metode Pembayaran</p>
                                        <p className="text-gray-900">
@@ -369,25 +381,19 @@ const AdminOrderDetail = () => {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="paymentStatus" className="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>
-                                            <select
+                                            <label htmlFor="paymentStatus" className="block text-sm font-medium text-gray-700 mb-2">Status Pembayaran</label>                                            <select
                                                 id="paymentStatus"
                                                 name="paymentStatus"
                                                 value={selectedPaymentStatus}
                                                 onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-                                                disabled={isUpdating || (order.payment_method === 'cod' && selectedPaymentStatus === 'pembayaran sudah dilakukan')}
-                                                className={`mt-1 block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm transition-all duration-150 ${
-                                                    (order.payment_method === 'cod' && selectedPaymentStatus === 'pembayaran sudah dilakukan') 
-                                                        ? 'bg-gray-100 cursor-not-allowed' 
-                                                        : ''
-                                                }`}
+                                                disabled={isUpdating}
+                                                className="mt-1 block w-full pl-3 pr-10 py-2.5 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm transition-all duration-150"
                                             >
                                                  {paymentStatusOptions.map(status => (
                                                     <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
                                                 ))}
-                                            </select>
-                                            {order.payment_method === 'cod' && selectedPaymentStatus === 'pembayaran sudah dilakukan' && 
-                                                <p className="text-xs text-gray-500 mt-2 italic">Status pembayaran COD dikelola otomatis.</p>}
+                                            </select>                                            {order.payment_method === 'cod' && 
+                                                <p className="text-xs text-gray-500 mt-2 italic">Status pembayaran dapat diubah untuk pesanan COD.</p>}
                                         </div>
 
                                         <div>

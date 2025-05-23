@@ -126,4 +126,5 @@ router.delete('/:id', auth.isAdmin, async (req, res) => {
   }
 });
 
+// Export the router
 module.exports = router;

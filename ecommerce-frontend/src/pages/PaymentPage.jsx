@@ -19,67 +19,81 @@ const PaymentPage = () => {
         if (data) {
             try {
                 const parsedData = JSON.parse(data);
-                // Pastikan items adalah array
                 if (parsedData && Array.isArray(parsedData.items)) {
                     setCheckoutData(parsedData);
                 } else {
-                    setError('Data checkout tidak valid. Item tidak ditemukan atau format salah.');
-                    Swal.fire('Error', 'Data checkout tidak valid. Silakan ulangi proses checkout.', 'error');
-                    navigate('/cart');
+                    setError('Data checkout tidak valid');
                 }
-            } catch (e) {
-                setError('Gagal memuat data checkout. Format tidak sesuai.');
-                Swal.fire('Error', 'Gagal memuat data checkout. Silakan ulangi proses checkout.', 'error');
-                navigate('/cart');
+            } catch (err) {
+                setError('Gagal memuat data checkout');
+                console.error('Error parsing checkout data:', err);
             }
         } else {
-            setError('Tidak ada data checkout. Silakan kembali ke keranjang.');
-            Swal.fire('Informasi', 'Tidak ada data untuk diproses. Anda akan diarahkan ke keranjang.', 'info');
-            navigate('/cart');
+            setError('Tidak ada data checkout');
         }
         setLoading(false);
-    }, [navigate]);
+    }, []);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                setError('Ukuran file terlalu besar (maksimal 5MB)');
+                return;
+            }
+            if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+                setError('Format file tidak didukung (gunakan JPG atau PNG)');
+                return;
+            }
             setPaymentProof(file);
             setPreviewProof(URL.createObjectURL(file));
-            setError(''); // Reset error jika ada file dipilih
+            setError('');
         }
     };
 
     const handleSubmitPayment = async () => {
-        // Jika metode pembayaran COD, tidak perlu cek bukti pembayaran
-        if (checkoutData.paymentMethod !== 'COD' && !paymentProof) {
-            setError('Bukti pembayaran wajib diunggah untuk metode pembayaran non-COD.');
-            Swal.fire('Peringatan', 'Silakan unggah bukti pembayaran Anda.', 'warning');
-            return;
-        }
-
-        if (!checkoutData) {
-            setError('Data checkout tidak ditemukan.');
-            Swal.fire('Error', 'Data checkout tidak ditemukan. Proses tidak dapat dilanjutkan.', 'error');
-            return;
-        }
-
-        setProcessing(true);
-        setError('');
-
-        const formData = new FormData();
-        formData.append('paymentMethod', checkoutData.paymentMethod);
-        formData.append('totalAmount', checkoutData.totalAmount);
-        formData.append('desiredCompletionDate', checkoutData.desiredCompletionDate);
-        formData.append('items', JSON.stringify(checkoutData.items));
-        
-        // Hanya tambahkan bukti pembayaran jika bukan COD
-        if (checkoutData.paymentMethod !== 'COD' && paymentProof) {
-            formData.append('paymentProof', paymentProof);
-        }
-
         try {
+            if (!checkoutData) {
+                throw new Error('Data checkout tidak ditemukan.');
+            }
+
+            // Validasi khusus untuk non-COD
+            if (checkoutData.paymentMethod !== 'cod' && !paymentProof) {
+                throw new Error('Bukti pembayaran wajib diunggah untuk metode pembayaran non-COD.');
+            }
+
+            setProcessing(true);
+            setError('');
+
+            // Validate items data
+            if (!checkoutData.items || !Array.isArray(checkoutData.items) || checkoutData.items.length === 0) {
+                throw new Error('Data item pesanan tidak valid.');
+            }
+
+            const formData = new FormData();
+            formData.append('paymentMethod', checkoutData.paymentMethod);
+            formData.append('totalAmount', checkoutData.totalAmount.toString());
+            formData.append('desiredCompletionDate', checkoutData.desiredCompletionDate);
+            formData.append('items', JSON.stringify(checkoutData.items.map(item => ({
+                product_id: item.product_id,
+                quantity: item.quantity,
+                price: item.price
+            }))));
+
+            if (checkoutData.deliveryAddress) {
+                formData.append('deliveryAddress', checkoutData.deliveryAddress);
+            }
+            if (checkoutData.phoneNumber) {
+                formData.append('phoneNumber', checkoutData.phoneNumber);
+            }
+            
+            // Hanya tambahkan bukti pembayaran jika bukan COD
+            if (checkoutData.paymentMethod !== 'cod' && paymentProof) {
+                formData.append('paymentProof', paymentProof);
+            }
+
             // Gunakan service yang sesuai berdasarkan metode pembayaran
-            const response = checkoutData.paymentMethod === 'COD' 
+            const response = checkoutData.paymentMethod === 'cod' 
                 ? await orderService.createOrderCOD(formData)
                 : await orderService.createOrderWithProof(formData);
             
@@ -89,8 +103,8 @@ const PaymentPage = () => {
 
             Swal.fire({
                 icon: 'success',
-                title: checkoutData.paymentMethod === 'COD' ? 'Pesanan COD Berhasil Dibuat!' : 'Pembayaran Berhasil & Pesanan Dibuat!',
-                text: response.message || 'Pesanan Anda telah berhasil dibuat.',
+                title: checkoutData.paymentMethod === 'cod' ? 'Pesanan COD Berhasil Dibuat!' : 'Pembayaran Berhasil & Pesanan Dibuat!',
+                text: response.message || 'Pesanan Anda telah berhasil dibuat dan akan segera diproses.',
                 confirmButtonColor: '#28a745'
             }).then(() => {
                 navigate('/orders');
@@ -128,7 +142,7 @@ const PaymentPage = () => {
             </div>
         );
     }
-    
+
     if (!checkoutData) {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
@@ -183,15 +197,25 @@ const PaymentPage = () => {
                 {/* Informasi Pembayaran */}
                 <div className="mb-6">
                     <p className="text-gray-700 mb-2">
-                        <span className="font-semibold">Metode Pembayaran:</span> {checkoutData.paymentMethod}
+                        <span className="font-semibold">Metode Pembayaran:</span> {checkoutData.paymentMethod.toUpperCase()}
                     </p>
                     <p className="text-gray-700 mb-2">
                         <span className="font-semibold">Tanggal Pesanan Harus Jadi:</span> {checkoutData.desiredCompletionDate}
                     </p>
+                    {checkoutData.deliveryOption === 'delivery' && (
+                        <>
+                            <p className="text-gray-700 mb-2">
+                                <span className="font-semibold">Alamat Pengiriman:</span> {checkoutData.deliveryAddress}
+                            </p>
+                            <p className="text-gray-700 mb-2">
+                                <span className="font-semibold">Nomor Telepon:</span> {checkoutData.phoneNumber}
+                            </p>
+                        </>
+                    )}
                 </div>
 
                 {/* Upload Bukti Pembayaran - Hanya tampilkan jika bukan COD */}
-                {checkoutData.paymentMethod !== 'COD' && (
+                {checkoutData.paymentMethod !== 'cod' && (
                     <div className="mb-6">
                         <h3 className="font-semibold text-gray-800 mb-4">Unggah Bukti Pembayaran</h3>
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
@@ -218,10 +242,19 @@ const PaymentPage = () => {
                     </div>
                 )}
 
+                {/* Info untuk COD */}
+                {checkoutData.paymentMethod === 'cod' && (
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <p className="text-blue-700">
+                            Untuk pembayaran COD (Cash on Delivery), Anda dapat melakukan pembayaran saat mengambil pesanan di lokasi.
+                        </p>
+                    </div>
+                )}
+
                 {/* Tombol Konfirmasi */}
                 <button
                     onClick={handleSubmitPayment}
-                    disabled={processing || (checkoutData.paymentMethod !== 'COD' && !paymentProof)}
+                    disabled={processing || (checkoutData.paymentMethod !== 'cod' && !paymentProof)}
                     className={`w-full py-3 rounded-lg font-semibold text-white transition-all duration-300
                         ${processing 
                             ? 'bg-gray-400 cursor-not-allowed' 
@@ -236,7 +269,7 @@ const PaymentPage = () => {
                             Memproses...
                         </span>
                     ) : (
-                        checkoutData.paymentMethod === 'COD' ? 'Konfirmasi Pesanan' : 'Konfirmasi & Bayar'
+                        checkoutData.paymentMethod === 'cod' ? 'Konfirmasi Pesanan' : 'Konfirmasi & Bayar'
                     )}
                 </button>
             </div>

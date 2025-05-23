@@ -3,11 +3,12 @@ DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 
 -- Tabel untuk menyimpan informasi pesanan utama
-CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,
+CREATE TABLE orders (    id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL, -- atau ON DELETE CASCADE tergantung kebutuhan
     total_amount DECIMAL(12, 2) NOT NULL, -- Tingkatkan presisi jika perlu
     payment_method VARCHAR(50) NOT NULL,
+    delivery_address TEXT NULL,
+    phone_number VARCHAR(20) NULL,
     order_status VARCHAR(50) NOT NULL DEFAULT 'diproses' CHECK (order_status IN ('diproses', 'dibatalkan', 'selesai')),
     payment_status VARCHAR(50) NOT NULL DEFAULT 'menunggu pembayaran' CHECK (payment_status IN ('menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan')),
     order_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

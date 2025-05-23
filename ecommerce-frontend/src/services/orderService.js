@@ -30,13 +30,102 @@ export const orderService = {
             return response.data;
         } catch (error) {
             console.error('Error creating order:', error.response?.data || error.message);
-            throw error.response?.data || error; // Melempar error yang lebih informatif
+            throw error.response?.data || error;
         }
     },
-
-    createOrderWithProof: async (formData) => {
+    createOrderCOD: async (orderData) => {
         try {
-            // Pastikan header Content-Type adalah multipart/form-data untuk pengiriman file
+            let items;
+            try {
+                const itemsString = orderData.get('items');
+                items = typeof itemsString === 'string' 
+                    ? JSON.parse(itemsString)
+                    : itemsString;
+
+                if (!Array.isArray(items)) {
+                    throw new Error('Items harus berupa array');
+                }
+
+                items = items.map(item => ({
+                    product_id: parseInt(item.product_id),
+                    quantity: parseInt(item.quantity),
+                    price: parseFloat(item.price)
+                }));
+            } catch (e) {
+                console.error('Error parsing items:', e);
+                throw new Error('Format data item pesanan tidak valid: ' + e.message);
+            }
+
+            const totalAmount = parseFloat(orderData.get('totalAmount'));
+            if (isNaN(totalAmount) || totalAmount <= 0) {
+                throw new Error('Total pembayaran tidak valid');
+            }
+
+            const desiredCompletionDate = orderData.get('desiredCompletionDate');
+            if (!desiredCompletionDate) {
+                throw new Error('Tanggal penyelesaian pesanan harus dipilih');
+            }
+
+            const payload = {
+                paymentMethod: 'cod',
+                items: items,
+                totalAmount: totalAmount,
+                desiredCompletionDate: desiredCompletionDate,
+                deliveryAddress: orderData.get('deliveryAddress')?.trim() || null,
+                phoneNumber: orderData.get('phoneNumber')?.trim() || null
+            };
+
+            const response = await api.post('/orders', payload);
+            return response.data;
+        } catch (error) {
+            console.error('Error creating COD order:', error);
+            throw error.response?.data || {
+                error: error.message || 'Gagal membuat pesanan COD'
+            };
+        }
+    },    createOrderWithProof: async (formData) => {
+        try {
+            // Validate required fields first
+            const requiredFields = ['paymentMethod', 'items', 'totalAmount', 'desiredCompletionDate', 'deliveryAddress', 'phoneNumber', 'paymentProof'];
+            for (const field of requiredFields) {
+                if (!formData.get(field)) {
+                    throw new Error(`${field} wajib diisi untuk pembayaran non-COD`);
+                }
+            }
+
+            // Parse and validate items
+            let items;
+            try {
+                const itemsString = formData.get('items');
+                items = typeof itemsString === 'string' 
+                    ? JSON.parse(itemsString)
+                    : itemsString;
+
+                if (!Array.isArray(items)) {
+                    throw new Error('Items harus berupa array');
+                }
+
+                // Validate each item
+                items = items.map(item => ({
+                    product_id: parseInt(item.product_id),
+                    quantity: parseInt(item.quantity),
+                    price: parseFloat(item.price)
+                }));
+
+                // Update the formData with validated items
+                formData.set('items', JSON.stringify(items));
+            } catch (e) {
+                console.error('Error parsing items:', e);
+                throw new Error('Format data item pesanan tidak valid: ' + e.message);
+            }
+
+            // Validate payment proof
+            const paymentProof = formData.get('paymentProof');
+            if (!(paymentProof instanceof File) || !paymentProof.type.startsWith('image/')) {
+                throw new Error('Bukti pembayaran harus berupa file gambar');
+            }
+
+            // Make the API call
             const response = await api.post('/orders/with-proof', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -44,8 +133,17 @@ export const orderService = {
             });
             return response.data;
         } catch (error) {
-            console.error('Error creating order with proof:', error.response?.data || error.message);
-            throw error.response?.data || error;
+            console.error('Error creating order with proof:', error);
+            // If it's an axios error with response data, throw that
+            if (error.response?.data) {
+                throw error.response.data;
+            }
+            // If it's our validation error, throw as is
+            if (error.message) {
+                throw { error: error.message };
+            }
+            // Otherwise throw a generic error
+            throw { error: 'Gagal membuat pesanan. Silakan coba lagi.' };
         }
     },
 
@@ -71,12 +169,38 @@ export const orderService = {
         } catch (error) {
             console.error('Error in uploadPaymentProof service:', error.response || error.message);
             throw error;
+        }    },
+
+    // Admin specific methods
+    getAllOrdersAdmin: async (filters = {}) => {
+        const queryParams = new URLSearchParams();
+        if (filters.paymentStatus) queryParams.append('paymentStatus', filters.paymentStatus);
+        if (filters.orderStatus) queryParams.append('orderStatus', filters.orderStatus);
+
+        const queryString = queryParams.toString();
+        
+        try {
+            const response = await api.get(`/orders/admin/orders${queryString ? `?${queryString}` : ''}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error in getAllOrdersAdmin service:', error.response || error.message);
+            throw error;
+        }
+    },
+
+    getOrdersByStatus: async (status) => {
+        try {
+            const response = await api.get(`/orders/admin/orders/status/${status}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error in getOrdersByStatus service:', error.response || error.message);
+            throw error;
         }
     },
 
     adminUpdateOrder: async (orderId, updateData) => {
         try {
-            const response = await api.put(`/orders/${orderId}/admin/status`, updateData);
+            const response = await api.put(`/orders/admin/orders/${orderId}`, updateData);
             return response.data;
         } catch (error) {
             console.error('Error in adminUpdateOrder service:', error.response || error.message);

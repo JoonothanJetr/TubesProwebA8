@@ -35,11 +35,11 @@
 .product-detail-modal .modal-dialog {
   position: relative !important;
   width: 100% !important;
+  max-width: 1000px !important;
   margin: 1.75rem auto !important;
-  max-width: 800px !important;
   pointer-events: auto !important;
   display: flex !important;
-  align-items: center !important;
+  align-items: stretch !important;
   min-height: calc(100% - 3.5rem) !important;
   transform: translateY(24px) scale(0.98) !important;
   opacity: 0 !important;
@@ -74,6 +74,15 @@
     rgba(255, 255, 255, 0.95),
     rgba(255, 255, 255, 0.92)
   ) !important;
+}
+
+/* Product image container */
+.product-detail-modal .modal-body {
+  padding: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
 }
 
 .product-detail-modal .modal-header {
@@ -385,5 +394,45 @@
   .product-detail-modal .price-section,
   .product-detail-modal .quantity-section {
     padding: 0.75rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-detail-modal .modal-dialog {
+    margin: 0.5rem !important;
+  }
+  
+  .product-detail-modal .modal-content {
+    border-radius: 16px !important;
+  }
+
+  .product-detail-modal .product-image {
+    height: 250px !important;
+  }
+}
+
+/* Loading states */
+.product-detail-modal .loading-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  z-index: 10 !important;
+}
+
+.product-detail-modal .spinner {
+  width: 40px !important;
+  height: 40px !important;
+  border: 4px solid rgba(245, 158, 11, 0.1) !important;
+  border-left-color: rgb(245, 158, 11) !important;
+  border-radius: 50% !important;
+  animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg) !important;
   }
 }

@@ -134,7 +134,32 @@ const OrderDetail = () => {
                             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                 Rp {Number(order.total_amount).toLocaleString('id-ID')}
                             </dd>
+                        </div>                        <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            {order.delivery_address && (
+                                <>
+                                    <dt className="text-sm font-medium text-gray-500">
+                                        Alamat Pengiriman
+                                    </dt>
+                                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                        {order.delivery_address}
+                                    </dd>
+                                </>
+                            )}
                         </div>
+                        
+                        <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            {order.phone_number && (
+                                <>
+                                    <dt className="text-sm font-medium text-gray-500">
+                                        Nomor Telepon
+                                    </dt>
+                                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                        {order.phone_number}
+                                    </dd>
+                                </>
+                            )}
+                        </div>
+
                         <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt className="text-sm font-medium text-gray-500">
                                 Tanggal Pesanan

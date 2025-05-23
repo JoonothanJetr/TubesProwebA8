@@ -122,4 +122,5 @@ router.delete('/:id', auth.isAdmin, async (req, res) => { // Use isAdmin middlew
     }
 });
 
-module.exports = router; 
+// Export the router
+module.exports = router;

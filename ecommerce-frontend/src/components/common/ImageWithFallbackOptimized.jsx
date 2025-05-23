@@ -1,18 +1,12 @@
 // filepath: c:\Users\Jetro\Documents\GitHub\TubesProwebA8\ecommerce-frontend\src\components\common\ImageWithFallbackOptimized.js
 import React, { useState, useEffect, memo, useRef } from 'react';
-import { Image as BootstrapImage, Spinner } from 'react-bootstrap';
 
-/**
- * Optimized image component with placeholder that prevents layout shifts
- * Uses local state to track loading and errors
- * Memoized for better performance
- */
 const ImageWithFallbackOptimized = memo(({
   src,
   alt,
   fallbackSrc,
-  style,
-  className,
+  style = {},
+  className = '',
   ...props
 }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -31,12 +25,36 @@ const ImageWithFallbackOptimized = memo(({
     // Reset states for new image loading
     setIsLoading(true);
     setHasError(false);
-    
-    // For cached images that load instantly
-    if (imgRef.current?.complete) {
+
+    // Create a new image to test loading
+    const img = new Image();
+    img.src = src;
+
+    // Handle cached images and immediate loads
+    if (img.complete) {
       setIsLoading(false);
+      setHasError(false);
+    } else {
+      img.onload = () => {
+        if (imgRef.current) {
+          setIsLoading(false);
+          setHasError(false);
+        }
+      };
+      img.onerror = () => {
+        if (imgRef.current) {
+          setHasError(true);
+          setIsLoading(false);
+        }
+      };
     }
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [src]);
+
   // Handle error and load events
   const handleError = () => {
     setHasError(true);
@@ -45,7 +63,6 @@ const ImageWithFallbackOptimized = memo(({
     console.error(`Image failed to load: 
       - URL: ${src || 'undefined'} 
       - Alt text: ${alt || 'none'}
-      - Component: ImageWithFallbackOptimized
       - Time: ${new Date().toISOString()}`);
   };
 
@@ -53,10 +70,8 @@ const ImageWithFallbackOptimized = memo(({
     setIsLoading(false);
   };
 
-  // Text placeholder component for missing images
-  if ((hasError || !src) && !fallbackSrc) {
+  if ((hasError || !src || src === 'undefined' || src === 'null') && !fallbackSrc) {
     const displayText = alt && alt !== 'Product image' ? alt : 'Produk';
-    
     return (
       <div 
         className={`text-placeholder d-flex justify-content-center align-items-center text-center ${className}`}
@@ -87,10 +102,9 @@ const ImageWithFallbackOptimized = memo(({
     );
   }
 
-  // Container with fixed dimensions to prevent layout shift
   return (
     <div 
-      className="image-container position-relative" 
+      className={`image-container position-relative ${className}`}
       style={{ 
         overflow: 'hidden',
         minHeight: '64px',
@@ -101,7 +115,6 @@ const ImageWithFallbackOptimized = memo(({
         ...style 
       }}
     >
-      {/* Loading spinner - only show if still loading */}
       {isLoading && !hasError && (
         <div
           className="position-absolute d-flex justify-content-center align-items-center"
@@ -114,27 +127,27 @@ const ImageWithFallbackOptimized = memo(({
             zIndex: 1
           }}
         >
-          <Spinner animation="border" size="sm" variant="secondary" />
+          <div className="spinner-border spinner-border-sm text-secondary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </div>
       )}
 
-      {/* The actual image */}
-      <BootstrapImage
+      <img
         ref={imgRef}
         src={hasError && fallbackSrc ? fallbackSrc : src}
-        alt={alt}
+        alt={alt || 'Image'}
         onLoad={handleLoad}
         onError={handleError}
-        className={className}
         style={{
           opacity: isLoading ? 0 : 1,
           transition: 'opacity 0.2s ease-in-out',
           display: 'block',
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
+          objectFit: 'cover'
         }}
-        loading="lazy" // Add native lazy loading
+        loading="lazy"
         {...props}
       />
     </div>

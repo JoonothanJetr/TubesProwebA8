@@ -1,5 +1,90 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { catalogService } from '../../services/catalogService';
+
+// Dialog component for delete confirmation
+const DeleteConfirmationDialog = ({ isOpen, onClose, onConfirm, categoryName }) => {
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                        onClick={onClose}
+                    />
+                    
+                    {/* Dialog */}
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        transition={{ 
+                            type: "spring",
+                            duration: 0.3,
+                            bounce: 0.3
+                        }}
+                        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4 z-50"
+                    >
+                        <div className="text-center">
+                            <motion.div 
+                                initial={{ scale: 0.5, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.1 }}
+                                className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"
+                            >
+                                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </motion.div>
+                            
+                            <motion.h3
+                                initial={{ y: -10, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                                className="text-lg font-medium text-gray-900 mb-2"
+                            >
+                                Konfirmasi Penghapusan
+                            </motion.h3>
+                            
+                            <motion.p
+                                initial={{ y: -10, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="text-sm text-gray-500 mb-6"
+                            >
+                                Apakah Anda yakin ingin menghapus kategori <span className="font-semibold">{categoryName}</span>? 
+                                Produk yang menggunakan kategori ini akan kehilangan kategorinya.
+                            </motion.p>
+                            
+                            <div className="flex justify-end gap-3">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={onClose}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                >
+                                    Batal
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={onConfirm}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                >
+                                    Hapus Kategori
+                                </motion.button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
+};
 
 const CatalogManagement = () => {
     const [categories, setCategories] = useState([]);
@@ -7,11 +92,10 @@ const CatalogManagement = () => {
     const [error, setError] = useState(null);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [isAdding, setIsAdding] = useState(false);
-    
-    // State untuk mode edit inline
     const [editingCategoryId, setEditingCategoryId] = useState(null);
     const [editCategoryName, setEditCategoryName] = useState('');
     const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, categoryId: null, categoryName: '' });
 
     const fetchCategories = async () => {
         setLoading(true);
@@ -21,7 +105,7 @@ const CatalogManagement = () => {
             setCategories(data || []);
         } catch (err) {
             console.error("Error fetching categories:", err);
-            setError(err.message || "Gagal memuat daftar kategori.");
+            setError(err.message || "Gagal memuat daftar katalog.");
             setCategories([]);
         } finally {
             setLoading(false);
@@ -52,21 +136,22 @@ const CatalogManagement = () => {
         }
     };
 
-    const handleDeleteCategory = async (id) => {
-        if (window.confirm(`Apakah Anda yakin ingin menghapus kategori ini? Produk yang menggunakan kategori ini akan kehilangan kategorinya (atau gagal dihapus jika ada batasan).`)) {
-            // Set loading spesifik untuk item (opsional, bisa juga global loading)
-            setLoading(true); 
-            setError(null);
-            try {
-                await catalogService.deleteCatalog(id);
-                await fetchCategories(); // Muat ulang daftar
-            } catch (err) {
-                console.error(`Error deleting category ${id}:`, err);
-                setError(err.message || "Gagal menghapus kategori.");
-                // Set loading false di sini jika error, agar tidak stuck loading
-                setLoading(false); 
-            } 
-            // setLoading(false) akan dijalankan oleh fetchCategories jika sukses
+    const handleDeleteCategory = async (id, name) => {
+        setDeleteDialog({ isOpen: true, categoryId: id, categoryName: name });
+    };
+
+    const handleConfirmDelete = async () => {
+        const { categoryId } = deleteDialog;
+        setLoading(true);
+        setError(null);
+        try {
+            await catalogService.deleteCatalog(categoryId);
+            await fetchCategories();
+            setDeleteDialog({ isOpen: false, categoryId: null, categoryName: '' });
+        } catch (err) {
+            console.error(`Error deleting category ${categoryId}:`, err);
+            setError(err.message || "Gagal menghapus kategori.");
+            setLoading(false);
         }
     };
 
@@ -108,26 +193,24 @@ const CatalogManagement = () => {
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        Manajemen Kategori Produk
+                <div className="mb-8">                    <h1 className="text-2xl font-bold text-gray-900">
+                        Manajemen Katalog Produk
                     </h1>
                     <p className="mt-2 text-sm text-gray-600">
-                        Kelola kategori produk untuk mengorganisir menu yang tersedia
+                        Kelola katalog produk untuk mengorganisir menu yang tersedia
                     </p>
                 </div>
 
                 {/* Form Tambah Kategori */}
                 <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
                     <div className="p-6">
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">
-                            Tambah Kategori Baru
+                        <h2 className="text-lg font-medium text-gray-900 mb-4">                            Tambah Katalog Baru
                         </h2>
                         <form onSubmit={handleAddCategory} className="flex gap-3">
                             <div className="flex-1">
                                 <input
                                     type="text"
-                                    placeholder="Masukkan nama kategori baru"
+                                    placeholder="Masukkan nama katalog baru"
                                     value={newCategoryName}
                                     onChange={(e) => setNewCategoryName(e.target.value)}
                                     disabled={isAdding}
@@ -168,9 +251,8 @@ const CatalogManagement = () => {
 
                 {/* Daftar Kategori */}
                 <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div className="p-6">
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">
-                            Daftar Kategori
+                    <div className="p-6">                            <h2 className="text-lg font-medium text-gray-900 mb-4">
+                            Daftar Katalog
                         </h2>
                         
                         {loading ? (
@@ -183,7 +265,7 @@ const CatalogManagement = () => {
                                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
-                                <p className="mt-2 text-sm text-gray-500">Belum ada kategori tersedia</p>
+                                <p className="mt-2 text-sm text-gray-500">Belum ada katalog tersedia</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-200">
@@ -236,7 +318,7 @@ const CatalogManagement = () => {
                                                         Edit
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDeleteCategory(category.id)}
+                                                        onClick={() => handleDeleteCategory(category.id, category.name)}
                                                         disabled={loading || editingCategoryId !== null}
                                                         className="inline-flex items-center px-3 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
                                                     >
@@ -255,6 +337,14 @@ const CatalogManagement = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Render the delete confirmation dialog */}
+            <DeleteConfirmationDialog
+                isOpen={deleteDialog.isOpen}
+                onClose={() => setDeleteDialog({ isOpen: false, categoryId: null, categoryName: '' })}
+                onConfirm={handleConfirmDelete}
+                categoryName={deleteDialog.categoryName}
+            />
         </div>
     );
 };

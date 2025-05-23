@@ -7,26 +7,35 @@ const path = require('path'); // Import path
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
-// Middleware untuk logging setiap request (TAMBAHKAN INI)
+// Middleware untuk logging setiap request
 app.use((req, res, next) => {
     console.log(`Request received: ${req.method} ${req.originalUrl}`);
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
     next();
 });
 
-// Static file serving untuk folder uploads
-// Ini akan membuat file di dalam /uploads bisa diakses via URL
-// Contoh: http://localhost:5000/uploads/products/nama-file.jpg
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Static file serving untuk folder uploads/products dengan path /product_images
+const productImagesPath = path.join(__dirname, '../uploads/products');
+app.use('/product_images', express.static(productImagesPath, {
+    setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+}));
 
-// BARU: Static file serving khusus untuk folder proofs di bawah /proofs
-// Contoh: http://localhost:5000/proofs/nama-file.txt
-app.use('/proofs', express.static(path.join(__dirname, '../uploads/proofs')));
+// Serve bukti pembayaran
+const proofImagesPath = path.join(__dirname, '../uploads/proofs');
+app.use('/proofs', express.static(proofImagesPath));
 
-// Tambahkan static file serving untuk folder images (untuk seed data)
-// Contoh: http://localhost:5000/images/products/nama-file.jpg
+// Serve gambar seed data
 app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
 // Test database connection
@@ -47,17 +56,26 @@ const cartRoutes = require('./routes/cart');
 const reviewRoutes = require('./routes/reviews');
 const catalogRoutes = require('./routes/catalogs');
 const userRoutes = require('./routes/users');
-const feedbackRoutes = require('./routes/feedback'); // TAMBAHKAN INI
+const adminRoutes = require('./routes/admin');
 
-// Use routes
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/catalogs', catalogRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/feedback', feedbackRoutes); // TAMBAHKAN INI
+// Optional routes
+let feedbackRoutes;
+try {
+    feedbackRoutes = require('./routes/feedback');
+} catch (error) {
+    console.log('Feedback routes not available');
+}
+
+// Use routes with type checking
+if (authRoutes && typeof authRoutes === 'function') app.use('/api/auth', authRoutes);
+if (productRoutes && typeof productRoutes === 'function') app.use('/api/products', productRoutes);
+if (adminRoutes && typeof adminRoutes === 'function') app.use('/api/admin', adminRoutes);
+if (orderRoutes && typeof orderRoutes === 'function') app.use('/api/orders', orderRoutes);
+if (cartRoutes && typeof cartRoutes === 'function') app.use('/api/cart', cartRoutes);
+if (reviewRoutes && typeof reviewRoutes === 'function') app.use('/api/reviews', reviewRoutes);
+if (catalogRoutes && typeof catalogRoutes === 'function') app.use('/api/catalogs', catalogRoutes);
+if (userRoutes && typeof userRoutes === 'function') app.use('/api/users', userRoutes);
+if (feedbackRoutes && typeof feedbackRoutes === 'function') app.use('/api/feedback', feedbackRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

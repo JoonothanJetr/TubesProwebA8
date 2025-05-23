@@ -23,20 +23,6 @@ const ProductList = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [addingToCart, setAddingToCart] = useState(false);
 
-    // Prefetch visible products when they are loaded
-    const prefetchInitialProducts = useCallback((productsData) => {
-        if (!Array.isArray(productsData) || productsData.length === 0) return;
-        
-        // Use requestAnimationFrame to delay prefetch until after render
-        requestAnimationFrame(() => {
-            const firstProducts = productsData.slice(0, 3);
-            if (firstProducts.length > 0) {
-                productService.prefetchMultipleProducts(firstProducts.map(p => p.id))
-                    .catch(err => console.error('Error prefetching initial products:', err));
-            }
-        });
-    }, []);
-
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -60,7 +46,11 @@ const ProductList = () => {
 
                 if (Array.isArray(productsData)) {
                     setProducts(productsData);
-                    prefetchInitialProducts(productsData);
+                    if (productsData.length > 0) {
+                        requestAnimationFrame(() => {
+                            prefetchVisibleProducts(productsData, 3);
+                        });
+                    }
                 } else {
                     console.error('Products data is not an array:', productsData);
                     setProducts([]);
@@ -74,7 +64,7 @@ const ProductList = () => {
         };
 
         fetchData();
-    }, [prefetchInitialProducts]);
+    }, []);
 
     const filteredProducts = useMemo(() => {
         if (!selectedCategory || selectedCategory === 'all') {

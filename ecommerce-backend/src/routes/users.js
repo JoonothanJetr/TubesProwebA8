@@ -106,4 +106,5 @@ router.put('/:id/role', auth, checkAdmin, async (req, res) => {
 });
 */
 
-module.exports = router; 
+// Export the router
+module.exports = router;

@@ -3,59 +3,41 @@ const jwt = require('jsonwebtoken');
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
     // Get token from Authorization header (Bearer Token)
-    const authHeader = req.header('Authorization');
-    let token;
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        // Extract token from "Bearer <token>"
-        token = authHeader.split(' ')[1];
-    } 
-    // else {
-    //     // Alternatif: coba cek header x-auth-token (jika masih digunakan di tempat lain)
-    //     // token = req.header('x-auth-token'); 
-    // }
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
     // Check if no token found
     if (!token) {
-        return res.status(401).json({ error: 'No token, authorization denied' });
+        return res.status(401).json({ error: 'No token provided' });
     }
 
     try {
         // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
+        const user = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
         
         // Add user from payload (biasanya berisi id dan role)
-        req.user = decoded; // decoded akan berisi { id: ..., role: ... }
+        req.user = user;
         next();
     } catch (err) {
-        console.error('Token verification failed:', err.message);
-        res.status(401).json({ error: 'Token is not valid' });
+        return res.status(403).json({ error: 'Invalid or expired token' });
     }
 };
 
 // Middleware to check if user is admin
 const isAdmin = (req, res, next) => {
-    try {
-        // Get token from Authorization header
-        const authHeader = req.header('Authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: 'No token, authorization denied' });
+    // First authenticate the token
+    authenticateToken(req, res, () => {
+        console.log('isAdmin middleware - user:', req.user);
+        console.log('isAdmin middleware - token:', req.headers['authorization']);
+        
+        // Check if user exists and is an admin
+        if (!req.user || req.user.role !== 'admin') {
+            console.log('Access denied - user role:', req.user?.role);
+            return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
         }
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-        req.user = decoded;
-
-        // Check if user is admin
-        if (req.user && req.user.role === 'admin') {
-            next();
-        } else {
-            res.status(403).json({ success: false, message: 'Access denied. Admin privileges required.' });
-        }
-    } catch (err) {
-        console.error('Admin authentication error:', err.message);
-        res.status(401).json({ success: false, message: 'Invalid or expired token' });
-    }
+        console.log('Admin access granted');
+        next();
+    });
 };
 
 

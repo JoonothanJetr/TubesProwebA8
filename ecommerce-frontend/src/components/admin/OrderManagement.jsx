@@ -15,14 +15,12 @@ const OrderManagement = () => {
     const [sortOption, setSortOption] = useState('order_date-desc');
 
     const paymentStatusOptions = ['', 'menunggu pembayaran', 'pembayaran sudah dilakukan', 'pembayaran dibatalkan'];
-    const orderStatusOptions = ['', 'diproses', 'selesai', 'dibatalkan'];
-
-    const fetchAllOrders = useCallback(async (currentFilters) => {
+    const orderStatusOptions = ['', 'diproses', 'selesai', 'dibatalkan'];    const fetchAllOrders = useCallback(async (currentFilters) => {
         setLoading(true);
         setError('');
         try {
-            const data = await orderService.getAllOrders(currentFilters);
-            setOrders(data);
+            const data = await orderService.getAllOrdersAdmin(currentFilters);
+            setOrders(data || []);
         } catch (err) {
             setError('Gagal memuat data pesanan.');
             toast.error('Gagal memuat data pesanan: ' + (err?.response?.data?.error || err.message));

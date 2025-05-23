@@ -23,7 +23,10 @@ const ProductImageOptimized = memo(({
 }) => {
   // Use useMemo to prevent redundant URL calculations on re-renders
   const formattedUrl = useMemo(() => {
-    return getProductImageUrl(imageUrl);
+    console.log('Original imageUrl:', imageUrl);
+    const url = getProductImageUrl(imageUrl);
+    console.log('Formatted imageUrl:', url);
+    return url;
   }, [imageUrl]);
   
   // Return memoized component with calculated URL

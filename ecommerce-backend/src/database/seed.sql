@@ -8,10 +8,10 @@ INSERT INTO users (username, email, password, role) VALUES
 ('jane_smith', 'jane@example.com', '$2a$10$KI0LYZFn6JHgI8LQxHLcqOKkU7HCzYF3R8UOL3Wk.4q9kF7O9Wjm6', 'customer');
 
 -- Insert sample products
-INSERT INTO products (name, description, price, image_url, category) VALUES 
+INSERT INTO products (name, description, price, stock, image_url, category) VALUES 
 -- Makanan Utama
-('Nasi Goreng Spesial', 'Nasi goreng dengan telur, ayam, dan sayuran segar', 35000, '/images/nasi-goreng.jpg', 'makanan-utama'),
-('Ayam Bakar Madu', 'Ayam bakar dengan bumbu madu special', 45000, '/images/ayam-bakar.jpg', 'makanan-utama'),
+('Nasi Goreng Spesial', 'Nasi goreng dengan telur, ayam, dan sayuran segar', 35000, 100, '/images/nasi-goreng.jpg', 'makanan-utama'),
+('Ayam Bakar Madu', 'Ayam bakar dengan bumbu madu special', 45000, 100, '/images/ayam-bakar.jpg', 'makanan-utama'),
 ('Rendang Sapi', 'Rendang daging sapi dengan bumbu traditional', 50000, '/images/rendang.jpg', 'makanan-utama'),
 ('Sate Ayam', 'Sate ayam dengan bumbu kacang', 40000, '/images/sate-ayam.jpg', 'makanan-utama'),
 

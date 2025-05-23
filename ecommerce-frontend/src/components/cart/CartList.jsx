@@ -1,11 +1,11 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cartService } from '../../services/cartService';
 import { Container, Row, Col, Card, Button, Form, Modal, Spinner } from 'react-bootstrap';
+import { FiMinus, FiPlus } from 'react-icons/fi';
 import Swal from 'sweetalert2';
-import ProductModalOptimized from '../products/ProductModalOptimized';
-import ProductImageOptimized from '../common/ProductImageOptimized'; // Import optimized image component
-import { normalizeImagePaths } from '../../utils/imageFixer'; // Import image path fixer
+import ProductImageOptimized from '../common/ProductImageOptimized';
+import { normalizeImagePaths } from '../../utils/imageFixer';
 
 const CartList = () => {
     const navigate = useNavigate();
@@ -20,9 +20,8 @@ const CartList = () => {
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [phoneNumber, setPhoneNumber] = useState(''); // State untuk nomor telepon
     
-    // State for product modal
-    const [showProductModal, setShowProductModal] = useState(false);
-    const [selectedProductId, setSelectedProductId] = useState(null);
+    // Add these new state variables
+    const [existingQuantities, setExistingQuantities] = useState({});
 
     useEffect(() => {
         fetchCart();
@@ -34,8 +33,14 @@ const CartList = () => {
             const data = await cartService.getCart();
             // Fix image paths to ensure they load correctly
             const fixedData = normalizeImagePaths(data);
-            console.log('Original cart data:', data);
-            console.log('Fixed cart data:', fixedData);
+            
+            // Store existing quantities in state
+            const quantities = {};
+            fixedData.forEach(item => {
+                quantities[item.product_id] = item.quantity;
+            });
+            setExistingQuantities(quantities);
+            
             setCartItems(fixedData);
             setError('');
         } catch (err) {
@@ -48,8 +53,18 @@ const CartList = () => {
 
     const handleQuantityChange = async (productId, newQuantity) => {
         try {
+            if (newQuantity < 1) newQuantity = 1;
+            
+            // Update optimistic UI first
+            const updatedItems = cartItems.map(item => 
+                item.product_id === productId 
+                    ? { ...item, quantity: newQuantity }
+                    : item
+            );
+            setCartItems(updatedItems);
+            
+            // Then make the API call
             await cartService.updateCartItem(productId, newQuantity);
-            fetchCart();
             
             // Show success toast
             Swal.fire({
@@ -62,14 +77,49 @@ const CartList = () => {
             });
         } catch (err) {
             console.error("Error updating item quantity:", err);
+            
+            // Restore previous state on error
+            fetchCart();
+            
             Swal.fire({
                 toast: true,
                 position: 'top-end',
                 icon: 'error',
                 title: 'Gagal mengupdate jumlah item',
+                text: err.response?.data?.error || 'Terjadi kesalahan saat mengupdate jumlah',
                 showConfirmButton: false,
                 timer: 3000
             });
+        }
+    };
+
+    const handleQuantityInputChange = (productId, event, item) => {
+        const value = event.target.value;
+        
+        // Allow empty value for temporary input
+        if (value === '') {
+            const updatedItems = cartItems.map(cartItem => 
+                cartItem.product_id === productId 
+                    ? { ...cartItem, quantity: value }
+                    : cartItem
+            );
+            setCartItems(updatedItems);
+            return;
+        }
+
+        const numValue = parseInt(value, 10);
+        
+        // Validate number
+        if (!isNaN(numValue) && numValue > 0) {
+            handleQuantityChange(productId, numValue);
+        } else {
+            // Reset to previous valid value if invalid
+            const updatedItems = cartItems.map(cartItem => 
+                cartItem.product_id === productId 
+                    ? { ...cartItem, quantity: item.quantity }
+                    : cartItem
+            );
+            setCartItems(updatedItems);
         }
     };
 
@@ -245,17 +295,6 @@ const CartList = () => {
         }
     };
     
-    // Handler for product modal
-    const handleShowProductModal = (productId) => {
-        setSelectedProductId(productId);
-        setShowProductModal(true);
-    };
-
-    const handleCloseProductModal = () => {
-        setShowProductModal(false);
-        setSelectedProductId(null);
-    };
-
     // Calculate total price
     const calcTotal = () => {
         return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -318,37 +357,41 @@ const CartList = () => {
                                                         Rp {item.price?.toLocaleString('id-ID')}
                                                     </p>
                                                     <div className="flex items-center gap-4">
-                                                        <div className="flex items-center border rounded-lg bg-gray-50">
+                                                        <div className="flex items-center">
                                                             <button
                                                                 onClick={() => handleQuantityChange(item.product_id, Math.max(1, item.quantity - 1))}
-                                                                className="px-3 py-1 text-gray-600 hover:bg-gray-200 rounded-l-lg transition-colors"
+                                                                className="w-8 h-8 flex items-center justify-center bg-yellow-400 text-black rounded-l-lg hover:bg-yellow-500 transition-colors"
                                                             >
-                                                                -
+                                                                <FiMinus size={16} />
                                                             </button>
-                                                            <span className="px-3 py-1 border-x bg-white">{item.quantity}</span>
+                                                            <input
+                                                                type="text"
+                                                                inputMode="numeric"
+                                                                pattern="[0-9]*"
+                                                                min="1"
+                                                                value={item.quantity}
+                                                                onChange={(e) => handleQuantityInputChange(item.product_id, e, item)}
+                                                                onBlur={(e) => {
+                                                                    if (e.target.value === '' || parseInt(e.target.value, 10) < 1) {
+                                                                        handleQuantityChange(item.product_id, 1);
+                                                                    }
+                                                                }}
+                                                                className="w-16 px-3 py-1 border-y border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                                            />
                                                             <button
                                                                 onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
-                                                                className="px-3 py-1 text-gray-600 hover:bg-gray-200 rounded-r-lg transition-colors"
+                                                                className="w-8 h-8 flex items-center justify-center bg-yellow-400 text-black rounded-r-lg hover:bg-yellow-500 transition-colors"
                                                             >
-                                                                +
+                                                                <FiPlus size={16} />
                                                             </button>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <button
-                                                                onClick={() => handleShowProductModal(item.product_id)}
-                                                                className="inline-flex items-center px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                                                            >
-                                                                <i className="bi bi-eye-fill mr-1.5"></i>
-                                                                Detail
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleRemoveItem(item.product_id)}
-                                                                className="inline-flex items-center px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                                                            >
-                                                                <i className="bi bi-trash-fill mr-1.5"></i>
-                                                                Hapus
-                                                            </button>
-                                                        </div>
+                                                        <button
+                                                            onClick={() => handleRemoveItem(item.product_id)}
+                                                            className="inline-flex items-center px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                                        >
+                                                            <i className="bi bi-trash-fill mr-1.5"></i>
+                                                            Hapus
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
@@ -502,12 +545,6 @@ const CartList = () => {
                     </div>
                 </div>
             </Modal>
-
-            <ProductModalOptimized
-                productId={selectedProductId}
-                show={showProductModal}
-                onHide={handleCloseProductModal}
-            />
         </div>
     );
 };
