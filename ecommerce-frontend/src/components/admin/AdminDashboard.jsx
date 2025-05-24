@@ -71,10 +71,13 @@ const AdminDashboard = () => {
         {/* Card Total Pendapatan */}
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 transition-all duration-300 hover:shadow-md">
           <div className="flex flex-col h-full">
-            <div className="flex-grow">
-              <h3 className="text-gray-500 text-sm font-medium">Total Pendapatan</h3>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-2">
+            <div className="flex-grow">              <h3 className="text-gray-500 text-sm font-medium">Total Pendapatan</h3>
+              <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2 truncate">
                 Rp {stats.revenue.total_revenue.toLocaleString()}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {/* Tampilkan dalam format yang lebih ringkas jika layar kecil */}
+                {window.innerWidth < 640 ? `Rp ${(stats.revenue.total_revenue/1000000).toFixed(1)}M` : ''}
               </p>
             </div>
           </div>
