@@ -66,14 +66,14 @@ const AdminDashboard = () => {
         <p className="text-gray-600">Ringkasan statistik dan aktivitas terbaru</p>
       </div>
 
-      {/* Statistik Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Statistik Grid - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {/* Card Total Pendapatan */}
-        <div className="bg-white rounded-xl shadow-sm p-6 transition-transform hover:scale-105">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 transition-all duration-300 hover:shadow-md">
           <div className="flex flex-col h-full">
             <div className="flex-grow">
               <h3 className="text-gray-500 text-sm font-medium">Total Pendapatan</h3>
-              <p className="text-3xl font-bold text-gray-800 mt-2">
+              <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-2">
                 Rp {stats.revenue.total_revenue.toLocaleString()}
               </p>
             </div>
@@ -81,49 +81,58 @@ const AdminDashboard = () => {
         </div>
 
         {/* Card Total Pesanan */}
-        <div className="bg-white rounded-xl shadow-sm p-6 transition-transform hover:scale-105">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 transition-all duration-300 hover:shadow-md">
           <div className="flex flex-col h-full">
             <div className="flex-grow">
               <h3 className="text-gray-500 text-sm font-medium">Total Pesanan</h3>
-              <p className="text-3xl font-bold text-gray-800 mt-2">{stats.orders.total_orders}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-2">{stats.orders.total_orders}</p>
             </div>
             <Link 
               to="/admin/orders" 
-              className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-sm"
+              className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center"
             >
-              Kelola Pesanan &rarr;
+              Kelola Pesanan 
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </div>
 
         {/* Card Total Produk */}
-        <div className="bg-white rounded-xl shadow-sm p-6 transition-transform hover:scale-105">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 transition-all duration-300 hover:shadow-md">
           <div className="flex flex-col h-full">
             <div className="flex-grow">
               <h3 className="text-gray-500 text-sm font-medium">Total Produk</h3>
-              <p className="text-3xl font-bold text-gray-800 mt-2">{stats.products.total_products}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-2">{stats.products.total_products}</p>
             </div>
             <Link 
               to="/admin/products" 
-              className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-sm"
+              className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center"
             >
-              Kelola Produk &rarr;
+              Kelola Produk
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </div>
 
         {/* Card Total Pelanggan */}
-        <div className="bg-white rounded-xl shadow-sm p-6 transition-transform hover:scale-105">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 transition-all duration-300 hover:shadow-md">
           <div className="flex flex-col h-full">
             <div className="flex-grow">
               <h3 className="text-gray-500 text-sm font-medium">Total Pelanggan</h3>
-              <p className="text-3xl font-bold text-gray-800 mt-2">{stats.customers.total_customers}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-2">{stats.customers.total_customers}</p>
             </div>
             <Link 
               to="/admin/users" 
-              className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-sm"
+              className="mt-4 text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center"
             >
-              Lihat Pelanggan &rarr;
+              Lihat Pelanggan
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </div>
