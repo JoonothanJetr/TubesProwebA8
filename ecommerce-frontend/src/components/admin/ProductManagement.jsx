@@ -235,8 +235,7 @@ const ProductManagement = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {product.category_name || 'N/A'}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                                    <Link
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">                                                    <Link
                                                         to={`/admin/products/edit/${product.id}`}
                                                         className="inline-flex items-center px-3 py-1.5 border border-yellow-500 text-yellow-500 hover:bg-yellow-50 rounded-md transition-colors"
                                                     >

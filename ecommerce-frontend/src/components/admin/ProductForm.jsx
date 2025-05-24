@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { productService } from '../../services/productService';
 import { catalogService } from '../../services/catalogService';
@@ -7,40 +7,18 @@ import { authService } from '../../services/authService';
 import { getProductImageUrl } from '../../utils/imageHelper';
 import { FiCheck, FiX } from 'react-icons/fi';
 
-const Toast = ({ message, type, onClose }) => (
-    <motion.div
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className={`fixed top-4 right-4 z-50 flex items-center p-4 rounded-lg shadow-lg border ${
-            type === 'success' ? 'bg-green-50 text-green-800 border-green-200' : 'bg-red-50 text-red-800 border-red-200'
-        }`}
-    >
-        <div className="flex-shrink-0 mr-3">
-            {type === 'success' ? <FiCheck className="w-5 h-5" /> : <FiX className="w-5 h-5" />}
-        </div>
-        <div className="flex-1 mr-2">{message}</div>
-        <button
-            onClick={onClose}
-            className="flex-shrink-0 ml-4 focus:outline-none hover:opacity-75 transition-opacity"
-        >
-            <FiX className="w-4 h-4" />
-        </button>
-    </motion.div>
-);
-
-const ProductForm = () => {
+const ProductForm = () => {    
     const { productId } = useParams();
     const navigate = useNavigate();
     const isEditMode = Boolean(productId);
-
+    
     const [product, setProduct] = useState({
         name: '',
         description: '',
         price: '',
         stock: '',
         category_id: '',
-        image: null,
+        image: null
     });
     const [catalogs, setCatalogs] = useState([]);
     const [loadingCatalogs, setLoadingCatalogs] = useState(true);
@@ -50,8 +28,8 @@ const ProductForm = () => {
     const [loadingProduct, setLoadingProduct] = useState(isEditMode);
     const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
+    // Effect untuk memuat katalog
     useEffect(() => {
-        // Check authentication
         if (!authService.isAuthenticated()) {
             navigate('/login');
             return;
@@ -85,41 +63,61 @@ const ProductForm = () => {
         fetchCatalogs();
     }, [navigate]);
 
+    // Effect untuk memuat data produk jika dalam mode edit
     useEffect(() => {
-        if (isEditMode) {
-            const fetchProduct = async () => {
-                if (!authService.isAuthenticated()) {
-                    navigate('/login');
-                    return;
-                }
+        if (!isEditMode) {
+            setProduct({
+                name: '',
+                description: '',
+                price: '',
+                stock: '',
+                category_id: '',
+                image: null
+            });
+            setCurrentImageUrl(null);
+            setLoadingProduct(false);
+            return;
+        }
 
-                try {
-                    setLoadingProduct(true);
-                    const data = await productService.getProductById(productId);
+        const fetchProduct = async () => {
+            if (!authService.isAuthenticated()) {
+                navigate('/login');
+                return;
+            }
+
+            try {
+                setLoadingProduct(true);
+                const data = await productService.getProductById(productId);
+                if (data) {
                     setProduct({
                         name: data.name || '',
                         description: data.description || '',
                         price: data.price || '',
                         stock: data.stock || '',
                         category_id: data.category_id || '',
-                        image: null,
+                        image: null
                     });
                     setCurrentImageUrl(data.image_url || null);
                     setError(null);
-                } catch (err) {
-                    console.error(`Error fetching product ${productId}:`, err);
-                    if (err.response?.status === 401 || err.response?.status === 403) {
-                        authService.logout();
-                        navigate('/login');
-                        return;
-                    }
-                    setError("Gagal memuat data produk untuk diedit.");
-                } finally {
-                    setLoadingProduct(false);
+                } else {
+                    setError("Produk tidak ditemukan");
+                    navigate('/admin/products');
                 }
-            };
-            fetchProduct();
-        }
+            } catch (err) {
+                console.error(`Error fetching product ${productId}:`, err);
+                if (err.response?.status === 401 || err.response?.status === 403) {
+                    authService.logout();
+                    navigate('/login');
+                } else {
+                    setError("Gagal memuat data produk untuk diedit.");
+                    navigate('/admin/products');
+                }
+            } finally {
+                setLoadingProduct(false);
+            }
+        };
+
+        fetchProduct();
     }, [productId, isEditMode, navigate]);
 
     const handleChange = (e) => {
@@ -146,11 +144,61 @@ const ProductForm = () => {
         }
     };
 
+    const NotificationOverlay = ({ message, type }) => (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+        >
+            <motion.div
+                initial={{ scale: 0.8, y: -20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 20 }}
+                className={`bg-white rounded-xl p-6 shadow-xl max-w-sm w-full mx-4 relative ${
+                    type === 'success' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'
+                }`}
+            >
+                <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex items-center justify-center mb-4"
+                >
+                    {type === 'success' ? (
+                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                    )}
+                </motion.div>
+                <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-center text-gray-800 text-lg font-medium"
+                >
+                    {message}
+                </motion.p>
+            </motion.div>
+        </motion.div>
+    );
+
     const showNotification = (message, type = 'success') => {
         setNotification({ show: true, message, type });
         setTimeout(() => {
             setNotification({ show: false, message: '', type: 'success' });
-        }, 3000);
+            if (type === 'success') {
+                navigate('/admin/products');
+            }
+        }, 2000);
     };
 
     const handleSubmit = async (e) => {
@@ -201,9 +249,6 @@ const ProductForm = () => {
                 await productService.createProduct(formData);
                 showNotification('Produk baru berhasil ditambahkan!');
             }
-            setTimeout(() => {
-                navigate('/admin/products');
-            }, 2000);
         } catch (err) {
             console.error("Error saving product:", err);
             if (err.response?.status === 401 || err.response?.status === 403) {
@@ -231,31 +276,47 @@ const ProductForm = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="min-h-screen bg-gray-100 py-8"
+        >
             <AnimatePresence>
                 {notification.show && (
-                    <Toast
+                    <NotificationOverlay
                         message={notification.message}
                         type={notification.type}
-                        onClose={() => setNotification({ show: false, message: '', type: 'success' })}
                     />
                 )}
             </AnimatePresence>
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+            >
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-3xl font-bold text-gray-900">
                         {isEditMode ? 'Edit Produk' : 'Tambah Produk Baru'}
                     </h1>
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => navigate('/admin/products')}
                         className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         ← Kembali ke Daftar
-                    </button>
+                    </motion.button>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-white rounded-xl shadow-md overflow-hidden"
+                >
                     <div className="p-8">
                         {error && (
                             <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
@@ -434,9 +495,9 @@ const ProductForm = () => {
                             </div>
                         </form>
                     </div>
-                </div>
-            </div>
-        </div>
+                </motion.div>
+            </motion.div>
+        </motion.div>
     );
 };
 
