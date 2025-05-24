@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaReact, FaHeart, FaUsers, FaGlobe } from 'react-icons/fa';
+import { FaHeart, FaUsers, FaGlobe, FaUtensils } from 'react-icons/fa';
 
 const About = () => {
   return (
@@ -15,7 +15,7 @@ const About = () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex justify-center mb-6">
-            <FaReact className="text-6xl text-white animate-spin-slow" />
+            <FaUtensils className="text-6xl text-white animate-spin-slow" />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Tentang Kami</h1>
           <p className="text-xl text-white/90 max-w-2xl mx-auto">

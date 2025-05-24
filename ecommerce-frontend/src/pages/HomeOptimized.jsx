@@ -244,13 +244,10 @@ const HomeOptimized = () => {
           </Slider>
         </div>
 
-        {/* Content */}
-        <div className="relative container mx-auto px-4 pt-20 pb-16">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="md:w-1/2 text-center md:text-left">
-              <div className="space-y-6">
-                <div className="inline-block relative">
-                  <div className="absolute -left-4 top-0 w-2 h-full bg-gradient-to-b from-yellow-500 via-yellow-400 to-yellow-600"></div>
+        {/* Content */}        <div className="relative container mx-auto px-4 pt-20 pb-16">
+          <div className="flex flex-col items-center text-center">
+            <div className="max-w-2xl mx-auto">
+              <div className="space-y-6">                <div className="relative inline-block">
                   <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
                     Nikmati Kelezatan Masakan <span className="text-yellow-400">Batak Toba</span>
                   </h1>
@@ -258,10 +255,10 @@ const HomeOptimized = () => {
                 <h2 className="text-3xl lg:text-4xl font-bold text-white">
                   Toba <span className="text-yellow-400">&</span> Nusantara Di Meja Anda
                 </h2>
-                <p className="text-lg text-gray-200 max-w-xl">
+                <p className="text-lg text-gray-200 mx-auto">
                   Rasakan cita rasa autentik dari dapur kami, disiapkan dengan resep turun-temurun dan bumbu rempah pilihan khas Tanah Batak.
                 </p>
-                <div className="mt-8 space-x-4">
+                <div className="mt-8 flex justify-center gap-4">
                   <Link
                     to="/products"
                     className="bg-yellow-500 text-white font-bold py-3 px-10 text-lg rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block border-2 border-yellow-400"
