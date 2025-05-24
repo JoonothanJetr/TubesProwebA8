@@ -1,113 +1,193 @@
-# Tugas Besar Pemrograman Web Kelompok A8
+# Laporan Progres Mingguan - SI CATE
+**Kelompok** : 8
 
-## Catering Service E-commerce Platform
+**Mitra** : Toba Home Catering
 
-### Features
+**Pekan ke -** : 15
 
-1. **User Features**
-   - Modern and responsive user interface
-   - Product browsing and filtering by categories
-   - User authentication (login/registration)
-   - Product modal popups for quick detail viewing
-   - Shopping cart functionality
-   - Order management and tracking
-   - Checkout with multiple payment options
-   - User profile management
+**Tanggal** : 24/05/2025
 
-2. **Admin Features**
-   - Dashboard with sales statistics
-   - Product management (CRUD operations)
-   - Order management
-   - User management
-   - Category management
-   - Analytics and reporting
+---
+## Anggota Kelompok ##
 
-### Technology Stack
+- **Andini Permata Sari dengan NIM 10231015**
+- **Chelsy Olivia dengan NIM 10231025**
+- **Jonathan Cristopher Jetro dengan NIM 10231047**
+- **Nicholas Christian Samuel Manurung dengan NIM 10231069**
 
-#### Frontend
-- React.js with React Router for navigation
-- Bootstrap for responsive UI components
-- SweetAlert2 for enhanced notifications
-- Chart.js for analytics visualization
-- Axios for API communication
+---
 
-#### Backend
-- Node.js with Express
-- MySQL database
-- JWT for authentication
-- Multer for file uploads
+## Progress Summary
+SI CATE adalah aplikasi web full-stack modern untuk Toba Home Catering yang menyediakan solusi digital untuk pemesanan makanan dan pengelolaan operasional catering. Aplikasi ini dirancang untuk memudahkan pelanggan dalam memesan makanan tradisional Batak dan membantu pengelola dalam manajemen pesanan.
 
-### Key Components
+## Accomplished Tasks
+- Implementasi sistem autentikasi multi-level (pelanggan dan admin)
+- Pengembangan dashboard admin dengan statistik dan visualisasi
+- Implementasi manajemen produk dan kategori
+- Pengembangan sistem keranjang dan checkout
+- Integrasi sistem pembayaran
+- Implementasi tracking pesanan
+- Pengembangan sistem ulasan
+- Optimasi performa dan UI/UX
 
-#### Product Display Components
-- `ProductList.js`: Displays all products with filtering
-- `ProductModal.js`: Shows product details in a popup modal
-- `ProductDetail.js`: Full product details page
+## Challenges & Solutions
+- **Challenge 1**: Integrasi sistem pembayaran multi-metode
+  - **Solution**: Implementasi abstraction layer untuk payment gateway dan sistem upload bukti transfer
+- **Challenge 2**: Real-time tracking pesanan
+  - **Solution**: Menggunakan WebSocket untuk update status pesanan secara real-time
+- **Challenge 3**: Optimasi performa loading data
+  - **Solution**: Implementasi lazy loading dan caching untuk data produk
 
-#### Cart Components
-- `CartList.js`: Shopping cart management
-- `CartIndicator.js`: Floating cart indicator
-- `CartNotification.js`: Notification for cart actions
+## Next Week Plan
+- Presentasi
 
-#### Layout Components
-- `Layout.js`: Main layout wrapper with navigation
-- `AdminLayout.js`: Admin dashboard layout
-- `Footer.js`: Site footer
+## 2. Complete Documentation: README, API docs, user manual
 
-#### Order Components
-- `OrderList.js`: List of user orders
-- `OrderDetail.js`: Order details and status
+### README
+SI CATE adalah aplikasi web full-stack modern untuk Toba Home Catering yang menyediakan solusi digital untuk operasi catering. Aplikasi ini dibangun menggunakan React.js, Node.js, dan Express untuk memberikan pengalaman yang mulus baik bagi pelanggan maupun admin.
 
-### Recent Updates
+#### Fitur Utama
+- Sistem pemesanan online yang intuitif
+- Manajemen menu dan kategori
+- Panel admin yang komprehensif
+- Autentikasi multi-level (pelanggan, admin)
+- Desain responsif untuk semua perangkat
+- Sistem tracking pesanan
 
-1. **Product Modal Enhancement**
-   - Implemented responsive modal popups for product details
-   - Added quick view functionality from product cards
-   - Improved image error handling
-   - Added loading indicators
+#### Teknologi
+- **Frontend:** React.js, Vite, Tailwind CSS
+- **Backend:** Node.js, Express
+- **Database:** PostgreSQL
+- **Autentikasi:** JWT
+- **File Upload:** Multer
 
-2. **Shopping Cart Improvements**
-   - Redesigned cart interface with Bootstrap
-   - Added floating cart indicator
-   - Implemented toast notifications for cart actions
-   - Created streamlined checkout process
+### Repository Information
+- **Main Repository**: https://github.com/JoonothanJetr/TubesProwebA8.git
+- **Branch**: main
+- **Latest Release**: v1.0.0
+- **Release Date**: 24/05/2025
 
-3. **UI Enhancements**
-   - Added hover effects to product cards
-   - Created consistent styling across all components
-   - Improved responsive design for mobile devices
-   - Enhanced form validations
+### Repository Structure
+```
+TubesProwebA8/
+├── ecommerce-frontend/       # Frontend React application
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   ├── pages/          # Page components
+│   │   ├── services/       # API services
+│   │   └── utils/          # Utility functions
+│   │
+│   └── public/             # Static files
+│
+├── ecommerce-backend/       # Backend Node.js server
+│   ├── src/
+│   │   ├── routes/         # API routes
+│   │   ├── middleware/     # Express middleware
+│   │   └── scripts/        # Utility scripts
+│   │
+│   └── docs/              # API documentation
+│
+└── docs/                   # Project documentation
+    ├── README.md          # Main documentation
+    ├── API-docs.md        # API reference
+    └── user-manual.md     # User guides
+```
 
-### Getting Started
+### Release Notes
+- **v1.0.0** (24/05/2025)
+  - Initial release
+  - Complete catering management system
+  - Admin panel implementation
+  - Online ordering system
+  - Payment integration
+  - Documentation and user manuals
 
-1. Clone the repository
-2. Install dependencies:
+### How to Clone and Setup
+1. Clone repository:
+   ```bash
+   git clone https://github.com/JoonothanJetr/TubesProwebA8.git
+   cd TubesProwebA8
    ```
+
+2. Install dependencies:
+   ```bash
+   # Install frontend dependencies
    cd ecommerce-frontend
    npm install
+
+   # Install backend dependencies
    cd ../ecommerce-backend
    npm install
    ```
 
-3. Set up the database:
-   ```
-   cd ecommerce-backend
+3. Setup database:
+   ```bash
+   # In ecommerce-backend directory
+   # Make sure PostgreSQL is installed and running
    npm run db:setup
    ```
 
-4. Start the backend server:
-   ```
+4. Start development servers:
+   ```bash
+   # Backend server
+   cd ecommerce-backend
+   npm run dev
+
+   # Frontend development server
+   cd ecommerce-frontend
    npm run dev
    ```
 
-5. Start the frontend development server:
-   ```
-   cd ../ecommerce-frontend
-   npm run dev
-   ```
+### File Dokumentasi Terpisah
+Untuk dokumentasi yang lebih lengkap dan terstruktur, kami menyediakan file-file terpisah berikut:
 
-### Contributors
-- [Contributor 1]
-- [Contributor 2]
-- [Contributor 3]
-- [Contributor 4]
+1. **README.md**
+   - Berisi informasi umum tentang proyek
+   - Panduan instalasi dan setup
+   - Daftar fitur utama
+   - Teknologi yang digunakan
+   - Kontribusi dan lisensi
+   - Lokasi: `/docs/README.md`
+
+2. **API-docs.md**
+   - Dokumentasi lengkap API endpoints
+   - Format request dan response
+   - Contoh penggunaan
+   - Autentikasi dan otorisasi
+   - Error handling
+   - Lokasi: `/docs/API-docs.md`
+
+3. **user-manual.md**
+   - Panduan lengkap untuk pengguna
+   - Tutorial penggunaan fitur
+   - FAQ dan troubleshooting
+   - Panduan admin
+   - Screenshot dan contoh
+   - Lokasi: `/docs/user-manual.md`
+
+Semua file dokumentasi dapat diakses melalui repository GitHub di folder `/docs`.
+
+## Contributions
+- **Andini Permata Sari**: 
+  - Frontend development (React components)
+  - UI implementation
+  - Component styling
+  - State management
+
+- **Chelsy Olivia**: 
+  - UI/UX design
+  - Frontend development
+  - User flow optimization
+  - Design documentation
+
+- **Jonathan Cristopher Jetro**: 
+  - Full-stack development
+  - API development
+  - Database design
+  - System architecture
+
+- **Nicholas Christian Samuel Manurung**: 
+  - Quality assurance
+  - Testing implementation
+  - DevOps setup
+  - Deployment management
