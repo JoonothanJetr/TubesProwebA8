@@ -123,15 +123,30 @@ export const orderService = {
             const paymentProof = formData.get('paymentProof');
             if (!(paymentProof instanceof File) || !paymentProof.type.startsWith('image/')) {
                 throw new Error('Bukti pembayaran harus berupa file gambar');
-            }
-
-            // Make the API call
-            const response = await api.post('/orders/with-proof', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            }            // First create the order without proof
+            const orderResponse = await api.post('/orders', {
+                paymentMethod: formData.get('paymentMethod'),
+                items: JSON.parse(formData.get('items')),
+                totalAmount: parseFloat(formData.get('totalAmount')),
+                desiredCompletionDate: formData.get('desiredCompletionDate'),
+                deliveryAddress: formData.get('deliveryAddress'),
+                phoneNumber: formData.get('phoneNumber')
             });
-            return response.data;
+
+            // Then upload the payment proof
+            if (orderResponse.data.success) {
+                const proofFormData = new FormData();
+                proofFormData.append('paymentProof', paymentProof);
+                
+                const proofResponse = await api.post(`/orders/${orderResponse.data.order.id}/proof`, proofFormData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                return proofResponse.data;
+            }
+            
+            return orderResponse.data;
         } catch (error) {
             console.error('Error creating order with proof:', error);
             // If it's an axios error with response data, throw that
@@ -157,19 +172,28 @@ export const orderService = {
         return response.data;
     },
 
-    cancelOrder: async (id) => {
-        const response = await api.post(`/orders/${id}/cancel`);
-        return response.data;
-    },
-
-    uploadPaymentProof: async (orderId, formData) => {
+    cancelOrder: async (orderId) => {
         try {
-            const response = await api.put(`/orders/${orderId}/upload-proof`, formData);
+            const response = await api.post(`/orders/${orderId}/cancel`);
+            return response.data;
+        } catch (error) {
+            console.error('Error cancelling order:', error.response?.data || error.message);
+            throw error.response?.data || error;
+        }
+    },    uploadPaymentProof: async (orderId, formData) => {
+        try {
+            // Changed to use the correct endpoint and method
+            const response = await api.post(`/orders/${orderId}/proof`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             return response.data;
         } catch (error) {
             console.error('Error in uploadPaymentProof service:', error.response || error.message);
             throw error;
-        }    },
+        }
+    },
 
     // Admin specific methods
     getAllOrdersAdmin: async (filters = {}) => {

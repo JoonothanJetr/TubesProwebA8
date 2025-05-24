@@ -6,45 +6,221 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure router is exported
-module.exports = router;
-
-// Pastikan direktori uploads/proofs ada
-const proofUploadDir = path.join(__dirname, '../../uploads/proofs');
-if (!fs.existsSync(proofUploadDir)) {
-    fs.mkdirSync(proofUploadDir, { recursive: true });
-}
-
-// Konfigurasi Multer untuk upload bukti pembayaran
-const proofStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, proofUploadDir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'image/jpg') {
-        cb(null, true);
-    } else {
-        cb(new Error('Hanya file gambar (JPEG, PNG, JPG) yang diizinkan!'), false);
-    }
-};
-
-const uploadProof = multer({ 
-    storage: proofStorage, 
-    fileFilter: fileFilter, 
-    limits: { fileSize: 1024 * 1024 * 5 } 
-});
-
+// Database configuration
 const pool = new Pool({
     user: process.env.DB_USER || 'postgres',
     host: process.env.DB_HOST || 'localhost',
     database: process.env.DB_NAME || 'catering_ecommerce',
     password: process.env.DB_PASSWORD || 'postgres',
     port: process.env.DB_PORT || 5432,
+});
+
+// Ensure router is exported
+module.exports = router;
+
+// Make sure uploads directory exists with proper permissions
+const ensureUploadDirExists = (dir) => {
+    if (!fs.existsSync(dir)) {
+        try {
+            fs.mkdirSync(dir, { recursive: true, mode: 0o755 });
+            console.log(`Created directory: ${dir}`);
+        } catch (err) {
+            console.error(`Error creating directory ${dir}:`, err);
+            throw err;
+        }
+    }
+};
+
+// Pastikan direktori uploads/proofs ada
+const proofUploadDir = path.join(__dirname, '../../uploads/proofs');
+ensureUploadDirExists(proofUploadDir);
+
+// Konfigurasi Multer untuk upload bukti pembayaran
+const proofStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        ensureUploadDirExists(proofUploadDir);
+        cb(null, proofUploadDir);
+    },
+    filename: function (req, file, cb) {
+        // Add a file extension based on mimetype
+        let ext = '';
+        switch (file.mimetype) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                ext = '.jpg';
+                break;
+            case 'image/png':
+                ext = '.png';
+                break;
+            default:
+                ext = path.extname(file.originalname);
+        }
+        const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniquePrefix + ext);
+    }
+});
+
+// Validate file upload
+const fileFilter = (req, file, cb) => {
+    if (!file.mimetype.match(/^image\/(jpeg|png|jpg)$/)) {
+        return cb(new Error('Hanya file gambar (JPEG, PNG, JPG) yang diizinkan!'), false);
+    }
+    cb(null, true);
+};
+
+// Configure multer upload
+const upload = multer({
+    storage: proofStorage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5 MB
+        files: 1
+    }
+}).single('paymentProof');
+
+// Upload payment proof endpoint
+router.post('/:id/proof', auth.authenticateToken, async (req, res) => {
+    let uploadedFile = null;
+    
+    try {
+        const orderId = req.params.id;
+        
+        // Get order first to check ownership and existence
+        const orderCheck = await pool.query(
+            'SELECT user_id, payment_status, payment_method, payment_proof_url FROM orders WHERE id = $1',
+            [orderId]
+        );
+
+        if (orderCheck.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'Pesanan tidak ditemukan'
+            });
+        }
+
+        const order = orderCheck.rows[0];
+
+        // Check if user owns this order
+        if (order.user_id !== req.user.id) {
+            return res.status(403).json({ 
+                success: false,
+                error: 'Anda tidak memiliki akses ke pesanan ini'
+            });
+        }
+
+        // Check if order is COD
+        if (order.payment_method === 'cod') {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Pesanan COD tidak memerlukan bukti pembayaran'
+            });
+        }
+
+        // Check if payment already confirmed
+        if (order.payment_status === 'pembayaran sudah dilakukan') {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Pembayaran sudah dikonfirmasi sebelumnya'
+            });
+        }
+
+        // Handle file upload
+        await new Promise((resolve, reject) => {
+            upload(req, res, (err) => {
+                if (err instanceof multer.MulterError) {
+                    if (err.code === 'LIMIT_FILE_SIZE') {
+                        reject(new Error('Ukuran file terlalu besar. Maksimal 5MB'));
+                    } else {
+                        reject(new Error(err.message));
+                    }
+                } else if (err) {
+                    reject(err);
+                } else if (!req.file) {
+                    reject(new Error('Bukti pembayaran harus diunggah'));
+                } else {
+                    uploadedFile = req.file;
+                    resolve();
+                }
+            });
+        });
+
+        // Start database transaction
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Delete old proof file if exists
+            if (order.payment_proof_url) {
+                const oldFilePath = path.join(proofUploadDir, order.payment_proof_url);
+                try {
+                    await fs.promises.unlink(oldFilePath);
+                } catch (err) {
+                    console.error('Error deleting old proof file:', err);
+                    // Continue even if delete fails
+                }
+            }            // Update order with new proof URL and status
+            const result = await client.query(
+                `UPDATE orders 
+                 SET payment_proof_url = $1,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $2 AND payment_status = 'menunggu pembayaran'
+                 RETURNING *`,
+                [uploadedFile.filename, orderId]
+            );
+
+            if (result.rows.length === 0) {
+                throw new Error('Status pesanan tidak dapat diperbarui');
+            }
+
+            await client.query('COMMIT');
+
+            res.json({
+                success: true,
+                message: 'Bukti pembayaran berhasil diunggah',
+                order: result.rows[0]
+            });
+
+        } catch (err) {
+            await client.query('ROLLBACK');
+            
+            // Clean up uploaded file on error
+            if (uploadedFile && fs.existsSync(path.join(proofUploadDir, uploadedFile.filename))) {
+                try {
+                    fs.unlinkSync(path.join(proofUploadDir, uploadedFile.filename));
+                } catch (unlinkErr) {
+                    console.error('Error deleting uploaded file:', unlinkErr);
+                }
+            }
+            
+            throw err;
+        } finally {
+            client.release();
+        }
+
+    } catch (error) {
+        console.error('Error in proof upload:', error);
+        
+        // Clean up uploaded file if exists
+        if (uploadedFile && fs.existsSync(path.join(proofUploadDir, uploadedFile.filename))) {
+            try {
+                fs.unlinkSync(path.join(proofUploadDir, uploadedFile.filename));
+            } catch (unlinkErr) {
+                console.error('Error deleting uploaded file:', unlinkErr);
+            }
+        }
+
+        const statusCode = error.message.includes('tidak ditemukan') ? 404 :
+                          error.message.includes('tidak memiliki akses') ? 403 :
+                          error.message.includes('COD') || 
+                          error.message.includes('sudah dikonfirmasi') ||
+                          error.message.includes('harus diunggah') ||
+                          error.message.includes('terlalu besar') ? 400 : 500;
+
+        res.status(statusCode).json({
+            success: false,
+            error: error.message || 'Terjadi kesalahan saat mengunggah bukti pembayaran'
+        });
+    }
 });
 
 // Create order from cart
@@ -485,54 +661,61 @@ router.put('/admin/orders/:id', auth.isAdmin, async (req, res) => {
     }
 });
 
-// Upload payment proof
-router.post('/:id/proof', auth.authenticateToken, uploadProof.single('paymentProof'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    const orderId = req.params.id;
-    const paymentProofUrl = req.file.filename;
-
+// Cancel order endpoint
+router.post('/:id/cancel', auth.authenticateToken, async (req, res) => {
+    const client = await pool.connect();
     try {
-        // Get order first to check ownership
-        const orderCheck = await pool.query(
-            'SELECT user_id FROM orders WHERE id = $1',
+        await client.query('BEGIN');
+        const orderId = req.params.id;
+        
+        // Check if order exists and can be cancelled
+        const orderCheck = await client.query(
+            'SELECT user_id, order_status, payment_status FROM orders WHERE id = $1',
             [orderId]
         );
 
         if (orderCheck.rows.length === 0) {
-            // Delete uploaded file if order doesn't exist
-            fs.unlinkSync(path.join(proofUploadDir, paymentProofUrl));
-            return res.status(404).json({ error: 'Order not found' });
+            throw new Error('Pesanan tidak ditemukan');
         }
 
-        // Check if user owns this order
-        if (orderCheck.rows[0].user_id !== req.user.id) {
-            // Delete uploaded file if user doesn't own the order
-            fs.unlinkSync(path.join(proofUploadDir, paymentProofUrl));
-            return res.status(403).json({ error: 'Not authorized' });
+        const order = orderCheck.rows[0];
+
+        // Verify user owns this order
+        if (order.user_id !== req.user.id) {
+            throw new Error('Tidak diizinkan membatalkan pesanan ini');
         }
 
-        // Update order with payment proof URL and status
-        const result = await pool.query(
+        // Check if order can be cancelled
+        if (order.order_status !== 'diproses' || order.payment_status !== 'menunggu pembayaran') {
+            throw new Error('Pesanan tidak dapat dibatalkan dalam status ini');
+        }
+
+        // Update order status
+        const result = await client.query(
             `UPDATE orders 
-             SET payment_proof_url = $1,
-                 payment_status = 'menunggu konfirmasi',
+             SET order_status = 'dibatalkan',
+                 payment_status = 'pembayaran dibatalkan',
                  updated_at = CURRENT_TIMESTAMP
-             WHERE id = $2
+             WHERE id = $1
              RETURNING *`,
-            [paymentProofUrl, orderId]
+            [orderId]
         );
 
+        await client.query('COMMIT');
+
         res.json({
-            message: 'Payment proof uploaded successfully',
+            success: true,
+            message: 'Pesanan berhasil dibatalkan',
             order: result.rows[0]
         });
+
     } catch (err) {
-        // Delete uploaded file if database operation fails
-        fs.unlinkSync(path.join(proofUploadDir, paymentProofUrl));
-        console.error('Error uploading payment proof:', err);
-        res.status(500).json({ error: 'Server error' });
+        await client.query('ROLLBACK');
+        res.status(400).json({ 
+            success: false,
+            error: err.message || 'Gagal membatalkan pesanan'
+        });
+    } finally {
+        client.release();
     }
 });
