@@ -5,6 +5,7 @@ import { FiMinus, FiPlus, FiShoppingBag, FiX } from 'react-icons/fi';
 import { productService } from '../../services/productService';
 import { cartService } from '../../services/cartService';
 import { authService } from '../../services/authService';
+import { getProductImageUrl } from '../../utils/imageHelper';
 import Swal from 'sweetalert2';
 import ProductImageOptimized from '../common/ProductImageOptimized';
 import './ProductModal.css';
@@ -106,19 +107,33 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
         // Add to our prefetch cache for future use
         prefetchedProducts.set(productId, data);        // Pre-load the image
         if (data.image_url) {
-          setImageSrc(data.image_url);
-          setImageError(false);
-          const img = new Image();
-          img.src = data.image_url;
-          img.onload = () => {
-            setIsImageLoaded(true);
-            setImageError(false);
-          };
-          img.onerror = () => {
-            console.error(`Failed to load image: ${data.image_url}`);
+          try {
+            const formattedImageUrl = getProductImageUrl(data.image_url);
+            if (formattedImageUrl) {
+              setImageSrc(formattedImageUrl);
+              const img = new Image();
+              img.src = formattedImageUrl;
+              img.onload = () => {
+                setIsImageLoaded(true);
+                setImageError(false);
+              };
+              img.onerror = () => {
+                console.error(`Failed to load image: ${formattedImageUrl}`);
+                setImageError(true);
+                setIsImageLoaded(true);
+              };
+            } else {
+              setImageError(true);
+              setIsImageLoaded(true);
+            }
+          } catch (err) {
+            console.error('Error formatting image URL:', err);
             setImageError(true);
             setIsImageLoaded(true);
-          };
+          }
+        } else {
+          setImageError(true);
+          setIsImageLoaded(true);
         }
         
         setError(null);

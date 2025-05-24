@@ -14,19 +14,23 @@ import { getProductImageUrl } from '../../utils/imageHelper';
  * @param {string} props.className Additional CSS classes
  * @returns {JSX.Element} Rendered component
  */
-const ProductImageOptimized = memo(({ 
+const ProductImageOptimized = memo(function ProductImageOptimized({ 
   imageUrl, 
   productName,
   style = {},
   className = '',
   ...props 
-}) => {
+}) {
   // Use useMemo to prevent redundant URL calculations on re-renders
   const formattedUrl = useMemo(() => {
-    console.log('Original imageUrl:', imageUrl);
-    const url = getProductImageUrl(imageUrl);
-    console.log('Formatted imageUrl:', url);
-    return url;
+    if (!imageUrl) return null;
+    try {
+      const url = getProductImageUrl(imageUrl);
+      return url;
+    } catch (err) {
+      console.error('Error formatting image URL:', err);
+      return null;
+    }
   }, [imageUrl]);
   
   // Return memoized component with calculated URL

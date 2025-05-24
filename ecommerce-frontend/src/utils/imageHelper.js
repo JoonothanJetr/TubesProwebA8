@@ -13,11 +13,36 @@ const imageUrlCache = new Map();
  */
 export function getProductImageUrl(imageUrl) {
     // Return null for invalid/empty URLs
-    if (!imageUrl || typeof imageUrl !== 'string') {
+    if (!imageUrl || typeof imageUrl !== 'string' || imageUrl === 'undefined' || imageUrl === 'null') {
+        console.warn('Invalid image URL provided:', imageUrl);
         return null;
     }
 
-    // Check cache first
+    try {
+        // Check cache first to improve performance
+        if (imageUrlCache.has(imageUrl)) {
+            return imageUrlCache.get(imageUrl);
+        }
+
+        // Handle already absolute URLs (including http/https)
+        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+            imageUrlCache.set(imageUrl, imageUrl);
+            return imageUrl;
+        }
+
+        // Clean up the image path
+        const cleanPath = imageUrl.replace(/^\/+/, '');
+        
+        // Construct full URL with explicit image type query parameter
+        const fullUrl = `${API_IMAGE_URL}/${cleanPath}?type=image/jpeg`;
+        
+        // Cache and return the result
+        imageUrlCache.set(imageUrl, fullUrl);
+        return fullUrl;
+    } catch (error) {
+        console.error('Error processing image URL:', error);
+        return null;
+    }
     if (imageUrlCache.has(imageUrl)) {
         return imageUrlCache.get(imageUrl);
     }
@@ -40,17 +65,13 @@ export function getProductImageUrl(imageUrl) {
         imageUrlCache.set(imageUrl, formattedUrl); 
         return formattedUrl;
     }
-    
-    // Clean up path by:
-    // 1. Removing leading slashes
-    // 2. Removing any uploads/products/ prefix
-    // 3. Removing any /uploads/products/ prefix
+      // Clean up path and handle all possible prefix variants
     const cleanPath = imageUrl
-        .replace(/^\/+/, '')
-        .replace(/^uploads\/products\//, '')
-        .replace(/^\/uploads\/products\//, '');
+        .replace(/^\/+/, '')  // Remove leading slashes
+        .replace(/^(uploads\/)?products?\//, '')  // Remove any variant of uploads/products/ or products/
+        .replace(/^product_images\//, '');  // Remove product_images/ prefix if exists
     
-    // Construct the full URL
+    // Construct the full URL with proper path
     const formattedUrl = `${API_IMAGE_URL}/product_images/${cleanPath}`;
     imageUrlCache.set(imageUrl, formattedUrl);
     return formattedUrl;
