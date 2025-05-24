@@ -719,3 +719,64 @@ router.post('/:id/cancel', auth.authenticateToken, async (req, res) => {
         client.release();
     }
 });
+
+// Delete single order (Admin only) 
+router.delete('/:id', auth.isAdmin, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        
+        const { id } = req.params;
+
+        // Check if order exists
+        const checkOrder = await client.query(
+            'SELECT id, payment_proof_url FROM orders WHERE id = $1',
+            [id]
+        );
+
+        if (checkOrder.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ 
+                success: false,
+                message: 'Pesanan tidak ditemukan' 
+            });
+        }
+
+        const order = checkOrder.rows[0];
+
+        // Delete order items first due to foreign key constraint
+        await client.query('DELETE FROM order_items WHERE order_id = $1', [id]);
+
+        // Delete payment proof file if exists
+        if (order.payment_proof_url) {
+            const proofPath = path.join(proofUploadDir, order.payment_proof_url);
+            try {
+                if (fs.existsSync(proofPath)) {
+                    fs.unlinkSync(proofPath);
+                }
+            } catch (err) {
+                console.error('Error deleting proof file:', err);
+                // Continue with order deletion even if file delete fails
+            }
+        }
+
+        // Delete the order
+        await client.query('DELETE FROM orders WHERE id = $1', [id]);
+
+        await client.query('COMMIT');
+
+        res.json({ 
+            success: true,
+            message: 'Pesanan berhasil dihapus' 
+        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Error deleting order:', err);
+        res.status(500).json({ 
+            success: false,
+            message: 'Terjadi kesalahan saat menghapus pesanan'
+        });
+    } finally {
+        client.release();
+    }
+});

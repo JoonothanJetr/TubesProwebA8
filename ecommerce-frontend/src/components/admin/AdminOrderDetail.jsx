@@ -1,12 +1,98 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { orderService } from '../../services/orderService'; // Sesuaikan path jika perlu
-import { getPaymentProofUrl } from '../../utils/imageHelper'; // Only import getPaymentProofUrl
+import { orderService } from '../../services/orderService';
+import { getPaymentProofUrl } from '../../utils/imageHelper';
 import toast from 'react-hot-toast';
-import ProductImageOptimized from '../common/ProductImageOptimized'; // Use optimized image component
-import PaymentProofImage from '../common/PaymentProofImage'; // Import PaymentProofImage
-import { normalizeImagePaths } from '../../utils/imageFixer'; // Import image path fixer
 import { motion, AnimatePresence } from 'framer-motion';
+import ProductImageOptimized from '../common/ProductImageOptimized';
+import PaymentProofImage from '../common/PaymentProofImage';
+import { normalizeImagePaths } from '../../utils/imageFixer';
+import Swal from 'sweetalert2';
+
+// Komponen Modal Konfirmasi yang Diperbarui
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black bg-opacity-50"
+                    />
+                    
+                    <motion.div
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.5, opacity: 0 }}
+                        transition={{ 
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 25
+                        }}
+                        className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 relative z-50 shadow-2xl"
+                    >
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="text-center"
+                        >
+                            <motion.div
+                                initial={{ rotate: 0 }}
+                                animate={{ rotate: [0, -10, 10, 0] }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                                className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6"
+                            >
+                                <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </motion.div>
+
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                                Hapus Pesanan?
+                            </h3>
+                            <p className="text-gray-600 mb-8">
+                                Pesanan yang sudah dihapus tidak dapat dikembalikan. Yakin ingin menghapus?
+                            </p>
+
+                            <div className="flex justify-center space-x-4">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={onClose}
+                                    disabled={isDeleting}
+                                    className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium text-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50 transition-all duration-200"
+                                >
+                                    Batal
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={onConfirm}
+                                    disabled={isDeleting}
+                                    className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-medium text-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 transition-all duration-200 min-w-[120px]"
+                                >
+                                    {isDeleting ? (
+                                        <div className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            Menghapus
+                                        </div>
+                                    ) : 'Ya, Hapus'}
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+};
 
 const AdminOrderDetail = () => {
     const { id: orderId } = useParams();
@@ -14,6 +100,8 @@ const AdminOrderDetail = () => {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // State untuk form update
     const [selectedOrderStatus, setSelectedOrderStatus] = useState('');
@@ -79,6 +167,37 @@ const AdminOrderDetail = () => {
             toast.error('Gagal menyimpan perubahan: ' + (err?.response?.data?.error || err.message));
         } finally {
             setIsUpdating(false);
+        }
+    };
+
+    const handleDeleteOrder = async () => {
+        setIsDeleting(true);
+        const loadingToast = toast.loading('Menghapus pesanan...');
+
+        try {
+            await orderService.deleteOrder(orderId);
+            toast.dismiss(loadingToast);
+            
+            // Tampilkan notifikasi sukses dengan SweetAlert2
+            await Swal.fire({
+                title: 'Berhasil!',
+                text: 'Pesanan telah dihapus',
+                icon: 'success',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+
+            navigate('/admin/orders');
+        } catch (err) {
+            toast.dismiss(loadingToast);
+            toast.error('Gagal menghapus pesanan: ' + (err?.response?.data?.message || err.message));
+            setIsDeleting(false);
+            setShowDeleteModal(false);
         }
     };
 
@@ -222,6 +341,13 @@ const AdminOrderDetail = () => {
 
     return (
         <div className="relative">
+            <DeleteConfirmationModal 
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDeleteOrder}
+                isDeleting={isDeleting}
+            />
+
             <AnimatePresence>
                 {showSuccessNotif && (
                     <motion.div
@@ -286,19 +412,33 @@ const AdminOrderDetail = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                             </span>
-                            Kelola Pesanan <span className="text-indigo-600">#{order.id}</span>
+                            Kelola Pesanan <span className="text-indigo-600">#{orderId}</span>
                         </h1>
-                        <button 
-                            onClick={() => navigate("/admin/orders")} 
-                            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Kembali ke Daftar Pesanan
-                        </button>
+                        <div className="flex space-x-4">
+                            <button 
+                                onClick={() => navigate("/admin/orders")} 
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-150"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                Kembali
+                            </button>
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setShowDeleteModal(true)}
+                                disabled={isDeleting}
+                                className="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-150 disabled:opacity-50"
+                            >
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Hapus Pesanan
+                            </motion.button>
+                        </div>
                     </div>
-
+                    
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-6">
                             {renderCustomerDetails()}

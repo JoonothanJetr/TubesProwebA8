@@ -6,6 +6,7 @@ import { catalogService } from '../../services/catalogService';
 import { authService } from '../../services/authService';
 import { getProductImageUrl } from '../../utils/imageHelper';
 import { FiCheck, FiX } from 'react-icons/fi';
+import AnimatedPage from '../common/AnimatedPage';
 
 const ProductForm = () => {    
     const { productId } = useParams();
@@ -276,129 +277,106 @@ const ProductForm = () => {
     }
 
     return (
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="min-h-screen bg-gray-100 py-8"
-        >
-            <AnimatePresence>
-                {notification.show && (
-                    <NotificationOverlay
-                        message={notification.message}
-                        type={notification.type}
-                    />
-                )}
-            </AnimatePresence>
+        <AnimatedPage>
+            <div className="min-h-screen bg-gray-100 py-8">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            {isEditMode ? 'Edit Produk' : 'Tambah Produk Baru'}
+                        </h1>
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate('/admin/products')}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            ← Kembali ke Daftar
+                        </motion.button>
+                    </div>
 
-            <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
-            >
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        {isEditMode ? 'Edit Produk' : 'Tambah Produk Baru'}
-                    </h1>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate('/admin/products')}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                        ← Kembali ke Daftar
-                    </motion.button>
-                </div>
+                    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div className="p-8">
+                            {error && (
+                                <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
+                                    <p className="font-medium">Error</p>
+                                    <p>{error}</p>
+                                </div>
+                            )}
 
-                <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-white rounded-xl shadow-md overflow-hidden"
-                >
-                    <div className="p-8">
-                        {error && (
-                            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
-                                <p className="font-medium">Error</p>
-                                <p>{error}</p>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-8">
-                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Nama Produk
-                                </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    id="name"
-                                    value={product.name}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Masukkan nama produk"
-                                    className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                                />
-                            </div>
-
-                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Deskripsi
-                                </label>
-                                <textarea
-                                    name="description"
-                                    id="description"
-                                    rows={4}
-                                    value={product.description}
-                                    onChange={handleChange}
-                                    placeholder="Masukkan deskripsi produk"
-                                    className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <form onSubmit={handleSubmit} className="space-y-8">
                                 <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                    <label htmlFor="price" className="block text-sm font-semibold text-gray-900 mb-2">
-                                        Harga (Rp)
+                                    <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
+                                        Nama Produk
                                     </label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span className="text-gray-500 sm:text-sm">Rp</span>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        id="name"
+                                        value={product.name}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="Masukkan nama produk"
+                                        className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                    />
+                                </div>
+
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                    <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
+                                        Deskripsi
+                                    </label>
+                                    <textarea
+                                        name="description"
+                                        id="description"
+                                        rows={4}
+                                        value={product.description}
+                                        onChange={handleChange}
+                                        placeholder="Masukkan deskripsi produk"
+                                        className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                        <label htmlFor="price" className="block text-sm font-semibold text-gray-900 mb-2">
+                                            Harga (Rp)
+                                        </label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span className="text-gray-500 sm:text-sm">Rp</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                name="price"
+                                                id="price"
+                                                value={product.price}
+                                                onChange={handleChange}
+                                                required
+                                                min="1"
+                                                placeholder="0"
+                                                className="mt-1 block w-full pl-12 pr-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                            />
                                         </div>
+                                    </div>
+
+                                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                        <label htmlFor="stock" className="block text-sm font-semibold text-gray-900 mb-2">
+                                            Stok
+                                        </label>
                                         <input
                                             type="number"
-                                            name="price"
-                                            id="price"
-                                            value={product.price}
+                                            name="stock"
+                                            id="stock"
+                                            value={product.stock}
                                             onChange={handleChange}
                                             required
-                                            min="1"
+                                            min="0"
                                             placeholder="0"
-                                            className="mt-1 block w-full pl-12 pr-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                                            className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                                    <label htmlFor="stock" className="block text-sm font-semibold text-gray-900 mb-2">
-                                        Stok
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="stock"
-                                        id="stock"
-                                        value={product.stock}
-                                        onChange={handleChange}
-                                        required
-                                        min="0"
-                                        placeholder="0"
-                                        className="mt-1 block w-full px-4 py-3 rounded-lg border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">                                <label htmlFor="category_id" className="block text-sm font-semibold text-gray-900 mb-2">
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">                                <label htmlFor="category_id" className="block text-sm font-semibold text-gray-900 mb-2">
                                     Katalog
                                 </label>
                                 <select
@@ -493,11 +471,15 @@ const ProductForm = () => {
                                     )}
                                 </button>
                             </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
-                </motion.div>
-            </motion.div>
-        </motion.div>
+                </div>
+            </div>
+            {notification.show && (
+                <NotificationOverlay message={notification.message} type={notification.type} />
+            )}
+        </AnimatedPage>
     );
 };
 

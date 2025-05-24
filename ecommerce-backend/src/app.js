@@ -38,7 +38,7 @@ app.use('/images', express.static(path.join(__dirname, '../public/images')));
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/api/orders', ordersRoutes);
+app.use('/api/orders', ordersRoutes); // Orders routes sudah termasuk DELETE /:id
 app.use('/api/admin', adminRoutes);
 app.use('/api/feedback', feedbackRoutes);
 

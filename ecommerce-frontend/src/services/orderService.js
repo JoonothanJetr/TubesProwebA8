@@ -258,4 +258,17 @@ export const orderService = {
             throw error.response?.data || error;
         }
     },
+
+    deleteOrder: async (orderId) => {
+        try {
+            const response = await api.delete(`/orders/${orderId}`);
+            if (response.data.success) {
+                return response.data;
+            }
+            throw new Error(response.data.message || 'Gagal menghapus pesanan');
+        } catch (error) {
+            console.error('Error deleting order:', error);
+            throw error.response?.data || error;
+        }
+    }
 };

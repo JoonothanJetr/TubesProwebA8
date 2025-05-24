@@ -10,27 +10,11 @@ import Swal from 'sweetalert2';
 import ProductImageOptimized from '../common/ProductImageOptimized';
 import './ProductModal.css';
 
+// Inisialisasi cache untuk produk yang telah di-prefetch
+const prefetchedProducts = new Map();
+
 // Base64 encoded tiny image placeholder (1x1 px transparent PNG)
 const TRANSPARENT_PLACEHOLDER = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-
-// Function to prefetch products for better performance
-const prefetchedProducts = new Map();
-const prefetchProduct = async (id) => {
-  if (!id || prefetchedProducts.has(id)) return;
-  
-  try {
-    const data = await productService.getProductById(id);
-    prefetchedProducts.set(id, data);
-    
-    // Also prefetch the product image
-    if (data && data.image_url) {
-      const img = new Image();
-      img.src = data.image_url;
-    }
-  } catch (err) {
-    console.error(`Failed to prefetch product ${id}:`, err);
-  }
-};
 
 const ProductModalOptimized = ({ productId, show, onHide }) => {
   const [product, setProduct] = useState(null);
@@ -69,11 +53,15 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
     setError(null);
     setQuantity(1);
   }, [show]);
-  
-  // Load product data when needed
+    // Load product data when needed
   useEffect(() => {
     // Don't do anything if modal is not shown
     if (!show || !productId) return;
+    
+    // Reset image states first
+    setIsImageLoaded(false);
+    setImageError(false);
+    setImageSrc('');
     
     const fetchProductDetails = async () => {
       if (!productId) {
@@ -86,17 +74,28 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
         setLoading(true);
         
         // Check if we already have this product in our prefetch cache
-        if (prefetchedProducts.has(productId)) {
-          const cachedProduct = prefetchedProducts.get(productId);
+        const cachedProduct = prefetchedProducts.get(productId);
+        
+        if (cachedProduct) {
           setProduct(cachedProduct);
-          setLoading(false);
-
-          // Pre-load the image
+          
+          // Pre-load and set the image
           if (cachedProduct.image_url) {
+            const formattedImageUrl = getProductImageUrl(cachedProduct.image_url);
+            setImageSrc(formattedImageUrl);
+            
             const img = new Image();
-            img.src = cachedProduct.image_url;
-            img.onload = () => setIsImageLoaded(true);
+            img.src = formattedImageUrl;
+            img.onload = () => {
+              setIsImageLoaded(true);
+              setImageError(false);
+            };
+            img.onerror = () => {
+              setImageError(true);
+              setIsImageLoaded(true);
+            };
           }
+          setLoading(false);
           return;
         }
         
@@ -105,27 +104,30 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
         setProduct(data);
         
         // Add to our prefetch cache for future use
-        prefetchedProducts.set(productId, data);        // Pre-load the image
-        if (data.image_url) {
-          try {
-            const formattedImageUrl = getProductImageUrl(data.image_url);
-            if (formattedImageUrl) {
-              setImageSrc(formattedImageUrl);
-              const img = new Image();
-              img.src = formattedImageUrl;
-              img.onload = () => {
-                setIsImageLoaded(true);
-                setImageError(false);
-              };
-              img.onerror = () => {
-                console.error(`Failed to load image: ${formattedImageUrl}`);
-                setImageError(true);
-                setIsImageLoaded(true);
-              };
-            } else {
-              setImageError(true);
-              setIsImageLoaded(true);
-            }
+        prefetchedProducts.set(productId, data);          // Format and pre-load image
+          if (data.image_url) {
+            try {
+              const formattedImageUrl = getProductImageUrl(data.image_url);
+              if (formattedImageUrl) {
+                // Set image source and start loading
+                setImageSrc(formattedImageUrl);
+                const img = new Image();
+                img.src = formattedImageUrl;
+                
+                // Handle image load success or failure
+                img.onload = () => {
+                  if (data.id === productId) { // Only update if still showing same product
+                    setIsImageLoaded(true);
+                    setImageError(false);
+                  }
+                };
+                img.onerror = () => {
+                  if (data.id === productId) { // Only update if still showing same product
+                    setImageError(true);
+                    setIsImageLoaded(true);
+                  }
+                };
+              }
           } catch (err) {
             console.error('Error formatting image URL:', err);
             setImageError(true);
@@ -437,8 +439,5 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
     </AnimatePresence>
   );
 };
-
-// Export a prefetch function that can be used by other components
-export const prefetchProductForModal = prefetchProduct;
 
 export default ProductModalOptimized;
