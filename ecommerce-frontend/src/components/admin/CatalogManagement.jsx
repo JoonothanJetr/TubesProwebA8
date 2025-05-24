@@ -8,28 +8,30 @@ const DeleteConfirmationDialog = ({ isOpen, onClose, onConfirm, categoryName }) 
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Backdrop */}
-                    <motion.div
+                    {/* Overlay */}
+                    <motion.div 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
                         className="fixed inset-0 bg-black bg-opacity-50 z-40"
                         onClick={onClose}
                     />
                     
                     {/* Dialog */}
-                    <motion.div
-                        initial={{ scale: 0.95, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.95, opacity: 0 }}
-                        transition={{ 
-                            type: "spring",
-                            duration: 0.3,
-                            bounce: 0.3
-                        }}
-                        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4 z-50"
-                    >
-                        <div className="text-center">
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            transition={{ 
+                                type: "spring",
+                                duration: 0.3,
+                                bounce: 0.2
+                            }}
+                            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-auto"
+                        >
+                            {/* Warning Icon */}
                             <motion.div 
                                 initial={{ scale: 0.5, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -40,27 +42,34 @@ const DeleteConfirmationDialog = ({ isOpen, onClose, onConfirm, categoryName }) 
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
                             </motion.div>
-                            
-                            <motion.h3
-                                initial={{ y: -10, opacity: 0 }}
+
+                            {/* Content */}
+                            <motion.div 
+                                initial={{ y: 10, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="text-lg font-medium text-gray-900 mb-2"
+                                className="text-center"
                             >
-                                Konfirmasi Penghapusan
-                            </motion.h3>
-                            
-                            <motion.p
-                                initial={{ y: -10, opacity: 0 }}
+                                <motion.h3
+                                    className="text-lg font-medium text-gray-900 mb-2"
+                                >
+                                    Konfirmasi Penghapusan
+                                </motion.h3>
+                                <motion.p
+                                    className="text-sm text-gray-500 mb-6"
+                                >
+                                    Apakah Anda yakin ingin menghapus kategori <span className="font-semibold">{categoryName}</span>? 
+                                    Produk yang menggunakan kategori ini akan kehilangan kategorinya.
+                                </motion.p>
+                            </motion.div>
+
+                            {/* Buttons */}
+                            <motion.div 
+                                initial={{ y: 10, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.3 }}
-                                className="text-sm text-gray-500 mb-6"
+                                className="flex justify-end gap-3"
                             >
-                                Apakah Anda yakin ingin menghapus kategori <span className="font-semibold">{categoryName}</span>? 
-                                Produk yang menggunakan kategori ini akan kehilangan kategorinya.
-                            </motion.p>
-                            
-                            <div className="flex justify-end gap-3">
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
@@ -77,9 +86,9 @@ const DeleteConfirmationDialog = ({ isOpen, onClose, onConfirm, categoryName }) 
                                 >
                                     Hapus Kategori
                                 </motion.button>
-                            </div>
-                        </div>
-                    </motion.div>
+                            </motion.div>
+                        </motion.div>
+                    </div>
                 </>
             )}
         </AnimatePresence>

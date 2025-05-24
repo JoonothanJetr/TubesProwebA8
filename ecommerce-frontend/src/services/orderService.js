@@ -216,5 +216,18 @@ export const orderService = {
             console.error('Error fetching sales data:', error.response?.data || error.message);
             throw error;
         }
-    }
+    },
+
+    deleteOrderHistory: async (filters) => {
+        try {
+            const response = await api.post('/orders/delete-history', filters);
+            if (response.data.success) {
+                return response.data;
+            }
+            throw new Error(response.data.message || 'Gagal menghapus riwayat pesanan');
+        } catch (error) {
+            console.error('Error deleting order history:', error);
+            throw error.response?.data || error;
+        }
+    },
 };

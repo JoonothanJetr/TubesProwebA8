@@ -61,8 +61,11 @@ router.put('/:id', auth.isAdmin, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     
+    console.log('Updating feedback status:', { id, status, userId: req.user?.id, userRole: req.user?.role });
+    
     // Validate status
     if (!['pending', 'in_progress', 'resolved'].includes(status)) {
+      console.log('Invalid status value:', status);
       return res.status(400).json({
         success: false,
         message: 'Invalid status. Must be pending, in_progress, or resolved'
@@ -70,17 +73,19 @@ router.put('/:id', auth.isAdmin, async (req, res) => {
     }
     
     const result = await pool.query(
-      'UPDATE customer_feedback SET status = $1 WHERE id = $2 RETURNING *',
+      'UPDATE customer_feedback SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
       [status, id]
     );
     
     if (result.rows.length === 0) {
+      console.log('Feedback not found:', id);
       return res.status(404).json({
         success: false,
         message: 'Feedback not found'
       });
     }
     
+    console.log('Feedback updated successfully:', result.rows[0]);
     res.status(200).json({
       success: true,
       message: 'Feedback status updated successfully',
@@ -99,6 +104,19 @@ router.put('/:id', auth.isAdmin, async (req, res) => {
 router.delete('/:id', auth.isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Delete feedback request:', { 
+      feedbackId: id, 
+      userId: req.user?.id, 
+      userRole: req.user?.role 
+    });
+
+    // Validate ID
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid feedback ID'
+      });
+    }
     
     const result = await pool.query(
       'DELETE FROM customer_feedback WHERE id = $1 RETURNING *',
@@ -106,12 +124,14 @@ router.delete('/:id', auth.isAdmin, async (req, res) => {
     );
     
     if (result.rows.length === 0) {
+      console.log('Feedback not found:', id);
       return res.status(404).json({
         success: false,
         message: 'Feedback not found'
       });
     }
     
+    console.log('Feedback deleted successfully:', result.rows[0]);
     res.status(200).json({
       success: true,
       message: 'Feedback deleted successfully',
@@ -121,7 +141,7 @@ router.delete('/:id', auth.isAdmin, async (req, res) => {
     console.error('Error deleting feedback:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: error.message || 'Internal server error'
     });
   }
 });
