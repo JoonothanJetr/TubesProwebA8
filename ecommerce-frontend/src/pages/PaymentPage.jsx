@@ -68,9 +68,7 @@ const PaymentPage = () => {
             // Validate items data
             if (!checkoutData.items || !Array.isArray(checkoutData.items) || checkoutData.items.length === 0) {
                 throw new Error('Data item pesanan tidak valid.');
-            }
-
-            const formData = new FormData();
+            }            const formData = new FormData();
             formData.append('paymentMethod', checkoutData.paymentMethod);
             formData.append('totalAmount', checkoutData.totalAmount.toString());
             formData.append('desiredCompletionDate', checkoutData.desiredCompletionDate);
@@ -79,12 +77,12 @@ const PaymentPage = () => {
                 quantity: item.quantity,
                 price: item.price
             }))));
-
-            if (checkoutData.deliveryAddress) {
+            formData.append('deliveryOption', checkoutData.deliveryOption || 'pickup');
+            formData.append('phoneNumber', checkoutData.phoneNumber || '');
+            
+            // Hanya tambahkan alamat jika opsi pengiriman
+            if (checkoutData.deliveryOption === 'delivery' && checkoutData.deliveryAddress) {
                 formData.append('deliveryAddress', checkoutData.deliveryAddress);
-            }
-            if (checkoutData.phoneNumber) {
-                formData.append('phoneNumber', checkoutData.phoneNumber);
             }
             
             // Hanya tambahkan bukti pembayaran jika bukan COD

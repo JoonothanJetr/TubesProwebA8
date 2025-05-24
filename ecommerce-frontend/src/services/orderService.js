@@ -64,13 +64,12 @@ export const orderService = {
             const desiredCompletionDate = orderData.get('desiredCompletionDate');
             if (!desiredCompletionDate) {
                 throw new Error('Tanggal penyelesaian pesanan harus dipilih');
-            }
-
-            const payload = {
+            }            const payload = {
                 paymentMethod: 'cod',
                 items: items,
                 totalAmount: totalAmount,
                 desiredCompletionDate: desiredCompletionDate,
+                deliveryOption: orderData.get('deliveryOption') || 'pickup',
                 deliveryAddress: orderData.get('deliveryAddress')?.trim() || null,
                 phoneNumber: orderData.get('phoneNumber')?.trim() || null
             };
@@ -84,13 +83,17 @@ export const orderService = {
             };
         }
     },    createOrderWithProof: async (formData) => {
-        try {
-            // Validate required fields first
-            const requiredFields = ['paymentMethod', 'items', 'totalAmount', 'desiredCompletionDate', 'deliveryAddress', 'phoneNumber', 'paymentProof'];
-            for (const field of requiredFields) {
+        try {            // Validate required fields first
+            const baseRequiredFields = ['paymentMethod', 'items', 'totalAmount', 'desiredCompletionDate', 'phoneNumber', 'paymentProof'];
+            for (const field of baseRequiredFields) {
                 if (!formData.get(field)) {
                     throw new Error(`${field} wajib diisi untuk pembayaran non-COD`);
                 }
+            }
+
+            // Only require delivery address if delivery option is selected
+            if (formData.get('deliveryOption') === 'delivery' && !formData.get('deliveryAddress')) {
+                throw new Error('Alamat pengiriman wajib diisi untuk opsi pengiriman');
             }
 
             // Parse and validate items
@@ -129,6 +132,7 @@ export const orderService = {
                 items: JSON.parse(formData.get('items')),
                 totalAmount: parseFloat(formData.get('totalAmount')),
                 desiredCompletionDate: formData.get('desiredCompletionDate'),
+                deliveryOption: formData.get('deliveryOption') || 'pickup',
                 deliveryAddress: formData.get('deliveryAddress'),
                 phoneNumber: formData.get('phoneNumber')
             });

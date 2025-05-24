@@ -1,5 +1,5 @@
 const validateOrderData = (orderData) => {
-    const { paymentMethod, items, totalAmount, deliveryAddress, phoneNumber, desiredCompletionDate } = orderData;
+    const { paymentMethod, items, totalAmount, deliveryAddress, phoneNumber, desiredCompletionDate, deliveryOption } = orderData;
 
     try {
         // Basic validation
@@ -19,17 +19,17 @@ const validateOrderData = (orderData) => {
             throw new Error('Tanggal penyelesaian pesanan harus dipilih.');
         }
 
-        // Validate delivery information for non-COD orders
-        if (paymentMethod !== 'cod') {
-            if (!deliveryAddress || deliveryAddress.trim().length === 0) {
-                throw new Error('Alamat pengiriman wajib diisi untuk pembayaran non-COD.');
-            }
-            if (!phoneNumber || phoneNumber.trim().length === 0) {
-                throw new Error('Nomor telepon wajib diisi untuk pembayaran non-COD.');
-            }
-            if (!/^[0-9+\-\s()]{8,20}$/.test(phoneNumber.trim())) {
-                throw new Error('Format nomor telepon tidak valid.');
-            }
+        if (!deliveryOption) {
+            throw new Error('Opsi pengiriman harus dipilih.');
+        }// Always require phone number for all orders
+        if (!phoneNumber || phoneNumber.trim().length === 0) {
+            throw new Error('Nomor telepon wajib diisi.');
+        }
+        if (!/^[0-9+\-\s()]{8,20}$/.test(phoneNumber.trim())) {
+            throw new Error('Format nomor telepon tidak valid.');
+        }        // Only require delivery address if delivery option is selected
+        if (deliveryOption === 'delivery' && (!deliveryAddress || deliveryAddress.trim().length === 0)) {
+            throw new Error('Alamat pengiriman wajib diisi untuk opsi pengiriman.');
         }
 
         // Validate items

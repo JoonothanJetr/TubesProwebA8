@@ -47,21 +47,27 @@ const upload = multer({
     fileFilter: fileFilter
 }).single('image');
 
+// Format product data with image URL
+function formatProduct(product) {
+    return {
+        ...product,
+        image_url: product.image_url 
+            ? `/product_images/${product.image_url.replace(/^\/+/, '')}`  // Clean path and add prefix
+            : null
+    };
+}
+
 // Get all products
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query(
             'SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.is_deleted = false ORDER BY p.created_at DESC'
         );
-          // Format image URLs
-        const products = result.rows.map(product => ({
-            ...product,
-            image_url: product.image_url 
-                ? `/product_images/${product.image_url}` 
-                : null
-        }));
         
+        // Format all products with proper image URLs
+        const products = result.rows.map(formatProduct);
         res.json(products);
+        
     } catch (err) {
         console.error('Error in getting products:', err);
         res.status(500).json({ error: 'Internal server error' });
@@ -78,15 +84,12 @@ router.get('/:id', async (req, res) => {
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });
-        }        // Format image URL
-        const product = {
-            ...result.rows[0],
-            image_url: result.rows[0].image_url 
-                ? `/product_images/${result.rows[0].image_url}` 
-                : null
-        };
-        
+        }
+
+        // Format product with proper image URL
+        const product = formatProduct(result.rows[0]);
         res.json(product);
+
     } catch (err) {
         console.error('Error in getting product:', err);
         res.status(500).json({ error: 'Internal server error' });
@@ -116,30 +119,34 @@ router.post('/', auth.isAdmin, (req, res) => {
         const { name, description, price, category_id, stock } = req.body;
         const imageFile = req.file;
 
-        // Validasi input dasar
+        // Validate input
         if (!name || !price || !category_id || !stock || !imageFile) {
             if (imageFile) fs.unlinkSync(imageFile.path);
-            return res.status(400).json({ error: 'Nama, Harga, Kategori ID, Stok, dan Gambar wajib diisi.' });
+            return res.status(400).json({ error: 'Name, Price, Category ID, Stock, and Image are required.' });
         }
 
         try {
-            // Simpan nama file saja, tanpa path
-            const filename = imageFile.filename;
-            
+            // Save product with image filename only
             const result = await pool.query(
                 'INSERT INTO products (name, description, price, image_url, category_id, stock) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [name, description, price, filename, category_id, stock]
+                [name, description, price, imageFile.filename, category_id, stock]
             );
+            
+            // Get category name
+            const catResult = await pool.query('SELECT name FROM categories WHERE id = $1', [category_id]);
+            
+            // Format response
+            const newProduct = {
+                ...result.rows[0],
+                category_name: catResult.rows[0]?.name || null
+            };
+            
+            res.status(201).json(formatProduct(newProduct));
 
-            const newProduct = result.rows[0];            const catResult = await pool.query('SELECT name FROM categories WHERE id = $1', [category_id]);
-            newProduct.category_name = catResult.rows[0]?.name || null;
-            newProduct.image_url = `/product_images/${filename}`;
-
-            res.status(201).json(newProduct);
         } catch (dbErr) {
             console.error('Database error after upload:', dbErr);
             if (imageFile) fs.unlinkSync(imageFile.path);
-            res.status(500).json({ error: 'Server error saat menyimpan produk.' });
+            res.status(500).json({ error: 'Server error while saving product.' });
         }
     });
 });
@@ -150,9 +157,9 @@ router.put('/:id', auth.isAdmin, (req, res) => {
         if (err) {
             console.error('Multer error:', err.message);
             if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-                return res.status(400).json({ error: 'Ukuran file terlalu besar. Maksimal 5MB.' });
+                return res.status(400).json({ error: 'File size too large. Maximum size is 5MB.' });
             }
-            return res.status(400).json({ error: err.message || 'Error upload gambar.' });
+            return res.status(400).json({ error: err.message || 'Error uploading image.' });
         }
 
         const { id } = req.params;
@@ -167,13 +174,10 @@ router.put('/:id', auth.isAdmin, (req, res) => {
 
         if (!name || !price || !category_id || !stock) {
             if (imageFile) fs.unlinkSync(imageFile.path);
-            return res.status(400).json({ error: 'Nama, Harga, Kategori ID, dan Stok wajib diisi.' });
+            return res.status(400).json({ error: 'Name, Price, Category ID, and Stock are required.' });
         }
 
         try {
-            let queryText;
-            let queryParams;
-
             // Get old product data for image cleanup
             const oldProduct = await pool.query('SELECT image_url FROM products WHERE id = $1', [productId]);
             if (oldProduct.rows.length === 0) {
@@ -181,8 +185,10 @@ router.put('/:id', auth.isAdmin, (req, res) => {
                 return res.status(404).json({ error: 'Product not found' });
             }
 
+            let queryText, queryParams;
+
             if (imageFile) {
-                // If new image uploaded, use new filename
+                // Use new image
                 queryText = 'UPDATE products SET name = $1, description = $2, price = $3, category_id = $4, stock = $5, image_url = $6 WHERE id = $7 RETURNING *';
                 queryParams = [name, description, price, category_id, stock, imageFile.filename, productId];
 
@@ -192,23 +198,26 @@ router.put('/:id', auth.isAdmin, (req, res) => {
                     fs.unlinkSync(oldImagePath);
                 }
             } else {
-                // If no new image, keep existing image
+                // Keep existing image
                 queryText = 'UPDATE products SET name = $1, description = $2, price = $3, category_id = $4, stock = $5 WHERE id = $6 RETURNING *';
                 queryParams = [name, description, price, category_id, stock, productId];
             }
 
             const result = await pool.query(queryText, queryParams);
-            const updatedProduct = result.rows[0];
             
             // Get category name
             const catResult = await pool.query('SELECT name FROM categories WHERE id = $1', [category_id]);
-            updatedProduct.category_name = catResult.rows[0]?.name || null;
+            const updatedProduct = {
+                ...result.rows[0],
+                category_name: catResult.rows[0]?.name || null
+            };
 
-            res.json(updatedProduct);
+            res.json(formatProduct(updatedProduct));
+
         } catch (dbErr) {
             console.error('Database error during update:', dbErr);
             if (imageFile) fs.unlinkSync(imageFile.path);
-            res.status(500).json({ error: 'Server error saat memperbarui produk.' });
+            res.status(500).json({ error: 'Server error while updating product.' });
         }
     });
 });

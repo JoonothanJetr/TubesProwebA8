@@ -3,6 +3,7 @@ const cors = require('cors');
 const pool = require('./database/db'); // Impor pool dari db.js
 require('dotenv').config();
 const path = require('path'); // Import path
+const fs = require('fs'); // Import fs untuk memastikan direktori upload
 
 const app = express();
 
@@ -11,7 +12,8 @@ app.use(cors({
     origin: ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Type', 'Content-Length', 'Content-Disposition']
 }));
 app.use(express.json());
 
@@ -23,20 +25,37 @@ app.use((req, res, next) => {
     next();
 });
 
+// Configure static file serving with proper headers
+const staticFileOptions = {
+    setHeaders: (res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    }
+};
+
 // Static file serving untuk folder uploads/products dengan path /product_images
 const productImagesPath = path.join(__dirname, '../uploads/products');
-app.use('/product_images', express.static(productImagesPath, {
-    setHeaders: (res) => {
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
-    }
-}));
+app.use('/product_images', express.static(productImagesPath, staticFileOptions));
 
-// Serve bukti pembayaran
+// Serve payment proof images with proper headers
 const proofImagesPath = path.join(__dirname, '../uploads/proofs');
-app.use('/proofs', express.static(proofImagesPath));
+app.use('/proofs', express.static(proofImagesPath, staticFileOptions));
 
-// Serve gambar seed data
-app.use('/images', express.static(path.join(__dirname, '../public/images')));
+// Serve seed data images
+app.use('/images', express.static(path.join(__dirname, '../public/images'), staticFileOptions));
+
+// Ensure upload directories exist
+const ensureDir = (dirPath) => {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+        console.log(`Created directory: ${dirPath}`);
+    }
+};
+
+ensureDir(productImagesPath);
+ensureDir(proofImagesPath);
+ensureDir(path.join(__dirname, '../public/images'));
 
 // Test database connection
 pool.connect((err, client, done) => {

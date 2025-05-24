@@ -215,27 +215,24 @@ const CartList = () => {
                 confirmButtonColor: '#ffc107'
             });
             return;
+        }        if (!phoneNumber) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nomor Telepon Dibutuhkan',
+                text: 'Silakan masukkan nomor telepon/WhatsApp yang dapat dihubungi',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
         }
 
-        if (deliveryOption === 'delivery') {
-            if (!phoneNumber) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Nomor Telepon Dibutuhkan',
-                    text: 'Silakan masukkan nomor telepon/WhatsApp yang dapat dihubungi',
-                    confirmButtonColor: '#ffc107'
-                });
-                return;
-            }
-            if (!deliveryAddress) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Alamat Pengiriman Dibutuhkan',
-                    text: 'Silakan masukkan alamat pengiriman yang lengkap',
-                    confirmButtonColor: '#ffc107'
-                });
-                return;
-            }
+        if (deliveryOption === 'delivery' && !deliveryAddress) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Alamat Pengiriman Dibutuhkan',
+                text: 'Silakan masukkan alamat pengiriman yang lengkap',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
         }
 
         // Data ini akan digunakan untuk membuat "sesi checkout" atau "pra-order"
@@ -457,34 +454,33 @@ const CartList = () => {
                                     <option value="pickup">Ambil di Toko</option>
                                     <option value="delivery">Kirim ke Alamat</option>
                                 </select>
+                            </div>                            <div>
+                                <label className="block text-gray-700 mb-2">Nomor Telepon/WhatsApp</label>
+                                <input
+                                    type="tel"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400"
+                                    placeholder="Contoh: 08123456789"
+                                />
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {deliveryOption === 'delivery' 
+                                        ? 'Nomor ini akan digunakan untuk konfirmasi pengiriman'
+                                        : 'Nomor ini akan digunakan untuk konfirmasi pengambilan'}
+                                </p>
                             </div>
 
                             {deliveryOption === 'delivery' && (
-                                <>
-                                    <div>
-                                        <label className="block text-gray-700 mb-2">Nomor Telepon/WhatsApp</label>
-                                        <input
-                                            type="tel"
-                                            value={phoneNumber}
-                                            onChange={(e) => setPhoneNumber(e.target.value)}
-                                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400"
-                                            placeholder="Contoh: 08123456789"
-                                        />
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            Nomor ini akan digunakan untuk konfirmasi pengiriman
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-gray-700 mb-2">Alamat Pengiriman</label>
-                                        <textarea
-                                            value={deliveryAddress}
-                                            onChange={(e) => setDeliveryAddress(e.target.value)}
-                                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400"
-                                            rows="3"
-                                            placeholder="Masukkan alamat lengkap untuk pengiriman"
-                                        ></textarea>
-                                    </div>
-                                </>
+                                <div>
+                                    <label className="block text-gray-700 mb-2">Alamat Pengiriman</label>
+                                    <textarea
+                                        value={deliveryAddress}
+                                        onChange={(e) => setDeliveryAddress(e.target.value)}
+                                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400"
+                                        rows="3"
+                                        placeholder="Masukkan alamat lengkap untuk pengiriman"
+                                    ></textarea>
+                                </div>
                             )}
 
                             <div>

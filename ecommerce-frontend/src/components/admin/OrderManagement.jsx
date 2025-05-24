@@ -317,66 +317,77 @@ const OrderManagement = () => {
                 </div>
             </div>
 
-            <div className="shadow-lg overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Pelanggan</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tgl. Pesan</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tgl. Jadi</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Pesanan</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Bayar</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {processedOrders.length === 0 && !loading && (
-                            <tr>
-                                <td colSpan="8" className="px-6 py-10 text-center text-gray-500 text-lg">
-                                    Tidak ada pesanan ditemukan{Object.values(filters).some(f => typeof f === 'string' ? f : Object.values(f).some(v => v)) ? ' dengan filter ini' : ''}.
-                                </td>
-                            </tr>
-                        )}
-                        {processedOrders.map((order) => (
-                            <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">#{order.id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.username || order.user_id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {new Date(order.order_date || order.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {order.desired_completion_date ? 
-                                     new Date(order.desired_completion_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : 
-                                     <span className="text-gray-400 italic">N/A</span>}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">
-                                    Rp {Number(order.total_amount).toLocaleString('id-ID')}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.order_status)}`}>
-                                        {order.order_status?.charAt(0).toUpperCase() + order.order_status?.slice(1)}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusColor(order.payment_status)}`}>
-                                        {order.payment_status?.charAt(0).toUpperCase() + order.payment_status?.slice(1)}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <Link 
-                                        to={`/admin/orders/${order.id}`} 
-                                        className="text-indigo-600 hover:text-indigo-900 inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 shadow-sm"
-                                        title="Kelola Pesanan"
-                                    >
-                                        Kelola
-                                    </Link>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {/* Table container with horizontal scroll functionality */}
+            <div className="shadow-lg border-b border-gray-200 sm:rounded-lg overflow-hidden">
+                <div className="relative bg-white overflow-hidden">
+                    {/* Table wrapper with hover effects */}
+                    <div className="overflow-x-auto relative group">
+                        {/* Shadow indicators for scrollable content */}
+                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300 z-10"></div>
+                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300 z-10"></div>
+                        
+                        {/* Table with minimum width to prevent layout breaking */}
+                        <table className="min-w-[900px] w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Pelanggan</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tgl. Pesan</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Tgl. Jadi</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Pesanan</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status Bayar</th>
+                                    <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {processedOrders.length === 0 && !loading && (
+                                    <tr>
+                                        <td colSpan="8" className="px-6 py-10 text-center text-gray-500 text-lg">
+                                            Tidak ada pesanan ditemukan{Object.values(filters).some(f => typeof f === 'string' ? f : Object.values(f).some(v => v)) ? ' dengan filter ini' : ''}.
+                                        </td>
+                                    </tr>
+                                )}
+                                {processedOrders.map((order) => (
+                                    <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">#{order.id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{order.username || order.user_id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {new Date(order.order_date || order.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {order.desired_completion_date ? 
+                                             new Date(order.desired_completion_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : 
+                                             <span className="text-gray-400 italic">N/A</span>}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">
+                                            Rp {Number(order.total_amount).toLocaleString('id-ID')}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.order_status)}`}>
+                                                {order.order_status?.charAt(0).toUpperCase() + order.order_status?.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentStatusColor(order.payment_status)}`}>
+                                                {order.payment_status?.charAt(0).toUpperCase() + order.payment_status?.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                            <Link 
+                                                to={`/admin/orders/${order.id}`} 
+                                                className="text-indigo-600 hover:text-indigo-900 inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 shadow-sm"
+                                                title="Kelola Pesanan"
+                                            >
+                                                Kelola
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     );
