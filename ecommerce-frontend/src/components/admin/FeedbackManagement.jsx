@@ -278,7 +278,8 @@ const FeedbackManagement = () => {
                 </div>
 
                 {/* Main Content */}
-                <div className="bg-white rounded-lg shadow">                    {loading ? (
+                <div className="bg-white rounded-lg shadow">
+                    {loading ? (
                         <div className="flex items-center justify-center p-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                             <span className="ml-2 text-gray-600">Memuat data...</span>
@@ -296,7 +297,51 @@ const FeedbackManagement = () => {
                             <p className="mt-1 text-sm text-gray-500">Feedback dari pelanggan akan muncul di sini</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">                            <table className="min-w-full divide-y divide-gray-200"><thead className="bg-gray-50"><tr><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feedback</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th><th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th></tr></thead><tbody className="bg-white divide-y divide-gray-200">{feedbacks.map((feedback) => (                                        <tr key={feedback.id} className="hover:bg-gray-50"><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{feedback.id}</td><td className="px-6 py-4 whitespace-nowrap"><div className="flex items-center"><div><div className="text-sm font-medium text-gray-900">{feedback.name}</div><div className="text-sm text-gray-500">{feedback.email}</div></div></div></td>                                            <td className="px-6 py-4"><p className="text-sm text-gray-900">{feedback.message}</p></td><td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(feedback.status)}`}>{feedback.status}</span></td><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{format(new Date(feedback.created_at || feedback.date), 'dd MMMM yyyy', { locale: id })}</td><td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"><button onClick={() => handleView(feedback)} className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded-md transition-colors">Lihat</button><button onClick={() => handleDelete(feedback.id)} className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-md transition-colors"
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feedback</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {feedbacks.map((feedback) => (
+                                        <tr key={feedback.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{feedback.id}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">{feedback.name}</div>
+                                                        <div className="text-sm text-gray-500">{feedback.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <p className="text-sm text-gray-900">{feedback.message}</p>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(feedback.status)}`}>
+                                                    {feedback.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {format(new Date(feedback.created_at || feedback.date), 'dd MMMM yyyy', { locale: id })}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                <button 
+                                                    onClick={() => handleView(feedback)} 
+                                                    className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded-md transition-colors"
+                                                >
+                                                    Lihat
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(feedback.id)} 
+                                                    className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded-md transition-colors"
                                                 >
                                                     Hapus
                                                 </button>
