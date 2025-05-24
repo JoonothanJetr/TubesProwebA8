@@ -192,12 +192,8 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
       return;
     }
 
-    try {
-      // First try to update if item exists in cart, otherwise add new item
-      await cartService.updateCartItem(productId, quantity).catch(async () => {
-        // If update fails (item doesn't exist), try to add it
-        await cartService.addToCart(productId, quantity);
-      });
+    try {      // Always use addToCart to accumulate quantities
+      await cartService.addToCart(productId, quantity);
       
       const Toast = Swal.mixin({
         toast: true,

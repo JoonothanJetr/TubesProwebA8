@@ -70,12 +70,11 @@ router.post('/', auth.authenticateToken, async (req, res) => {
         // Periksa apakah item sudah ada di keranjang user
         const cartItemRes = await pool.query('SELECT quantity FROM cart WHERE user_id = $1 AND product_id = $2', [req.user.id, product_id]);
 
-        if (cartItemRes.rows.length > 0) {
-            // Jika sudah ada, update quantity
+        if (cartItemRes.rows.length > 0) {            // If the item exists in cart, add the new quantity to the existing quantity
             const existingQuantity = cartItemRes.rows[0].quantity;
             const newQuantity = existingQuantity + quantity;
 
-            // Periksa lagi apakah total quantity melebihi stok
+            // Check if the total quantity exceeds available stock
             if (productStock < newQuantity) {
                 return res.status(400).json({ error: 'Penambahan melebihi stok produk yang tersedia' });
             }
