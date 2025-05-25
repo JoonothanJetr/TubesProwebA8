@@ -20,9 +20,12 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [quantity, setQuantity] = useState(1);  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState('');
   const [imageError, setImageError] = useState(false);
+  const [showStockWarning, setShowStockWarning] = useState(false);
+  const [stockWarningMessage, setStockWarningMessage] = useState('');  
 
   // Handle body scroll lock when modal is open
   useEffect(() => {
@@ -156,16 +159,30 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
     // Convert to number and validate
     let newValue = parseInt(value, 10);
     
-    // Ensure it's a valid number
-    if (isNaN(newValue)) {
-      newValue = 1;
+    // Allow empty input (for typing) or zero
+    if (value === '' || value === '0') {
+      setQuantity(value);
+      return;
     }
     
-    // Ensure it's between 1 and 100
-    newValue = Math.max(1, Math.min(100, newValue));
+    // Ensure it's a valid number
+    if (isNaN(newValue)) {
+      newValue = 0;
+    }
+    
+    // Ensure it's between 0 and 100
+    newValue = Math.max(0, Math.min(100, newValue));
+    
+    // Check if quantity exceeds stock
+    if (product && product.stock !== undefined && newValue > product.stock) {
+      setShowStockWarning(true);
+      setStockWarningMessage(`Stok produk hanya tersisa ${product.stock} item`);
+    } else {
+      setShowStockWarning(false);
+    }
     
     setQuantity(newValue);
-  }, []);
+  }, [product]);  
 
   // Then define the dependent functions
   const handleManualInput = useCallback((e) => {
@@ -189,6 +206,21 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
     if (!authService.isAuthenticated()) {
       onHide();
       window.location.href = '/login';
+      return;
+    }
+
+    // Check if quantity is valid
+    const quantityNum = parseInt(quantity, 10);
+    if (isNaN(quantityNum) || quantityNum <= 0) {
+      setShowStockWarning(true);
+      setStockWarningMessage('Jumlah produk harus lebih dari 0');
+      return;
+    }
+
+    // Check if quantity exceeds stock
+    if (product && product.stock !== undefined && quantityNum > product.stock) {
+      setShowStockWarning(true);
+      setStockWarningMessage(`Stok produk hanya tersisa ${product.stock} item`);
       return;
     }
 
@@ -289,24 +321,38 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
             </div>
             
             <div className="mt-auto">
+              {product.stock !== undefined && (
+                <div className="flex items-center mb-3">
+                  <span className="text-gray-700 mr-2">Stok Tersedia:</span>
+                  <span className={`font-medium ${product.stock <= 5 ? 'text-red-500' : 'text-green-600'}`}>
+                    {product.stock} item
+                  </span>
+                </div>
+              )}
               <div className="flex items-center mb-4">
                 <span className="text-gray-700 mr-4">Jumlah:</span>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => handleQuantityChange(Math.max(1, quantity - 1))}
+                    onClick={() => {
+                      const currentVal = parseInt(quantity, 10) || 0;
+                      handleQuantityChange(Math.max(0, currentVal - 1));
+                    }}
                     className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg"
                   >
                     <FiMinus size={16} />
                   </button>
                   <input
                     type="number"
-                    min="1"
+                    min="0"
                     value={quantity}
-                    onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                    onChange={(e) => handleQuantityChange(e.target.value)}
                     className="w-16 text-center border rounded-lg"
                   />
                   <button
-                    onClick={() => handleQuantityChange(quantity + 1)}
+                    onClick={() => {
+                      const currentVal = parseInt(quantity, 10) || 0;
+                      handleQuantityChange(currentVal + 1);
+                    }}
                     className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg"
                   >
                     <FiPlus size={16} />
@@ -406,6 +452,51 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
                   )}
                 </div>
               </div>
+
+              {/* Stock Warning Animation */}
+              <AnimatePresence>
+                {showStockWarning && (
+                  <motion.div 
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 z-30"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowStockWarning(false)}
+                  >
+                    <motion.div 
+                      className="bg-white rounded-xl p-6 m-4 max-w-sm shadow-xl"
+                      initial={{ scale: 0.8, y: 20 }}
+                      animate={{ scale: 1, y: 0 }}
+                      exit={{ scale: 0.8, y: 20 }}
+                      transition={{ type: "spring", damping: 15 }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="text-center">
+                        <motion.div 
+                          className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-red-100 text-red-500"
+                          initial={{ rotate: -10 }}
+                          animate={{ rotate: [0, -5, 5, -5, 5, 0] }}
+                          transition={{ duration: 0.5, delay: 0.2 }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                        </motion.div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Peringatan Stok</h3>
+                        <p className="text-gray-600 mb-4">{stockWarningMessage}</p>
+                        <motion.button 
+                          className="w-full py-2 px-4 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => setShowStockWarning(false)}
+                        >
+                          Mengerti
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Modal Footer */}
               <div className="sticky bottom-0 z-20 border-t p-4 bg-white/95 backdrop-blur-md">

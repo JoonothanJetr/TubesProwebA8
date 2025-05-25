@@ -1,7 +1,10 @@
-// filepath: c:\Users\Jetro\Documents\GitHub\TubesProwebA8\ecommerce-frontend\src\pages\HomeOptimized.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Slider from "react-slick";
+import { motion } from 'framer-motion';
+import AnimatedPage from '../components/common/AnimatedPage';
+import AnimatedSection from '../components/animations/AnimatedSection';
+import AnimatedItem from '../components/animations/AnimatedItem';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import { FaUtensils, FaCog, FaTruck, FaCreditCard } from 'react-icons/fa';
@@ -9,6 +12,7 @@ import { BiDrink } from 'react-icons/bi';
 import ProductModalOptimized from '../components/products/ProductModalOptimized';
 import ProductImageOptimized from '../components/common/ProductImageOptimized';
 import { productService } from '../services/productService';
+import { authService } from '../services/authService';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
@@ -74,21 +78,23 @@ const SimpleSectionTitle = ({ children }) => (
 
 const HowItWorksStep = ({ icon: Icon, title, description, isHovered, onMouseEnter, onMouseLeave }) => (
   <div
-    className="w-full p-4 text-center sm:w-1/2 md:w-1/4 max-w-xs transform transition-all duration-300 ease-in-out hover:scale-105"
+    className="w-full mb-6 transform transition-all duration-300 ease-in-out"
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
   >
-    <div className={`
-      mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full
-      bg-gradient-to-br from-yellow-100 to-yellow-300
-      text-yellow-700
-      transition-all duration-300 ease-in-out
-      ${isHovered ? 'shadow-xl ring-2 ring-yellow-300 scale-110' : 'shadow-md'}
-    `}>
-      <Icon className="text-4xl" />
+    <div className="flex flex-col items-center">
+      <div className={`
+        mb-2 flex h-16 w-16 items-center justify-center rounded-full
+        bg-yellow-100 border-4 border-yellow-200
+        text-yellow-700
+        transition-all duration-300 ease-in-out
+        ${isHovered ? 'shadow-md scale-110' : ''}
+      `}>
+        <Icon className="text-2xl" />
+      </div>
+      <h5 className="text-base font-semibold text-gray-800 text-center mb-1">{title}</h5>
+      <p className="text-xs text-gray-600 text-center max-w-[180px] mx-auto">{description}</p>
     </div>
-    <h5 className="mt-4 text-xl font-semibold text-gray-800">{title}</h5>
-    <p className="text-md text-gray-600 mt-1">{description}</p>
   </div>
 );
 
@@ -96,12 +102,34 @@ const HomeOptimized = () => {
   const [popularProducts, setPopularProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [feedback, setFeedback] = useState({ name: '', email: '', message: '' });
+  const [feedback, setFeedback] = useState({ name: '', email: '', message: '' });  
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [hoveredProductId, setHoveredProductId] = useState(null);
   const [hoveredStep, setHoveredStep] = useState(null);
+
+  // Effect untuk memeriksa status login dan mengisi email otomatis
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const isLoggedIn = authService.isAuthenticated();
+      setIsAuthenticated(isLoggedIn);
+      
+      if (isLoggedIn) {
+        const user = authService.getUser();
+        if (user && user.email) {
+          setFeedback(prev => ({
+            ...prev,
+            email: user.email,
+            name: user.username || prev.name
+          }));
+        }
+      }
+    };
+    
+    checkAuthStatus();
+  }, []);
 
   useEffect(() => {
     const fetchPopularProducts = async () => {
@@ -214,9 +242,9 @@ const HomeOptimized = () => {
 
   return (
     <div className="home-page bg-gray-50 text-gray-800">
-      {/* Hero Section */}      {/* Hero Section with Full-Width Background Carousel */}
-      <div className="relative min-h-screen bg-gray-50">
-        {/* Background Carousel */}
+      <AnimatedPage variant="fadeIn" transition="slow">
+      {/* Hero Section with Full-Width Background Carousel */}
+      <AnimatedSection variant="fadeIn" delay={0.2} className="relative min-h-screen bg-gray-50">
         <div className="absolute inset-0 w-full h-full overflow-hidden">
           <Slider
             dots={false}
@@ -244,215 +272,211 @@ const HomeOptimized = () => {
           </Slider>
         </div>
 
-        {/* Content */}        <div className="relative container mx-auto px-4 pt-20 pb-16">
-          <div className="flex flex-col items-center text-center">
-            <div className="max-w-2xl mx-auto">
-              <div className="space-y-6">                <div className="relative inline-block">
-                  <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
+        {/* Content */}
+        <div className="relative container mx-auto px-4 h-screen flex items-center justify-center">
+          <div className="flex justify-center">
+            {/* Centered Text Content */}
+            <motion.div 
+              className="space-y-4 text-center max-w-2xl"
+              initial={{ opacity: 0, y: -30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+                <div>
+                  <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight">
                     Nikmati Kelezatan Masakan <span className="text-yellow-400">Batak Toba</span>
                   </h1>
+                  <h2 className="text-2xl lg:text-3xl font-bold text-white mt-1">
+                    Toba <span className="text-yellow-400">&</span> Nusantara Di Meja Anda
+                  </h2>
                 </div>
-                <h2 className="text-3xl lg:text-4xl font-bold text-white">
-                  Toba <span className="text-yellow-400">&</span> Nusantara Di Meja Anda
-                </h2>
-                <p className="text-lg text-gray-200 mx-auto">
+                <p className="text-base text-gray-200 mx-auto max-w-xl">
                   Rasakan cita rasa autentik dari dapur kami, disiapkan dengan resep turun-temurun dan bumbu rempah pilihan khas Tanah Batak.
                 </p>
-                <div className="mt-8 flex justify-center gap-4">
+                <div className="mt-4 flex justify-center gap-3">
                   <Link
                     to="/products"
-                    className="bg-yellow-500 text-white font-bold py-3 px-10 text-lg rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block border-2 border-yellow-400"
+                    className="bg-yellow-500 text-white font-bold py-2 px-6 text-base rounded-lg shadow-md transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block border-2 border-yellow-400"
                   >
                     Pesan Sekarang <i className="bi bi-arrow-right-short ml-1"></i>
-                  </Link>                  <Link
+                  </Link>
+                  <Link
                     to="/about"
-                    className="bg-yellow-500 text-white font-bold py-3 px-10 text-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block"
+                    className="bg-yellow-500 text-white font-bold py-2 px-6 text-base rounded-lg transition-all duration-300 ease-in-out hover:bg-yellow-600 hover:-translate-y-0.5 hover:shadow-lg inline-block"
                   >
                     Tentang Kami
                   </Link>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
-      </div>
+        </AnimatedSection>
 
-      {/* How It Works Section */}
-      <div className="py-16 bg-yellow-50">
-        <div className="container mx-auto px-4">
-          <SectionTitle>Bagaimana Cara Memesan?</SectionTitle>
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-10">
-            {howItWorksSteps.map((step, index) => (
-              <HowItWorksStep
-                key={index}
-                icon={step.icon}
-                title={step.title}
-                description={step.description}
-                isHovered={hoveredStep === index}
-                onMouseEnter={() => setHoveredStep(index)}
-                onMouseLeave={() => setHoveredStep(null)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Popular Food Section */}
-      <div className="py-16">
-        <div className="container mx-auto px-4">
-          <SimpleSectionTitle>Popular Food</SimpleSectionTitle>
-          {useMemo(() => {
-            if (loading) return <div className="text-center py-10"><div className="spinner-border animate-spin inline-block w-10 h-10 border-4 rounded-full text-yellow-500" role="status"><span className="visually-hidden">Loading...</span></div><p className="mt-3 text-gray-600">Memuat produk populer...</p></div>;
-            if (error) return <p className="text-center text-red-600 py-10 text-lg">{error}</p>;
-            if (!popularProducts.length) return <p className="text-center text-gray-600 py-10 text-lg">Belum ada produk populer.</p>;
-            return (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
-                {popularProducts.map(product => (                  <div
-                    key={product.id}
-                    className="bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 ease-in-out cursor-pointer flex flex-col group hover:shadow-xl"
-                    onClick={() => handleShowModal(product.id)}
-                    onMouseEnter={() => { handleProductHover(product.id); setHoveredProductId(product.id); }}
-                    onMouseLeave={() => setHoveredProductId(null)}
-                  >                    <div 
-                      className={`h-52 overflow-hidden relative bg-gray-100 rounded-t-xl wave-bg transition-all duration-300 ease-out ${hoveredProductId === product.id ? 'transform scale-[1.02]' : ''}`}
-                  >
-                    <ProductImageOptimized
-                      imageUrl={product.image_url}
-                      productName={product.name}
-                      className="object-cover h-full w-full transition-all duration-500 ease-in-out group-hover:scale-105 rounded-t-xl shadow-md"
-                      loading="lazy"
+        {/* How It Works Section */}
+        <AnimatedSection variant="slideUp" delay={0.2} className="py-12 bg-yellow-50">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center relative pb-3 inline-block">
+              Bagaimana Cara Memesan?
+              <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-yellow-400 rounded-sm"></span>
+            </h2>
+            <div className="max-w-5xl mx-auto px-4">
+              <div className="flex flex-wrap justify-center">
+                {howItWorksSteps.map((step, index) => (
+                  <div key={index} className="w-full sm:w-1/2 md:w-1/4 px-2 mb-6">
+                    <HowItWorksStep
+                      icon={step.icon}
+                      title={step.title}
+                      description={step.description}
+                      isHovered={hoveredStep === index}
+                      onMouseEnter={() => setHoveredStep(index)}
+                      onMouseLeave={() => setHoveredStep(null)}
                     />
-                    {product.category_name && (
-                      <span className="absolute top-3 left-3 bg-yellow-400 bg-opacity-90 text-gray-800 py-1.5 px-4 rounded-full text-xs font-bold shadow-lg flex items-center gap-2 backdrop-blur-sm transition-transform duration-300 hover:scale-105">
-                        {product.category_name.toLowerCase().includes('minuman') ? <BiDrink className="text-base" /> : <FaUtensils className="text-base" />}
-                        {product.category_name}
-                      </span>
-                    )}
                   </div>
-
-                  <div className="p-6 flex flex-col flex-grow bg-white rounded-b-xl">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate group-hover:text-yellow-600 transition-colors duration-300" 
-                        title={product.name}>{product.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3 min-h-[40px] flex-grow line-clamp-2">
-                      {product.description?.substring(0, 60) || 'Deskripsi tidak tersedia'}...
-                    </p>
-                    <div className="flex justify-between items-center mt-auto pt-2">
-                      <span className="text-xl font-bold text-yellow-500 transition-all duration-300 group-hover:scale-105">
-                        Rp {product.price?.toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
                 ))}
               </div>
-            );
-          }, [popularProducts, loading, error, handleShowModal, handleProductHover, hoveredProductId])}
-        </div>
-      </div>
-
-      {/* Our Kitchen Space Section */}
-      <div className="py-16 bg-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-            <div className="md:w-1/2">
-              <SimpleSectionTitle>Our Kitchen Space</SimpleSectionTitle>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                Kami Menjaga Kebersihan Dan Kualitas Rasa Di Setiap Masakan
-              </h3>
-              <p className="text-gray-600 mb-3 leading-relaxed">
-                Komitmen kami adalah menyajikan hidangan yang tidak hanya lezat tetapi juga higienis. Setiap masakan disiapkan dengan bahan-bahan segar berkualitas tinggi di dapur modern kami yang terjaga kebersihannya.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                Dari pemilihan bahan hingga proses memasak, kami menerapkan standar tertinggi untuk memastikan Anda mendapatkan pengalaman kuliner terbaik.
-              </p>
-            </div>
-            <div className="md:w-1/2 grid grid-cols-2 gap-4">
-              <img 
-                src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Professional Kitchen Setup" 
-                className="rounded-lg shadow-xl object-cover w-full h-48"
-                loading="lazy"
-              />              <img 
-                src="https://images.unsplash.com/photo-1576867757603-05b134ebc379?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Traditional Indonesian Food"
-                className="rounded-lg shadow-xl object-cover w-full h-48"
-                loading="lazy"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1581299894341-367e6517569c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Professional Cooking Area"
-                className="rounded-lg shadow-xl object-cover w-full h-48"
-                loading="lazy"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                alt="Food Plating Area"
-                className="rounded-lg shadow-xl object-cover w-full h-48"
-                loading="lazy"
-              />
             </div>
           </div>
-        </div>
-      </div>
+        </AnimatedSection>
 
-      {/* Customer Service / Feedback Section */}
-      <div className="py-16 bg-yellow-50">
-        <div className="container mx-auto px-4">
-          <SimpleSectionTitle>Customer Service</SimpleSectionTitle>
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-xl shadow-xl p-8 md:p-10">
-              <h3 className="text-2xl mb-6 text-center text-gray-800 font-semibold">Berikan Feedback Anda</h3>
-              <form onSubmit={handleSubmitFeedback} className="space-y-6">
-                <div>
-                  <label htmlFor="feedbackName" className="block text-gray-700 text-sm font-medium mb-1.5">Nama</label>
-                  <input
-                    type="text" id="feedbackName" name="name" value={feedback.name} onChange={handleFeedbackChange} required
-                    className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
-                    placeholder="Nama Lengkap Anda"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="feedbackEmail" className="block text-gray-700 text-sm font-medium mb-1.5">Email</label>
-                  <input
-                    type="email" id="feedbackEmail" name="email" value={feedback.email} onChange={handleFeedbackChange} required
-                    className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
-                    placeholder="Alamat Email Aktif"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="feedbackMessage" className="block text-gray-700 text-sm font-medium mb-1.5">Pesan</label>
-                  <textarea
-                    id="feedbackMessage" rows={4} name="message" value={feedback.message} onChange={handleFeedbackChange} required
-                    className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
-                    placeholder="Tuliskan pesan, kritik, atau saran Anda..."
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-yellow-500 border-none text-white font-bold py-3.5 text-lg rounded-lg transition-all duration-300 ease-in-out hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
-                  disabled={isSubmittingFeedback}
-                >
-                  {isSubmittingFeedback ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Mengirim...
-                    </>
-                  ) : (
-                    'Kirim Feedback'
-                  )}
-                </button>
-              </form>
-            </div>
+        {/* Our Kitchen Space Section */}
+        <AnimatedSection variant="fadeIn" delay={0.2} className="py-10 bg-gray-100">
+          <div className="container mx-auto px-4">
+            <motion.div 
+              className="flex flex-col md:flex-row items-center gap-6 md:gap-8"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <motion.div 
+                className="md:w-1/2"
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <h2 className="text-2xl font-semibold text-gray-800 mb-3 text-center md:text-left">Our Kitchen Space</h2>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Kami Menjaga Kebersihan Dan Kualitas Rasa Di Setiap Masakan
+                </h3>
+                <p className="text-gray-600 mb-2 text-sm leading-relaxed">
+                  Komitmen kami adalah menyajikan hidangan yang tidak hanya lezat tetapi juga higienis. Setiap masakan disiapkan dengan bahan-bahan segar berkualitas tinggi di dapur modern kami yang terjaga kebersihannya.
+                </p>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Dari pemilihan bahan hingga proses memasak, kami menerapkan standar tertinggi untuk memastikan Anda mendapatkan pengalaman kuliner terbaik.
+                </p>
+              </motion.div>
+              <motion.div 
+                className="md:w-1/2 grid grid-cols-2 gap-2"
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <img 
+                  src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Professional Kitchen Setup" 
+                  className="rounded-lg shadow-xl object-cover w-full h-36"
+                  loading="lazy"
+                />              <img 
+                  src="https://images.unsplash.com/photo-1576867757603-05b134ebc379?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Traditional Indonesian Food"
+                  className="rounded-lg shadow-xl object-cover w-full h-36"
+                  loading="lazy"
+                />
+                <img 
+                  src="https://images.unsplash.com/photo-1581299894341-367e6517569c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Professional Cooking Area"
+                  className="rounded-lg shadow-xl object-cover w-full h-36"
+                  loading="lazy"
+                />
+                <img 
+                  src="https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                  alt="Food Plating Area"
+                  className="rounded-lg shadow-xl object-cover w-full h-36"
+                  loading="lazy"
+                />
+              </motion.div>
+            </motion.div>
           </div>
-        </div>
-      </div>      <ProductModalOptimized 
+        </AnimatedSection>
+
+        {/* Feedback Form Section */}
+        <AnimatedSection variant="fadeIn" delay={0.2} className="py-10 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Feedback Anda</h2>
+            
+            {isAuthenticated ? (
+              <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md p-4 border border-gray-100">
+                <form onSubmit={handleSubmitFeedback} className="space-y-3">
+                  <div>
+                    <label htmlFor="feedbackName" className="block text-gray-700 text-sm font-medium mb-1">Nama</label>
+                    <input
+                      type="text" id="feedbackName" name="name" value={feedback.name} onChange={handleFeedbackChange} required
+                      className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+                      placeholder="Nama Lengkap Anda"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="feedbackEmail" className="block text-gray-700 text-sm font-medium mb-1">Email</label>
+                    <input
+                      type="email" id="feedbackEmail" name="email" value={feedback.email} onChange={handleFeedbackChange} required
+                      className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+                      placeholder="Alamat Email Aktif"
+                      readOnly={feedback.email !== ''} // Membuat field email readonly jika sudah terisi otomatis
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="feedbackMessage" className="block text-gray-700 text-sm font-medium mb-1">Pesan</label>
+                    <textarea
+                      id="feedbackMessage" rows={3} name="message" value={feedback.message} onChange={handleFeedbackChange} required
+                      className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400"
+                      placeholder="Tuliskan pesan, kritik, atau saran Anda..."
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-yellow-500 border-none text-white font-bold py-2.5 text-base rounded-lg transition-all duration-300 ease-in-out hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
+                    disabled={isSubmittingFeedback}
+                  >
+                    {isSubmittingFeedback ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Mengirim...
+                      </>
+                    ) : (
+                      'Kirim Feedback'
+                    )}
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md p-6 border border-gray-100 text-center">
+                <div className="text-gray-600 mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-yellow-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <p className="text-lg font-medium mb-2">Login Diperlukan</p>
+                  <p className="mb-4">Silakan login terlebih dahulu untuk mengirimkan feedback Anda.</p>
+                  <Link to="/login" className="inline-block bg-yellow-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-yellow-600 transition-colors">
+                    Login Sekarang
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </AnimatedSection>
+
+      {/* Product Modal */}
+      <ProductModalOptimized 
         productId={selectedProductId} 
         show={showModal} 
         onHide={handleCloseModal}
       />
+      </AnimatedPage>
     </div>
   );
 };
