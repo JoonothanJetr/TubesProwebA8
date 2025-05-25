@@ -148,6 +148,21 @@ class AuthService {
         }
     }
 
+    async registerAdmin({ username, email, password, registrationKey }) {
+        try {
+            const response = await axiosInstance.post('/auth/register/admin', {
+                username,
+                email,
+                password,
+                registrationKey
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Admin registration error:', error);
+            throw error;
+        }
+    }
+    
     logout() {
         this.clearAuth();
         window.location.href = '/login';

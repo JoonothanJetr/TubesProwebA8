@@ -14,6 +14,7 @@ import PaymentPage from './pages/PaymentPage.jsx';
 // Auth Components
 import Login from './components/auth/Login.jsx';
 import Register from './components/auth/Register.jsx';
+import AdminRegister from './components/auth/AdminRegister.jsx';
 
 // Product Components
 import ProductList from './components/products/ProductList.jsx';
@@ -66,14 +67,16 @@ function App() {
             if (isCustomerOnNonCustomerPath) {
                 console.log('App.jsx useEffect: Customer on non-customer path, redirecting to /');
                 navigate('/', { replace: true });
-            }
-        } else if (!authenticated) {
+            }        } else if (!authenticated) {
             const isProtectedPath = location.pathname.startsWith('/admin') || 
                                     location.pathname.startsWith('/cart') || 
                                     location.pathname.startsWith('/orders') ||
                                     location.pathname.startsWith('/payment') ||
                                     location.pathname.startsWith('/user');
-            if (isProtectedPath && location.pathname !== '/login' && location.pathname !== '/register') {
+            const isPublicAuthPath = location.pathname === '/login' || 
+                                   location.pathname === '/register' ||
+                                   location.pathname === '/register/admin';
+            if (isProtectedPath && !isPublicAuthPath) {
                 console.log(`App.jsx useEffect: Unauthenticated access to ${location.pathname}, redirecting to /login.`);
                 navigate('/login', { replace: true });
             }
@@ -97,6 +100,7 @@ function App() {
             <Route path="/about" element={<Layout><About /></Layout>} />
             <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/register/admin" element={<AdminRegister />} />
             <Route path="/products" element={<Layout><ProductList /></Layout>} />
             <Route path="/products/:id" element={<Layout><ProductDetail /></Layout>} />
             <Route path="/debug-images" element={<Layout><ImageDebugger /></Layout>} />

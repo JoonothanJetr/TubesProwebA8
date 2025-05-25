@@ -57,6 +57,53 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// Admin Registration
+router.post('/register/admin', async (req, res) => {
+    try {
+        const { username, email, password, registrationKey } = req.body;
+        
+        // Verify registration key
+        if (registrationKey !== process.env.ADMIN_REGISTRATION_KEY) {
+            return res.status(403).json({ error: 'Invalid admin registration key' });
+        }
+
+        // Check if user already exists
+        const userExists = await pool.query(
+            'SELECT * FROM users WHERE email = $1 OR username = $2',
+            [email, username]
+        );
+
+        if (userExists.rows.length > 0) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create new admin user
+        const newUser = await pool.query(
+            'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role',
+            [username, email, hashedPassword, 'admin']
+        );
+
+        // Create JWT token
+        const token = jwt.sign(
+            { id: newUser.rows[0].id, role: newUser.rows[0].role },
+            process.env.JWT_SECRET || 'your_jwt_secret',
+            { expiresIn: '1d' }
+        );
+
+        res.status(201).json({
+            token,
+            user: newUser.rows[0]
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Login
 router.post('/login', async (req, res) => {
     try {
