@@ -22,7 +22,19 @@ export const cartService = {
     },
 
     addToCart: async (productId, quantity) => {
-        const response = await api.post('/cart', { product_id: productId, quantity });
+        // Ensure productId and quantity are valid numbers
+        const validProductId = parseInt(productId, 10);
+        const validQuantity = parseInt(quantity, 10);
+        
+        if (isNaN(validProductId)) {
+            throw new Error('Invalid product ID');
+        }
+        
+        if (isNaN(validQuantity) || validQuantity <= 0) {
+            throw new Error('Quantity must be greater than 0');
+        }
+        
+        const response = await api.post('/cart', { product_id: validProductId, quantity: validQuantity });
         notifyCartUpdated();
         return response.data;
     },

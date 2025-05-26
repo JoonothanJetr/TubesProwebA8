@@ -224,8 +224,15 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
       return;
     }
 
-    try {      // Always use addToCart to accumulate quantities
-      await cartService.addToCart(productId, quantity);
+    try {
+      // Ensure productId is a valid number
+      const validProductId = parseInt(productId, 10);
+      if (isNaN(validProductId)) {
+        throw new Error('ID produk tidak valid');
+      }
+      
+      // Always use addToCart to accumulate quantities
+      await cartService.addToCart(validProductId, quantityNum);
       
       const Toast = Swal.mixin({
         toast: true,
@@ -253,7 +260,7 @@ const ProductModalOptimized = ({ productId, show, onHide }) => {
         confirmButtonColor: '#ffc107'
       });
     }
-  }, [productId, quantity, onHide]);
+  }, [productId, quantity, product, onHide]);
 
   // Memoize the quantity options to avoid unnecessary re-renders
   const quantityOptions = useMemo(() => {

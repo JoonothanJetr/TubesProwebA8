@@ -8,7 +8,6 @@ import AdminLayout from './components/layout/AdminLayout.jsx';
 // Pages & Components
 import HomeOptimized from './pages/HomeOptimized.jsx';
 import About from './pages/About.jsx';
-import ImageDebugger from './pages/ImageDebugger.jsx';
 import PaymentPage from './pages/PaymentPage.jsx';
 
 // Auth Components
@@ -103,7 +102,6 @@ function App() {
             <Route path="/register/admin" element={<AdminRegister />} />
             <Route path="/products" element={<Layout><ProductList /></Layout>} />
             <Route path="/products/:id" element={<Layout><ProductDetail /></Layout>} />
-            <Route path="/debug-images" element={<Layout><ImageDebugger /></Layout>} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
