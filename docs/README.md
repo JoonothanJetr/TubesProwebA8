@@ -1,7 +1,7 @@
-# SI CATE Documentation
+# SICATE Documentation
 
 ## Overview
-SI CATE (Sistem Informasi Catering) adalah platform e-commerce modern untuk Toba Home Catering yang menyediakan solusi digital untuk pemesanan makanan dan pengelolaan operasional catering. Dibangun menggunakan React.js dan Node.js, aplikasi ini menawarkan antarmuka yang intuitif untuk pelanggan dan panel administrasi yang komprehensif.
+SICATE (Sistem Informasi Catering) adalah aplikasi web e-commerce modern untuk Toba Home Catering yang menyediakan solusi digital untuk operasi bisnis katering. Aplikasi ini dibangun menggunakan React, Node.js, dan Express untuk memberikan pengalaman yang mulus baik bagi pelanggan maupun admin. Dengan fokus pada pengalaman pengguna yang interaktif dan animasi yang responsif, SICATE menawarkan antarmuka yang intuitif dan menarik.
 
 ## Repository Structure
 ```
@@ -34,53 +34,61 @@ TubesProwebA8/
 ### Frontend
 - React.js + Vite
 - Tailwind CSS untuk UI responsif
+- Framer Motion untuk animasi dan transisi
 - React Router untuk navigasi
 - Axios untuk komunikasi API
 - Chart.js untuk visualisasi data
+- React Context API untuk state management
 
 ### Backend
 - Node.js dengan Express
-- PostgreSQL untuk database
+- MongoDB untuk database
 - JWT untuk autentikasi
 - Multer untuk upload file
+- Express Validator untuk validasi data
 
 ## Key Features
 
 ### Customer Features
 1. **User Interface**
-   - Modern dan responsif
-   - Filter produk berdasarkan kategori
-   - Detail produk dalam modal popup
-   - Sistem keranjang belanja
+   - Modern dan responsif dengan animasi interaktif
+   - Filter produk berdasarkan kategori dengan efek spring
+   - Detail produk dalam modal popup dengan animasi transisi
+   - Sistem keranjang belanja dengan validasi stok
+   - Indikator stok rendah (badge merah) untuk produk dengan stok ≤ 5
+   - Animasi peringatan stok saat mencoba menambahkan lebih dari stok tersedia
 
 2. **Account Management**
-   - Registrasi dan login
-   - Manajemen profil
-   - Riwayat pesanan
-   - Sistem ulasan
+   - Registrasi dan login dengan validasi
+   - Manajemen profil dengan foto pengguna
+   - Riwayat pesanan dengan animasi staggered
+   - Sistem ulasan dengan rating bintang
 
 3. **Order Management**
-   - Keranjang belanja
-   - Checkout process
-   - Status tracking
-   - Multiple payment methods
+   - Keranjang belanja dengan update real-time
+   - Checkout process dengan animasi step-by-step
+   - Status tracking dengan indikator visual
+   - Multiple payment methods dengan upload bukti pembayaran
 
 ### Admin Features
 1. **Dashboard**
-   - Statistik penjualan
-   - Visualisasi data
-   - Overview operasional
+   - Statistik penjualan dengan grafik interaktif
+   - Visualisasi data real-time
+   - Overview operasional dengan indikator performa
+   - Notifikasi pesanan baru dengan animasi
 
 2. **Management Tools**
-   - CRUD produk
-   - Manajemen pesanan
-   - Manajemen pengguna
-   - Manajemen kategori
+   - CRUD produk dengan upload gambar
+   - Manajemen stok produk dengan peringatan stok rendah
+   - Manajemen pesanan dengan update status
+   - Manajemen pengguna dengan level akses
+   - Manajemen kategori dengan drag-and-drop
 
 3. **Analytics**
-   - Laporan penjualan
-   - Statistik customer
-   - Performance tracking
+   - Laporan penjualan dengan filter periode
+   - Statistik customer dengan segmentasi
+   - Performance tracking dengan metrik KPI
+   - Export data ke format Excel/PDF
 
 ## Installation
 
@@ -127,23 +135,24 @@ TubesProwebA8/
 
 ## Recent Updates
 
-1. **Admin Panel Enhancements**
-   - Dashboard dengan visualisasi data
-   - Improved order management
-   - Enhanced user management
-   - Analytics integration
+1. **UI/UX Enhancements with Animations**
+   - Implementasi animasi pada halaman produk dan pesanan menggunakan Framer Motion
+   - Animasi intro dengan judul "Menu Produk TobaHome" dan ikon shopping bag
+   - Animasi intro dengan judul "Riwayat Pesanan" dan ikon paket dengan efek spring
+   - Animasi bertahap (staggered) untuk kartu produk dan baris tabel pesanan
+   - Efek hover interaktif untuk kartu produk dan baris pesanan
 
-2. **Cart System Improvements**
-   - Order date selection
-   - Better order confirmation flow
-   - Payment process optimization
-   - Order status notifications
+2. **Stock Management System**
+   - Indikator stok rendah pada kartu produk dengan badge merah untuk item dengan stok ≤ 5
+   - Animasi peringatan stok dalam modal produk saat mencoba menambahkan lebih dari stok tersedia
+   - Validasi input kuantitas untuk mencegah penambahan 0 item ke keranjang
+   - Sistem update stok real-time setelah pembelian
 
-3. **UI/UX Refinements**
-   - Responsive design updates
-   - Navigation improvements
-   - Loading performance
-   - Form validation
+3. **Performance Optimizations**
+   - Lazy loading untuk komponen dan gambar
+   - Implementasi staggered animations untuk mengurangi beban rendering
+   - Prefetching data produk untuk meningkatkan kecepatan navigasi
+   - Optimasi ukuran gambar dan aset
 
 ## Team
 

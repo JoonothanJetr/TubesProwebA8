@@ -1,10 +1,10 @@
-# User Manual SI CATE
+# User Manual SICATE
 
-## Panduan Penggunaan Website SI CATE
+## Panduan Penggunaan Website SICATE
 ### Sistem Informasi Catering untuk Toba Home Catering
 
 ## Pendahuluan
-Website SI CATE adalah sistem informasi berbasis web untuk memudahkan pelanggan memesan makanan dari Toba Home Catering dan membantu admin mengelola produk, pesanan, dan data pelanggan. Panduan ini dibagi menjadi dua bagian: untuk pelanggan dan untuk admin.
+Website SICATE adalah sistem informasi e-commerce berbasis web untuk memudahkan pelanggan memesan makanan dari Toba Home Catering dan membantu admin mengelola produk, pesanan, dan data pelanggan. Aplikasi ini dibangun dengan fokus pada pengalaman pengguna yang interaktif menggunakan animasi dan fitur modern. Panduan ini dibagi menjadi dua bagian: untuk pelanggan dan untuk admin.
 
 ## 1. Panduan untuk Pelanggan
 
@@ -22,13 +22,18 @@ Website SI CATE adalah sistem informasi berbasis web untuk memudahkan pelanggan 
 
 ### 1.3 Melihat Menu Makanan (Katalog)
 - Setelah login, klik menu "Katalog"
+- Halaman akan menampilkan judul "Menu Produk TobaHome" dengan animasi intro dan ikon shopping bag
 - Lihat semua pilihan makanan dengan foto, nama, harga, dan deskripsi
-- Klik salah satu menu untuk melihat detailnya
+- Produk dengan stok 5 atau kurang akan ditampilkan dengan badge merah di pojok kanan atas
+- Gunakan filter kategori di bagian atas untuk menyaring produk berdasarkan kategori
+- Klik salah satu menu untuk melihat detailnya dalam modal popup
 
 ### 1.4 Menambahkan Menu ke Keranjang
-- Pada halaman detail menu, pilih jumlah yang diinginkan 
-- Klik "Tambah ke Keranjang"
-- Menu tersebut akan masuk ke daftar belanja
+- Pada modal detail produk, perhatikan informasi stok yang tersedia
+- Pilih jumlah yang diinginkan menggunakan tombol + dan - atau ketik langsung
+- Jika Anda mencoba menambahkan jumlah melebihi stok yang tersedia, sistem akan menampilkan peringatan animasi
+- Klik "Tambah ke Keranjang" untuk menambahkan produk ke keranjang
+- Sistem akan menampilkan notifikasi bahwa produk berhasil ditambahkan
 
 ### 1.5 Mengecek dan Mengatur Keranjang
 - Klik menu "Keranjang"
