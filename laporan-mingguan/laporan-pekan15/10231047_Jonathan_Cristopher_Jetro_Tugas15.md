@@ -17,7 +17,7 @@
 **Tanggal**: 23/05/2025
 
 ## Progress Summary
-Pada minggu terakhir ini, tim telah menyelesaikan seluruh pengembangan aplikasi SICATE dengan melakukan finalisasi dokumentasi, penyusunan README, dokumentasi API, dan panduan pengguna, serta deployment aplikasi ke server. Presentasi final telah disiapkan secara lengkap yang mencakup penjelasan tentang SICATE, latar belakang proyek, tujuan pengembangan, sasaran pengguna, teknologi yang digunakan, serta arsitektur sistem.
+Pada minggu terakhir ini, tim telah menyelesaikan seluruh pengembangan aplikasi SICATE dengan melakukan finalisasi dokumentasi, penyusunan README, dokumentasi API, dan panduan pengguna. Presentasi final telah disiapkan secara lengkap yang mencakup penjelasan tentang SICATE, latar belakang proyek, tujuan pengembangan, sasaran pengguna, teknologi yang digunakan, serta arsitektur sistem.
 
 
 ## Accomplished Tasks
@@ -27,14 +27,9 @@ Pada minggu terakhir ini, tim telah menyelesaikan seluruh pengembangan aplikasi 
 
 ## Challenges & Solutions
 - **Challenge 1**: Mengoptimalkan performa animasi pada halaman dengan banyak elemen dinamis
-  - **Solution**: Implementasi lazy loading dan staggered animations dengan Framer Motion untuk mengurangi beban rendering dan menciptakan pengalaman pengguna yang lebih lancar
+  - **Solution**: Implementasi lazy loading dan staggered animations dengan Framer Motion untuk mengurangi beban rendering dan menciptakan pengalaman pengguna yang lebih lancar.
 - **Challenge 2**: Menangani kasus edge pada stok produk yang rendah atau habis
-  - **Solution**: Merancang sistem peringatan stok yang intuitif dengan animasi visual dan feedback yang jelas kepada pengguna
-
-## Next Week Plan
-- Monitoring dan maintenance aplikasi yang sudah di-deploy
-- Persiapan untuk penyerahan proyek ke Toba Home Catering
-- Evaluasi feedback dari pengguna untuk pengembangan selanjutnya
+  - **Solution**: Merancang sistem peringatan stok yang intuitif dengan animasi visual dan feedback yang jelas kepada pengguna.
 
 ## Contributions
 - **Chelsy Olivia**: 
@@ -79,7 +74,7 @@ SICATE adalah aplikasi web e-commerce modern untuk Toba Home Catering yang menye
 #### Teknologi
 - **Frontend:** React, Framer Motion, Tailwind CSS
 - **Backend:** Node.js, Express
-- **Database:** MongoDB
+- **Database:** postgreSQL
 - **State Management:** React Context API
 
 ### API Documentation
@@ -201,6 +196,10 @@ Untuk dokumentasi yang lebih lengkap dan terstruktur, kami menyediakan file-file
    - Panduan admin
    - Screenshot dan contoh
    - Lokasi: `/docs/user-manual.md`
+
+4. **Presentation Final**
+
+Link PPT: https://www.canva.com/design/DAGoP9pSGUo/gX9FxiLSy22UVs_e7znqUQ/edit?utm_content=DAGoP9pSGUo&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton 
 
 Semua file dokumentasi dapat diakses melalui repository GitHub di folder `/docs`.
 
