@@ -32,8 +32,8 @@ Pada minggu terakhir ini, tim telah menyelesaikan seluruh pengembangan aplikasi 
   - **Solution**: Merancang sistem peringatan stok yang intuitif dengan animasi visual dan feedback yang jelas kepada pengguna.
 
 ## Contributions
-- **Chelsy Olivia**: 
-- **Andini Permata Sari**: 
+- **Chelsy Olivia**: Membuat laporan mingguan, membantu memberi masukan kepada frontend dan backend
+- **Andini Permata Sari**: Membuat dokumentasi (Readme, API Docs, user manual)
 - **Jonathan Cristopher Jetro**: 
   - Mengimplementasikan animasi pada halaman produk dan pesanan menggunakan Framer Motion
   - Menambahkan indikator stok rendah pada kartu produk dengan badge merah untuk item dengan stok 5 atau kurang
@@ -42,8 +42,8 @@ Pada minggu terakhir ini, tim telah menyelesaikan seluruh pengembangan aplikasi 
   - Menambahkan judul "Menu Produk TobaHome" dengan animasi intro ke halaman produk
   - Membuat animasi intro dengan judul "Riwayat Pesanan" dan ikon paket dengan efek spring pada halaman pesanan
   - Mengimplementasikan animasi bertahap untuk baris tabel pesanan dan efek hover
-- **Nicholas Christian Samuel Manurung**: 
-  
+- **Nicholas Christian Samuel Manurung**: Mencari bug dan usability testing dan membantu membuat dokumentasi (Readme, API Docs, user manual)
+   
 ## Screenshots 
 ### Halaman Produk dengan Animasi dan Indikator Stok
 ![Halaman Produk](https://example.com/product-page.png)
