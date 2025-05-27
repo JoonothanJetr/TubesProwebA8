@@ -76,17 +76,13 @@ SI CATE adalah aplikasi web full-stack modern untuk Toba Home Catering yang meny
 
 #### Database Setup
 1. Install PostgreSQL if you haven't already
-2. Create a new database:
-   ```sql
-   CREATE DATABASE sicatedb;
-   ```
-3. Initialize the schema:
+2. Run the schema file which will create and setup the database:
    ```bash
    # Navigate to backend directory
    cd ecommerce-backend
    
-   # Import schema
-   psql -U your_username -d sicatedb -f src/database/schema.sql
+   # Create and initialize database (as postgres superuser)
+   sudo -u postgres psql -f database/schema.sql
    ```
 
 #### Environment Setup

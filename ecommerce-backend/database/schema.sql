@@ -1,8 +1,7 @@
 -- Drop existing schema and recreate
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
-GRANT ALL ON SCHEMA public TO postgres;
-GRANT ALL ON SCHEMA public TO public;
+DROP DATABASE IF EXISTS catering_ecommerce;
+CREATE DATABASE catering_ecommerce;
+\c catering_ecommerce;
 
 -- Create users table
 CREATE TABLE users (
