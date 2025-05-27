@@ -67,6 +67,66 @@ SI CATE adalah aplikasi web full-stack modern untuk Toba Home Catering yang meny
 - **Latest Release**: v1.0.0
 - **Release Date**: 24/05/2025
 
+### Setup Instructions
+
+#### Prerequisites
+- Node.js 16 or higher
+- PostgreSQL 12 or higher
+- npm or yarn
+
+#### Database Setup
+1. Install PostgreSQL if you haven't already
+2. Create a new database:
+   ```sql
+   CREATE DATABASE sicatedb;
+   ```
+3. Initialize the schema:
+   ```bash
+   # Navigate to backend directory
+   cd ecommerce-backend
+   
+   # Import schema
+   psql -U your_username -d sicatedb -f src/database/schema.sql
+   ```
+
+#### Environment Setup
+1. Frontend (.env in ecommerce-frontend/):
+   ```
+   VITE_API_URL=http://localhost:5000/api
+   ```
+
+2. Backend (.env in ecommerce-backend/):
+   ```
+   PORT=5000
+   DATABASE_URL=postgresql://username:password@localhost:5432/sicatedb
+   JWT_SECRET=your_jwt_secret
+   ```
+
+#### Installation
+1. Frontend Setup:
+   ```bash
+   cd ecommerce-frontend
+   npm install
+   npm run dev
+   ```
+
+2. Backend Setup:
+   ```bash
+   cd ecommerce-backend
+   npm install
+   npm run dev
+   ```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+
+#### Default Admin Credentials
+```
+Email: admin@example.com
+Password: admin123
+```
+
 ### Repository Structure
 ```
 TubesProwebA8/
