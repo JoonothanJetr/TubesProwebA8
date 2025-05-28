@@ -20,6 +20,7 @@ const CartList = () => {
     const [deliveryOption, setDeliveryOption] = useState('pickup');
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [phoneNumber, setPhoneNumber] = useState(''); // State untuk nomor telepon
+    const [phoneNumberError, setPhoneNumberError] = useState(''); // State untuk error nomor telepon
     
     // Add these new state variables
     const [existingQuantities, setExistingQuantities] = useState({});
@@ -245,6 +246,16 @@ const CartList = () => {
                 icon: 'error',
                 title: 'Nomor Telepon Dibutuhkan',
                 text: 'Silakan masukkan nomor telepon/WhatsApp yang dapat dihubungi',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+        
+        if (phoneNumber.length < 11) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Format Nomor Telepon Salah',
+                text: 'Nomor telepon harus minimal 11 digit',
                 confirmButtonColor: '#ffc107'
             });
             return;
@@ -652,15 +663,30 @@ const CartList = () => {
                             <input
                                 type="tel"
                                 value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400"
+                                onChange={(e) => {
+                                    // Hanya menerima input angka
+                                    const value = e.target.value.replace(/[^0-9]/g, '');
+                                    setPhoneNumber(value);
+                                    
+                                    // Validasi nomor minimal 11 digit
+                                    if (value && value.length < 11) {
+                                        setPhoneNumberError('Nomor telepon harus minimal 11 digit');
+                                    } else {
+                                        setPhoneNumberError('');
+                                    }
+                                }}
+                                className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 ${phoneNumberError ? 'border-red-500' : ''}`}
                                 placeholder="Contoh: 08123456789"
                             />
-                            <p className="mt-1 text-sm text-gray-500">
-                                {deliveryOption === 'delivery' 
-                                    ? 'Nomor ini akan digunakan untuk konfirmasi pengiriman'
-                                    : 'Nomor ini akan digunakan untuk konfirmasi pengambilan'}
-                            </p>
+                            {phoneNumberError ? (
+                                <p className="mt-1 text-sm text-red-500">{phoneNumberError}</p>
+                            ) : (
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {deliveryOption === 'delivery' 
+                                        ? 'Nomor ini akan digunakan untuk konfirmasi pengiriman'
+                                        : 'Nomor ini akan digunakan untuk konfirmasi pengambilan'}
+                                </p>
+                            )}
                         </div>
 
                         {deliveryOption === 'delivery' && (
