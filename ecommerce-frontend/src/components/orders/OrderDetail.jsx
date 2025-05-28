@@ -127,6 +127,21 @@ const OrderDetail = () => {
                         </div>
                         
                         <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt className="text-sm font-medium text-gray-500">
+                                Opsi Pengiriman
+                            </dt>
+                            <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                                    order.delivery_option === 'delivery' 
+                                        ? 'bg-blue-100 text-blue-700' 
+                                        : 'bg-green-100 text-green-700'
+                                }`}>
+                                    {order.delivery_option === 'delivery' ? 'Diantar ke Alamat' : 'Ambil di Toko'}
+                                </span>
+                            </dd>
+                        </div>
+
+                        <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             {order.phone_number && (
                                 <>
                                     <dt className="text-sm font-medium text-gray-500">

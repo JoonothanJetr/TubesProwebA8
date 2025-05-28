@@ -9,6 +9,24 @@ import AnimatedPage from '../components/common/AnimatedPage';
 import AnimatedSection from '../components/animations/AnimatedSection';
 import AnimatedItem from '../components/animations/AnimatedItem';
 
+// Fungsi untuk mendapatkan label metode pembayaran yang sesuai
+const getPaymentMethodLabel = (method) => {
+    switch(method) {
+        case 'cod':
+            return 'Bayar di Lokasi Pengambilan (COD)';
+        case 'qris':
+            return 'QRIS';
+        case 'dana':
+            return 'DANA';
+        case 'gopay':
+            return 'GoPay';
+        case 'bank_transfer':
+            return 'Transfer Bank';
+        default:
+            return method ? method.charAt(0).toUpperCase() + method.slice(1) : 'Tidak diketahui';
+    }
+};
+
 const PaymentPage = () => {
     const navigate = useNavigate();
     const [checkoutData, setCheckoutData] = useState(null);
@@ -272,7 +290,7 @@ const PaymentPage = () => {
                                 <span className="font-medium">Metode Pengiriman:</span> {checkoutData.deliveryOption === 'delivery' ? 'Diantar' : 'Ambil Sendiri'}
                             </p>
                             <p className="text-gray-700 mb-2">
-                                <span className="font-medium">Metode Pembayaran:</span> {checkoutData.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Transfer Bank'}
+                                <span className="font-medium">Metode Pembayaran:</span> {getPaymentMethodLabel(checkoutData.paymentMethod)}
                             </p>
                             <p className="text-gray-700 mb-2">
                                 <span className="font-medium">Tanggal Pengambilan/Pengiriman:</span> {checkoutData.desiredCompletionDate}

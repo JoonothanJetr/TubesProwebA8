@@ -84,14 +84,31 @@ const OrderManagement = () => {
     };
 
     const handleDeleteHistoryClick = async () => {
+        // Periksa apakah filter akan menghapus pesanan yang mempengaruhi dashboard
+        const willAffectDashboard = filters.paymentStatus === 'pembayaran sudah dilakukan' || filters.orderStatus === 'selesai';
+        
+        // Tampilkan peringatan yang sesuai
+        let warningText = 'Apakah Anda yakin ingin menghapus semua riwayat pesanan dengan filter yang dipilih? Tindakan ini tidak dapat dibatalkan.';
+        
+        if (willAffectDashboard) {
+            warningText += '\n\nPERINGATAN: Penghapusan pesanan dengan status "pembayaran sudah dilakukan" atau "selesai" akan mempengaruhi data statistik di dashboard, termasuk total pendapatan dan jumlah pesanan.';
+        }
+        
         const { isConfirmed } = await Swal.fire({
             title: 'Konfirmasi Penghapusan',
-            text: 'Apakah Anda yakin ingin menghapus semua riwayat pesanan dengan filter yang dipilih? Tindakan ini tidak dapat dibatalkan.',
+            html: willAffectDashboard 
+                ? `<div class="text-left">
+                     <p>${warningText.split('\n\n')[0]}</p>
+                     <p class="mt-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg border border-yellow-300">
+                       <strong>PERINGATAN:</strong> ${warningText.split('\n\n')[1]}
+                     </p>
+                   </div>` 
+                : warningText,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc2626',
             cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Ya, Hapus',
+            confirmButtonText: 'Ya, Saya Mengerti dan Ingin Menghapus',
             cancelButtonText: 'Batal',
             showLoaderOnConfirm: true,
             preConfirm: async () => {

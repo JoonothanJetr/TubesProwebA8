@@ -268,8 +268,9 @@ router.post('/', auth.authenticateToken, async (req, res) => {
                 payment_status, 
                 desired_completion_date, 
                 delivery_address, 
-                phone_number
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+                phone_number,
+                delivery_option
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING 
                 id, 
                 order_status, 
@@ -277,7 +278,8 @@ router.post('/', auth.authenticateToken, async (req, res) => {
                 created_at,
                 delivery_address, 
                 phone_number, 
-                payment_method
+                payment_method,
+                delivery_option
         `;
 
         console.log('Executing order insert with params:', [
@@ -288,7 +290,8 @@ router.post('/', auth.authenticateToken, async (req, res) => {
             paymentStatus,
             validatedData.desiredCompletionDate,
             validatedData.deliveryAddress,
-            validatedData.phoneNumber
+            validatedData.phoneNumber,
+            validatedData.deliveryOption || 'pickup'
         ]);
 
         const orderRes = await client.query(orderInsertQuery, [
@@ -299,7 +302,8 @@ router.post('/', auth.authenticateToken, async (req, res) => {
             paymentStatus,
             validatedData.desiredCompletionDate || new Date(),
             validatedData.deliveryAddress,
-            validatedData.phoneNumber
+            validatedData.phoneNumber,
+            validatedData.deliveryOption || 'pickup'
         ]);
 
         const newOrderId = orderRes.rows[0].id;
@@ -714,6 +718,112 @@ router.post('/:id/cancel', auth.authenticateToken, async (req, res) => {
         res.status(400).json({ 
             success: false,
             error: err.message || 'Gagal membatalkan pesanan'
+        });
+    } finally {
+        client.release();
+    }
+});
+
+// Delete order history by filter (Admin only)
+router.post('/delete-history', auth.isAdmin, async (req, res) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        
+        const filters = req.body;
+        let queryParams = [];
+        let conditions = [];
+        let paramIndex = 1;
+        
+        // Build query conditions based on filters
+        if (filters.paymentStatus) {
+            conditions.push(`payment_status = $${paramIndex}`);
+            queryParams.push(filters.paymentStatus);
+            paramIndex++;
+        }
+        
+        if (filters.orderStatus) {
+            conditions.push(`order_status = $${paramIndex}`);
+            queryParams.push(filters.orderStatus);
+            paramIndex++;
+        }
+        
+        if (filters.customerId) {
+            conditions.push(`user_id = $${paramIndex}`);
+            queryParams.push(filters.customerId);
+            paramIndex++;
+        }
+        
+        if (filters.dateRange && filters.dateRange.start) {
+            conditions.push(`created_at >= $${paramIndex}`);
+            queryParams.push(filters.dateRange.start);
+            paramIndex++;
+        }
+        
+        if (filters.dateRange && filters.dateRange.end) {
+            conditions.push(`created_at <= $${paramIndex}`);
+            queryParams.push(`${filters.dateRange.end} 23:59:59`);
+            paramIndex++;
+        }
+        
+        // If no conditions, don't allow deleting all orders
+        if (conditions.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                success: false,
+                message: 'Setidaknya satu filter harus ditentukan untuk menghapus riwayat pesanan'
+            });
+        }
+        
+        // Get order IDs that match the filter
+        const whereClause = conditions.join(' AND ');
+        const orderIdsQuery = `SELECT id, payment_proof_url FROM orders WHERE ${whereClause}`;
+        const orderIdsResult = await client.query(orderIdsQuery, queryParams);
+        
+        if (orderIdsResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.json({
+                success: true,
+                message: 'Tidak ada pesanan yang cocok dengan filter'
+            });
+        }
+        
+        // Delete order items for all matched orders
+        const orderIds = orderIdsResult.rows.map(row => row.id);
+        await client.query(`DELETE FROM order_items WHERE order_id IN (${orderIds.map((_, i) => `$${i+1}`).join(',')})`, orderIds);
+        
+        // Delete payment proof files if they exist
+        for (const order of orderIdsResult.rows) {
+            if (order.payment_proof_url) {
+                const proofPath = path.join(proofUploadDir, order.payment_proof_url);
+                try {
+                    if (fs.existsSync(proofPath)) {
+                        fs.unlinkSync(proofPath);
+                    }
+                } catch (err) {
+                    console.error(`Error deleting proof file for order ${order.id}:`, err);
+                    // Continue with order deletion even if file delete fails
+                }
+            }
+        }
+        
+        // Delete the orders
+        const deleteResult = await client.query(`DELETE FROM orders WHERE id IN (${orderIds.map((_, i) => `$${i+1}`).join(',')})`, orderIds);
+        
+        await client.query('COMMIT');
+        
+        res.json({
+            success: true,
+            message: `${orderIds.length} pesanan berhasil dihapus`,
+            count: orderIds.length
+        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Error deleting order history:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Terjadi kesalahan saat menghapus riwayat pesanan',
+            error: err.message
         });
     } finally {
         client.release();

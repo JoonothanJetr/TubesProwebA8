@@ -466,7 +466,20 @@ const AdminOrderDetail = () => {
                                        </p>
                                     </div>
 
-                                    {order.delivery_address && (
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Opsi Pengiriman</p>
+                                        <p className="text-gray-900">
+                                            <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                                order.delivery_option === 'delivery' 
+                                                    ? 'bg-blue-100 text-blue-700' 
+                                                    : 'bg-green-100 text-green-700'
+                                            }`}>
+                                                {order.delivery_option === 'delivery' ? 'Diantar ke Alamat' : 'Ambil di Toko'}
+                                            </span>
+                                        </p>
+                                    </div>
+
+                                    {order.delivery_option === 'delivery' && order.delivery_address && (
                                         <div className="bg-gray-50 p-4 rounded-lg">
                                             <p className="text-sm font-medium text-gray-500 mb-1">Alamat Pengiriman</p>
                                             <p className="text-gray-900">{order.delivery_address}</p>
