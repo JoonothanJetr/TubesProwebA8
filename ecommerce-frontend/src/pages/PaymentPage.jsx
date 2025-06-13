@@ -59,14 +59,26 @@ const PaymentPage = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            // Validate file size
             if (file.size > 5 * 1024 * 1024) { // 5MB limit
                 setError('Ukuran file terlalu besar (maksimal 5MB)');
+                e.target.value = ''; // Reset input file
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File Terlalu Besar',
+                    text: 'Ukuran bukti pembayaran tidak boleh lebih dari 5MB',
+                    confirmButtonColor: '#3085d6',
+                });
                 return;
             }
+
+            // Validate file type
             if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
                 setError('Format file tidak didukung (gunakan JPG atau PNG)');
+                e.target.value = ''; // Reset input file
                 return;
             }
+
             setPaymentProof(file);
             setPreviewProof(URL.createObjectURL(file));
             setError('');

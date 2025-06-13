@@ -7,6 +7,7 @@ import { authService } from '../../services/authService';
 import { getProductImageUrl } from '../../utils/imageHelper';
 import { FiCheck, FiX } from 'react-icons/fi';
 import AnimatedPage from '../common/AnimatedPage';
+import Swal from 'sweetalert2';
 
 const ProductForm = () => {    
     const { productId } = useParams();
@@ -137,6 +138,13 @@ const ProductForm = () => {
             // Validasi ukuran file (5MB)
             if (file.size > 5 * 1024 * 1024) {
                 setError('Ukuran file tidak boleh lebih dari 5MB');
+                e.target.value = ''; // Reset input file
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File Terlalu Besar',
+                    text: 'Ukuran gambar tidak boleh lebih dari 5MB',
+                    confirmButtonColor: '#3085d6',
+                });
                 return;
             }
             setProduct(prev => ({ ...prev, image: file }));
